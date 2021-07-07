@@ -7,8 +7,8 @@
     "dist": "scripts/dist",
     "deploy": "scripts/deploy"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Relaying Services Team",
+  "license": "MIT",
   "dependencies": {
     "@openeth/truffle-typings": "0.0.6",
     "@openzeppelin/contracts": "^3.2.0",
