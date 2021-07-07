@@ -1,0 +1,31 @@
+{
+  "name": "rif-relay-contracts",
+  "version": "1.0.0",
+  "description": "This project contains all the contracts needed for the rif relay system.",
+  "main": "index.ts",
+  "scripts": {
+    "dist": "scripts/dist",
+    "deploy": "scripts/deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openeth/truffle-typings": "0.0.6",
+    "@openzeppelin/contracts": "^3.2.0",
+    "@truffle/contract": "^4.2.23",
+    "@truffle/hdwallet-provider": "1.2.3",
+    "@types/node": "^13.0.0",
+    "truffle-hdwallet-provider": "^1.0.17"
+  },
+  "devDependencies": {
+    "solhint": "3.0.0",
+    "truffle": "^5.1.52",
+    "ts-loader": "^9.2.3",
+    "ts-node": "8.6.2",
+    "typechain": "1.0.5",
+    "typechain-target-trufflehotfix": "0.0.4-alpha",
+    "typescript": "^4.3.5",
+    "webpack": "^5.43.0",
+    "webpack-cli": "^4.7.2"
+  }
+}
