@@ -38,3 +38,20 @@ import {RelayHub, IForwarder} from '@rsksmart/rif-relay-contracts';
 const relayHubContractAbi = RelayHub.abi;
 const iForwarderAbi = IForwarder.abi;
 ```
+
+#### How to add new resources
+
+You always can add new solidity files inside the contracts folder at the root
+of this repository, but you need to understand a few rules before doing that.
+
+1. If your new file is not meant to be used outside this repository (internal contract or contract that will not be
+   be manually instantiated) then you don't need to worry about anything else than just making solidity compile using
+   `npm run compile`.
+   
+2. If your file it's a contract that needs to be manually instantiated or referenced from
+outside this project then you need to follow some steps. Basically you make your
+   changes on solidity, then run `npm run compile`, if everything went well then
+   your next step should be going to the `index.ts` file in the root of this project
+   and add those new contracts/interfaces to the import/export declarations.
+   When you run `npm run compile` typechain generates the typings for your new 
+   contracts and you need to export those typings since you need them outside this repository.

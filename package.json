@@ -5,7 +5,9 @@
   "main": "index.ts",
   "scripts": {
     "dist": "scripts/dist",
-    "deploy": "scripts/deploy"
+    "deploy": "scripts/deploy",
+    "compile": "scripts/compile",
+    "postinstall": "patch-package"
   },
   "author": "Relaying Services Team",
   "license": "MIT",
@@ -15,6 +17,7 @@
     "@truffle/contract": "^4.2.23",
     "@truffle/hdwallet-provider": "1.2.3",
     "@types/node": "^13.0.0",
+    "patch-package": "^6.4.6",
     "truffle-hdwallet-provider": "^1.0.17"
   },
   "devDependencies": {

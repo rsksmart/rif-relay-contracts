@@ -7,4 +7,6 @@ fi
 
 NETWORK=$1
 
+rm -rf build
+
 npx truffle migrate --network "${NETWORK}"
