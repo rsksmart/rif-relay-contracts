@@ -1,5 +1,5 @@
 {
-  "name": "rif-relay-contracts",
+  "name": "@rsksmart/rif-relay-contracts",
   "version": "1.0.0",
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "index.ts",
