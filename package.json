@@ -7,7 +7,10 @@
     "dist": "scripts/dist",
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "postpack": "./scripts/postpack",
+    "prepare": "./scripts/prepare",
+    "prepublishOnly": "npm run prepare"
   },
   "author": "Relaying Services Team",
   "license": "MIT",
