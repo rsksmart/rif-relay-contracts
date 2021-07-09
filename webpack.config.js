@@ -17,7 +17,7 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js', '.json'],
     },
     output: {
-        filename: 'bundle.js',
+        filename: 'index.js',
         path: path.resolve(__dirname, 'dist'),
         libraryTarget : 'commonjs2'
     },

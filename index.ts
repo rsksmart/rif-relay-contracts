@@ -26,7 +26,7 @@ const TestDeployVerifierEverythingAccepted = require('./build/contracts/TestDepl
 const TestVerifierEverythingAccepted = require('./build/contracts/TestVerifierEverythingAccepted.json');
 const VersionRegistry = require('./build/contracts/VersionRegistry.json');
 
-export default {
+export {
     // interfaces
     EnvelopingTypes,
     ICustomSmartWalletFactory,
