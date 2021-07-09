@@ -1,13 +1,33 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "module": "es6",
-    "target": "es5",
     "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "es2017",
+    "module": "commonjs",
+    "strict": true,
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports" : true,
-    "esModuleInterop" : true
-  }
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "lib": [
+      "dom",
+      "es2015",
+      "esnext.asynciterable"
+    ],
+    "sourceMap": true,
+  },
+  "include": [
+    "**/*.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "build"
+  ]
 }

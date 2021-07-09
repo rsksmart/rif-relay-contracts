@@ -2,8 +2,8 @@ const path = require('path');
 
 module.exports = {
     entry: './index.ts',
-    devtool: 'inline-source-map',
     mode: 'production',
+    target: 'node',
     module: {
         rules: [
             {
@@ -14,11 +14,12 @@ module.exports = {
         ],
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.tsx', '.ts', '.js', '.json'],
     },
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist'),
+        libraryTarget : 'commonjs2'
     },
     performance: {
         maxEntrypointSize: 5120000,

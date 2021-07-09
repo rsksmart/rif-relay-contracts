@@ -1,150 +1,32 @@
 // interfaces
-import * as EnvelopingTypes from './build/contracts/EnvelopingTypes.json';
-import * as ICustomSmartWalletFactory from './build/contracts/ICustomSmartWalletFactory.json';
-import * as IDeployVerifier from './build/contracts/IDeployVerifier.json';
-import * as IForwarder from './build/contracts/IForwarder.json';
-import * as IPenalizer from './build/contracts/IPenalizer.json';
-import * as IRelayHub from './build/contracts/IRelayHub.json';
-import * as IRelayVerifier from './build/contracts/IRelayVerifier.json';
-import * as ISmartWalletFactory from './build/contracts/ISmartWalletFactory.json';
-import * as ITokenHandler from './build/contracts/ITokenHandler.json';
-import * as IVersionRegistry from './build/contracts/IVersionRegistry.json';
-import * as IWalletCustomLogic from './build/contracts/IWalletCustomLogic.json';
-import * as IWalletFactory from './build/contracts/IWalletFactory.json';
+const EnvelopingTypes = require('./build/contracts/EnvelopingTypes.json');
+const ICustomSmartWalletFactory = require('./build/contracts/ICustomSmartWalletFactory.json');
+const IDeployVerifier = require('./build/contracts/IDeployVerifier.json');
+const IForwarder = require('./build/contracts/IForwarder.json');
+const IPenalizer = require('./build/contracts/IPenalizer.json');
+const IRelayHub = require('./build/contracts/IRelayHub.json');
+const IRelayVerifier = require('./build/contracts/IRelayVerifier.json');
+const ISmartWalletFactory = require('./build/contracts/ISmartWalletFactory.json');
+const ITokenHandler = require('./build/contracts/ITokenHandler.json');
+const IVersionRegistry = require('./build/contracts/IVersionRegistry.json');
+const IWalletCustomLogic = require('./build/contracts/IWalletCustomLogic.json');
+const IWalletFactory = require('./build/contracts/IWalletFactory.json');
 
 // contracts
-import * as CustomSmartWallet from './build/contracts/CustomSmartWallet.json';
-import * as CustomSmartWalletDeployVerifier from './build/contracts/CustomSmartWalletDeployVerifier.json';
-import * as CustomSmartWalletFactory from './build/contracts/CustomSmartWalletFactory.json';
-import * as DeployVerifier from './build/contracts/DeployVerifier.json';
-import * as Penalizer from './build/contracts/Penalizer.json';
-import * as RelayHub from './build/contracts/RelayHub.json';
-import * as RelayVerifier from './build/contracts/RelayVerifier.json';
-import * as SmartWallet from './build/contracts/SmartWallet.json';
-import * as SmartWalletFactory from './build/contracts/SmartWalletFactory.json';
-import * as TestDeployVerifierEverythingAccepted from './build/contracts/TestDeployVerifierEverythingAccepted.json';
-import * as TestVerifierEverythingAccepted from './build/contracts/TestVerifierEverythingAccepted.json';
-import * as VersionRegistry from './build/contracts/VersionRegistry.json';
+const CustomSmartWallet = require('./build/contracts/CustomSmartWallet.json');
+const CustomSmartWalletDeployVerifier = require('./build/contracts/CustomSmartWalletDeployVerifier.json');
+const CustomSmartWalletFactory = require('./build/contracts/CustomSmartWalletFactory.json');
+const DeployVerifier = require('./build/contracts/DeployVerifier.json');
+const Penalizer = require('./build/contracts/Penalizer.json');
+const RelayHub = require('./build/contracts/RelayHub.json');
+const RelayVerifier = require('./build/contracts/RelayVerifier.json');
+const SmartWallet = require('./build/contracts/SmartWallet.json');
+const SmartWalletFactory = require('./build/contracts/SmartWalletFactory.json');
+const TestDeployVerifierEverythingAccepted = require('./build/contracts/TestDeployVerifierEverythingAccepted.json');
+const TestVerifierEverythingAccepted = require('./build/contracts/TestVerifierEverythingAccepted.json');
+const VersionRegistry = require('./build/contracts/VersionRegistry.json');
 
-// truffle-typings
-import {
-    BasicTokenContract,
-    PenalizerInstance,
-    IPenalizerInstance,
-    BasicTokenInstance,
-    BlackListContract,
-    BlackListInstance,
-    CustomSmartWalletContract,
-    CustomSmartWalletDeployVerifierContract,
-    CustomSmartWalletDeployVerifierInstance,
-    CustomSmartWalletFactoryContract,
-    CustomSmartWalletFactoryInstance,
-    CustomSmartWalletInstance,
-    DeployVerifierContract,
-    DeployVerifierInstance,
-    ERC20BasicContract,
-    ERC20BasicInstance,
-    ERC20Contract,
-    ERC20Instance,
-    ERC20ModContract,
-    ERC20ModInstance,
-    FailureCustomLogicContract,
-    FailureCustomLogicInstance,
-    HeavyTaskContract,
-    HeavyTaskInstance,
-    ICustomSmartWalletFactoryContract,
-    ICustomSmartWalletFactoryInstance,
-    IDeployVerifierContract,
-    IDeployVerifierInstance,
-    IERC20Contract,
-    IERC20Instance,
-    IForwarderContract,
-    IForwarderInstance,
-    IPenalizerContract,
-    IRelayHubContract,
-    IRelayHubInstance,
-    IRelayVerifierContract,
-    IRelayVerifierInstance,
-    ISmartWalletFactoryContract,
-    ISmartWalletFactoryInstance,
-    ITokenHandlerContract,
-    ITokenHandlerInstance,
-    IVersionRegistryContract,
-    IVersionRegistryInstance,
-    IWalletCustomLogicContract,
-    IWalletCustomLogicInstance,
-    IWalletFactoryContract,
-    IWalletFactoryInstance,
-    MigrationsContract,
-    MigrationsInstance,
-    NonCompliantERC20Contract,
-    NonCompliantERC20Instance,
-    NonCompliantIERC20Contract,
-    NonCompliantIERC20Instance,
-    NonCompliantTestTokenContract,
-    NonCompliantTestTokenInstance,
-    NonRevertTestTokenContract,
-    NonRevertTestTokenInstance,
-    OwnableContract,
-    OwnableInstance,
-    PausableContract,
-    PausableInstance,
-    PayableWithEmitContract,
-    PayableWithEmitInstance,
-    PenalizerContract,
-    ProxyCustomLogicContract,
-    ProxyCustomLogicInstance,
-    RelayHubContract,
-    RelayHubInstance,
-    RelayVerifierContract,
-    RelayVerifierInstance,
-    SmartWalletContract,
-    SmartWalletFactoryContract,
-    SmartWalletFactoryInstance,
-    SmartWalletInstance,
-    StandardTokenContract,
-    StandardTokenInstance,
-    SuccessCustomLogicContract,
-    SuccessCustomLogicInstance,
-    TestDeployVerifierConfigurableMisbehaviorContract,
-    TestDeployVerifierConfigurableMisbehaviorInstance,
-    TestDeployVerifierContract,
-    TestDeployVerifierEverythingAcceptedContract,
-    TestDeployVerifierEverythingAcceptedInstance,
-    TestDeployVerifierInstance,
-    TestForwarderTargetContract,
-    TestForwarderTargetInstance,
-    TestRecipientContract,
-    TestRecipientInstance,
-    TestRelayVerifierContract,
-    TestRelayVerifierInstance,
-    TestRelayWorkerContractContract,
-    TestRelayWorkerContractInstance,
-    TestRSKAddressValidatorContract,
-    TestRSKAddressValidatorInstance,
-    TestSmartWalletContract,
-    TestSmartWalletInstance,
-    TestTokenContract,
-    TestTokenInstance,
-    TestUtilContract,
-    TestUtilInstance,
-    TestVerifierConfigurableMisbehaviorContract,
-    TestVerifierConfigurableMisbehaviorInstance,
-    TestVerifierEverythingAcceptedContract,
-    TestVerifierEverythingAcceptedInstance,
-    TestVerifierVariableGasLimitsContract,
-    TestVerifierVariableGasLimitsInstance,
-    TestVersionsContract,
-    TestVersionsInstance,
-    TetherTokenContract,
-    TetherTokenInstance,
-    UpgradedStandardTokenContract,
-    UpgradedStandardTokenInstance,
-    VersionRegistryContract,
-    VersionRegistryInstance
-} from './types/truffle-contracts';
-
-export {
+export default {
     // interfaces
     EnvelopingTypes,
     ICustomSmartWalletFactory,
@@ -170,120 +52,5 @@ export {
     SmartWalletFactory,
     TestDeployVerifierEverythingAccepted,
     TestVerifierEverythingAccepted,
-    VersionRegistry,
-    // truffle-typings
-    BasicTokenContract,
-    PenalizerInstance,
-    IPenalizerInstance,
-    BasicTokenInstance,
-    BlackListContract,
-    BlackListInstance,
-    CustomSmartWalletContract,
-    CustomSmartWalletDeployVerifierContract,
-    CustomSmartWalletDeployVerifierInstance,
-    CustomSmartWalletFactoryContract,
-    CustomSmartWalletFactoryInstance,
-    CustomSmartWalletInstance,
-    DeployVerifierContract,
-    DeployVerifierInstance,
-    ERC20BasicContract,
-    ERC20BasicInstance,
-    ERC20Contract,
-    ERC20Instance,
-    ERC20ModContract,
-    ERC20ModInstance,
-    FailureCustomLogicContract,
-    FailureCustomLogicInstance,
-    HeavyTaskContract,
-    HeavyTaskInstance,
-    ICustomSmartWalletFactoryContract,
-    ICustomSmartWalletFactoryInstance,
-    IDeployVerifierContract,
-    IDeployVerifierInstance,
-    IERC20Contract,
-    IERC20Instance,
-    IForwarderContract,
-    IForwarderInstance,
-    IPenalizerContract,
-    IRelayHubContract,
-    IRelayHubInstance,
-    IRelayVerifierContract,
-    IRelayVerifierInstance,
-    ISmartWalletFactoryContract,
-    ISmartWalletFactoryInstance,
-    ITokenHandlerContract,
-    ITokenHandlerInstance,
-    IVersionRegistryContract,
-    IVersionRegistryInstance,
-    IWalletCustomLogicContract,
-    IWalletCustomLogicInstance,
-    IWalletFactoryContract,
-    IWalletFactoryInstance,
-    MigrationsContract,
-    MigrationsInstance,
-    NonCompliantERC20Contract,
-    NonCompliantERC20Instance,
-    NonCompliantIERC20Contract,
-    NonCompliantIERC20Instance,
-    NonCompliantTestTokenContract,
-    NonCompliantTestTokenInstance,
-    NonRevertTestTokenContract,
-    NonRevertTestTokenInstance,
-    OwnableContract,
-    OwnableInstance,
-    PausableContract,
-    PausableInstance,
-    PayableWithEmitContract,
-    PayableWithEmitInstance,
-    PenalizerContract,
-    ProxyCustomLogicContract,
-    ProxyCustomLogicInstance,
-    RelayHubContract,
-    RelayHubInstance,
-    RelayVerifierContract,
-    RelayVerifierInstance,
-    SmartWalletContract,
-    SmartWalletFactoryContract,
-    SmartWalletFactoryInstance,
-    SmartWalletInstance,
-    StandardTokenContract,
-    StandardTokenInstance,
-    SuccessCustomLogicContract,
-    SuccessCustomLogicInstance,
-    TestDeployVerifierConfigurableMisbehaviorContract,
-    TestDeployVerifierConfigurableMisbehaviorInstance,
-    TestDeployVerifierContract,
-    TestDeployVerifierEverythingAcceptedContract,
-    TestDeployVerifierEverythingAcceptedInstance,
-    TestDeployVerifierInstance,
-    TestForwarderTargetContract,
-    TestForwarderTargetInstance,
-    TestRecipientContract,
-    TestRecipientInstance,
-    TestRelayVerifierContract,
-    TestRelayVerifierInstance,
-    TestRelayWorkerContractContract,
-    TestRelayWorkerContractInstance,
-    TestRSKAddressValidatorContract,
-    TestRSKAddressValidatorInstance,
-    TestSmartWalletContract,
-    TestSmartWalletInstance,
-    TestTokenContract,
-    TestTokenInstance,
-    TestUtilContract,
-    TestUtilInstance,
-    TestVerifierConfigurableMisbehaviorContract,
-    TestVerifierConfigurableMisbehaviorInstance,
-    TestVerifierEverythingAcceptedContract,
-    TestVerifierEverythingAcceptedInstance,
-    TestVerifierVariableGasLimitsContract,
-    TestVerifierVariableGasLimitsInstance,
-    TestVersionsContract,
-    TestVersionsInstance,
-    TetherTokenContract,
-    TetherTokenInstance,
-    UpgradedStandardTokenContract,
-    UpgradedStandardTokenInstance,
-    VersionRegistryContract,
-    VersionRegistryInstance
+    VersionRegistry
 }

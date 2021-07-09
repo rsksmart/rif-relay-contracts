@@ -53,5 +53,3 @@ outside this project then you need to follow some steps. Basically you make your
    changes on solidity, then run `npm run compile`, if everything went well then
    your next step should be going to the `index.ts` file in the root of this project
    and add those new contracts/interfaces to the import/export declarations.
-   When you run `npm run compile` typechain generates the typings for your new 
-   contracts and you need to export those typings since you need them outside this repository.
