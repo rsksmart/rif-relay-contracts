@@ -1,6 +1,6 @@
 node_modules/
 build/
 # we need to add this ignore and remove the dist folder after we publish this library
-#dist/
+dist/
 .idea/
 package-lock.json
