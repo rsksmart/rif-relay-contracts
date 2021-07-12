@@ -53,3 +53,10 @@ outside this project then you need to follow some steps. Basically you make your
    changes on solidity, then run `npm run compile`, if everything went well then
    your next step should be going to the `index.ts` file in the root of this project
    and add those new contracts/interfaces to the import/export declarations.
+   
+#### How to generate a new distributable version
+
+1. Bump the version on the `package.json` file.
+2. Commit and push any changes included the bump.
+3. Run `npm pack` to generate the tarball to be publish as release on github.
+4. Generate a new release on github and upload the generated tarball.
