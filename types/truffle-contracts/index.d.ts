@@ -2,25 +2,25 @@
 /* tslint:disable */
 
 /// <reference types="@openeth/truffle-typings" />
-import BN from "bn.js";
+import BN from 'bn.js';
 
 export interface BasicTokenContract
   extends Truffle.Contract<BasicTokenInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<BasicTokenInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<BasicTokenInstance>;
 }
 
 export interface BlackListContract extends Truffle.Contract<BlackListInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<BlackListInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<BlackListInstance>;
 }
 
 export interface CustomSmartWalletContract
   extends Truffle.Contract<CustomSmartWalletInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<CustomSmartWalletInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<CustomSmartWalletInstance>;
 }
 
 export interface CustomSmartWalletDeployVerifierContract
   extends Truffle.Contract<CustomSmartWalletDeployVerifierInstance> {
-  "new"(
+  'new'(
     walletFactory: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<CustomSmartWalletDeployVerifierInstance>;
@@ -28,7 +28,7 @@ export interface CustomSmartWalletDeployVerifierContract
 
 export interface CustomSmartWalletFactoryContract
   extends Truffle.Contract<CustomSmartWalletFactoryInstance> {
-  "new"(
+  'new'(
     forwarderTemplate: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<CustomSmartWalletFactoryInstance>;
@@ -36,23 +36,23 @@ export interface CustomSmartWalletFactoryContract
 
 export interface DeployVerifierContract
   extends Truffle.Contract<DeployVerifierInstance> {
-  "new"(
+  'new'(
     walletFactory: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<DeployVerifierInstance>;
 }
 
 export interface ERC20Contract extends Truffle.Contract<ERC20Instance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<ERC20Instance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<ERC20Instance>;
 }
 
 export interface ERC20BasicContract
   extends Truffle.Contract<ERC20BasicInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<ERC20BasicInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<ERC20BasicInstance>;
 }
 
 export interface ERC20ModContract extends Truffle.Contract<ERC20ModInstance> {
-  "new"(
+  'new'(
     name: string,
     symbol: string,
     meta?: Truffle.TransactionDetails
@@ -61,83 +61,83 @@ export interface ERC20ModContract extends Truffle.Contract<ERC20ModInstance> {
 
 export interface FailureCustomLogicContract
   extends Truffle.Contract<FailureCustomLogicInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<FailureCustomLogicInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<FailureCustomLogicInstance>;
 }
 
 export interface HeavyTaskContract extends Truffle.Contract<HeavyTaskInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<HeavyTaskInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<HeavyTaskInstance>;
 }
 
 export interface ICustomSmartWalletFactoryContract
   extends Truffle.Contract<ICustomSmartWalletFactoryInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<ICustomSmartWalletFactoryInstance>;
 }
 
 export interface IDeployVerifierContract
   extends Truffle.Contract<IDeployVerifierInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IDeployVerifierInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IDeployVerifierInstance>;
 }
 
 export interface IERC20Contract extends Truffle.Contract<IERC20Instance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IERC20Instance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IERC20Instance>;
 }
 
 export interface IForwarderContract
   extends Truffle.Contract<IForwarderInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IForwarderInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IForwarderInstance>;
 }
 
 export interface IPenalizerContract
   extends Truffle.Contract<IPenalizerInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IPenalizerInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IPenalizerInstance>;
 }
 
 export interface IRelayHubContract extends Truffle.Contract<IRelayHubInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IRelayHubInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IRelayHubInstance>;
 }
 
 export interface IRelayVerifierContract
   extends Truffle.Contract<IRelayVerifierInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IRelayVerifierInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IRelayVerifierInstance>;
 }
 
 export interface ISmartWalletFactoryContract
   extends Truffle.Contract<ISmartWalletFactoryInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<ISmartWalletFactoryInstance>;
 }
 
 export interface ITokenHandlerContract
   extends Truffle.Contract<ITokenHandlerInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<ITokenHandlerInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<ITokenHandlerInstance>;
 }
 
 export interface IVersionRegistryContract
   extends Truffle.Contract<IVersionRegistryInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IVersionRegistryInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IVersionRegistryInstance>;
 }
 
 export interface IWalletCustomLogicContract
   extends Truffle.Contract<IWalletCustomLogicInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IWalletCustomLogicInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IWalletCustomLogicInstance>;
 }
 
 export interface IWalletFactoryContract
   extends Truffle.Contract<IWalletFactoryInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<IWalletFactoryInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<IWalletFactoryInstance>;
 }
 
 export interface MigrationsContract
   extends Truffle.Contract<MigrationsInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<MigrationsInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<MigrationsInstance>;
 }
 
 export interface NonCompliantERC20Contract
   extends Truffle.Contract<NonCompliantERC20Instance> {
-  "new"(
+  'new'(
     name: string,
     symbol: string,
     meta?: Truffle.TransactionDetails
@@ -146,45 +146,45 @@ export interface NonCompliantERC20Contract
 
 export interface NonCompliantIERC20Contract
   extends Truffle.Contract<NonCompliantIERC20Instance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<NonCompliantIERC20Instance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<NonCompliantIERC20Instance>;
 }
 
 export interface NonCompliantTestTokenContract
   extends Truffle.Contract<NonCompliantTestTokenInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<NonCompliantTestTokenInstance>;
 }
 
 export interface NonRevertTestTokenContract
   extends Truffle.Contract<NonRevertTestTokenInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<NonRevertTestTokenInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<NonRevertTestTokenInstance>;
 }
 
 export interface OwnableContract extends Truffle.Contract<OwnableInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<OwnableInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<OwnableInstance>;
 }
 
 export interface PausableContract extends Truffle.Contract<PausableInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<PausableInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<PausableInstance>;
 }
 
 export interface PayableWithEmitContract
   extends Truffle.Contract<PayableWithEmitInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<PayableWithEmitInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<PayableWithEmitInstance>;
 }
 
 export interface PenalizerContract extends Truffle.Contract<PenalizerInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<PenalizerInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<PenalizerInstance>;
 }
 
 export interface ProxyCustomLogicContract
   extends Truffle.Contract<ProxyCustomLogicInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<ProxyCustomLogicInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<ProxyCustomLogicInstance>;
 }
 
 export interface RelayHubContract extends Truffle.Contract<RelayHubInstance> {
-  "new"(
+  'new'(
     _penalizer: string | BN,
     _maxWorkerCount: number | BN | string,
     _minimumEntryDepositValue: number | BN | string,
@@ -196,7 +196,7 @@ export interface RelayHubContract extends Truffle.Contract<RelayHubInstance> {
 
 export interface RelayVerifierContract
   extends Truffle.Contract<RelayVerifierInstance> {
-  "new"(
+  'new'(
     walletFactory: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<RelayVerifierInstance>;
@@ -204,12 +204,12 @@ export interface RelayVerifierContract
 
 export interface SmartWalletContract
   extends Truffle.Contract<SmartWalletInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<SmartWalletInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<SmartWalletInstance>;
 }
 
 export interface SmartWalletFactoryContract
   extends Truffle.Contract<SmartWalletFactoryInstance> {
-  "new"(
+  'new'(
     forwarderTemplate: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<SmartWalletFactoryInstance>;
@@ -217,17 +217,17 @@ export interface SmartWalletFactoryContract
 
 export interface StandardTokenContract
   extends Truffle.Contract<StandardTokenInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<StandardTokenInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<StandardTokenInstance>;
 }
 
 export interface SuccessCustomLogicContract
   extends Truffle.Contract<SuccessCustomLogicInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<SuccessCustomLogicInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<SuccessCustomLogicInstance>;
 }
 
 export interface TestDeployVerifierContract
   extends Truffle.Contract<TestDeployVerifierInstance> {
-  "new"(
+  'new'(
     verifier: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<TestDeployVerifierInstance>;
@@ -235,33 +235,33 @@ export interface TestDeployVerifierContract
 
 export interface TestDeployVerifierConfigurableMisbehaviorContract
   extends Truffle.Contract<TestDeployVerifierConfigurableMisbehaviorInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestDeployVerifierConfigurableMisbehaviorInstance>;
 }
 
 export interface TestDeployVerifierEverythingAcceptedContract
   extends Truffle.Contract<TestDeployVerifierEverythingAcceptedInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestDeployVerifierEverythingAcceptedInstance>;
 }
 
 export interface TestForwarderTargetContract
   extends Truffle.Contract<TestForwarderTargetInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestForwarderTargetInstance>;
 }
 
 export interface TestRecipientContract
   extends Truffle.Contract<TestRecipientInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<TestRecipientInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<TestRecipientInstance>;
 }
 
 export interface TestRelayVerifierContract
   extends Truffle.Contract<TestRelayVerifierInstance> {
-  "new"(
+  'new'(
     verifier: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<TestRelayVerifierInstance>;
@@ -269,60 +269,60 @@ export interface TestRelayVerifierContract
 
 export interface TestRelayWorkerContractContract
   extends Truffle.Contract<TestRelayWorkerContractInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestRelayWorkerContractInstance>;
 }
 
 export interface TestRSKAddressValidatorContract
   extends Truffle.Contract<TestRSKAddressValidatorInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestRSKAddressValidatorInstance>;
 }
 
 export interface TestSmartWalletContract
   extends Truffle.Contract<TestSmartWalletInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<TestSmartWalletInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<TestSmartWalletInstance>;
 }
 
 export interface TestTokenContract extends Truffle.Contract<TestTokenInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<TestTokenInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<TestTokenInstance>;
 }
 
 export interface TestUtilContract extends Truffle.Contract<TestUtilInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<TestUtilInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<TestUtilInstance>;
 }
 
 export interface TestVerifierConfigurableMisbehaviorContract
   extends Truffle.Contract<TestVerifierConfigurableMisbehaviorInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestVerifierConfigurableMisbehaviorInstance>;
 }
 
 export interface TestVerifierEverythingAcceptedContract
   extends Truffle.Contract<TestVerifierEverythingAcceptedInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestVerifierEverythingAcceptedInstance>;
 }
 
 export interface TestVerifierVariableGasLimitsContract
   extends Truffle.Contract<TestVerifierVariableGasLimitsInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<TestVerifierVariableGasLimitsInstance>;
 }
 
 export interface TestVersionsContract
   extends Truffle.Contract<TestVersionsInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<TestVersionsInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<TestVersionsInstance>;
 }
 
 export interface TetherTokenContract
   extends Truffle.Contract<TetherTokenInstance> {
-  "new"(
+  'new'(
     _initialSupply: number | BN | string,
     _name: string,
     _symbol: string,
@@ -333,14 +333,14 @@ export interface TetherTokenContract
 
 export interface UpgradedStandardTokenContract
   extends Truffle.Contract<UpgradedStandardTokenInstance> {
-  "new"(
+  'new'(
     meta?: Truffle.TransactionDetails
   ): Promise<UpgradedStandardTokenInstance>;
 }
 
 export interface VersionRegistryContract
   extends Truffle.Contract<VersionRegistryInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<VersionRegistryInstance>;
+  'new'(meta?: Truffle.TransactionDetails): Promise<VersionRegistryInstance>;
 }
 
 export interface BasicTokenInstance extends Truffle.ContractInstance {

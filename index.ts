@@ -53,4 +53,4 @@ export {
     TestDeployVerifierEverythingAccepted,
     TestVerifierEverythingAccepted,
     VersionRegistry
-}
+};
