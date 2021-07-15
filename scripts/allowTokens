@@ -1,0 +1,102 @@
+#!/bin/bash
+
+TOKEN_ADDRESSES=$1
+NETWORK_ID=$2
+
+if [ "${TOKEN_ADDRESSES}" == "" ]; then
+        echo "You need to specify at least one token address."
+        exit 1
+fi
+
+if [ "${NETWORK_ID}" == "" ]; then
+        NETWORK_ID="rsk"
+fi
+
+SMART_WALLET_DEPLOY_VERIFIER_ADDRESS="0x1938517B0762103d52590Ca21d459968c25c9E67"
+SMART_WALLET_RELAY_VERIFIER_ADDRESS="0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2"
+CUSTOM_SMART_WALLET_DEPLOY_VERIFIER_ADDRESS="0x3eE31F6049065B616f85470985c0eF067f2bEbDE"
+CUSTOM_SMART_WALLET_RELAY_VERIFIER_ADDRESS="0xDE8Ae20488BE104f0782C0126038b6682ECc1eC7"
+
+cat > allowTokens.js << EOF
+
+async function getRevertReason(txHash) {
+  const tx = await web3.eth.getTransaction(txHash);
+  const txBlockNumber = tx.blockNumber;
+  try {
+
+    delete tx['hash'];
+    delete tx['blockHash'];
+    delete tx['blockNumber'];
+    delete tx['transactionIndex'];
+    delete tx['v'];
+    delete tx['r'];
+    delete tx['s'];
+
+    const result = await web3.eth.call(tx, txBlockNumber);
+    result = result.startsWith('0x') ? result : '0x' + result;
+    if (result && result.substr(138)) {
+      return web3.utils.toAscii(result.substr(138));
+    } else {
+      return 'Cannot get reason - No return value';
+    }
+  } catch (reason) {
+    return reason;
+  }
+}
+
+module.exports = async function(callback) {
+  const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
+  const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
+  const relayVerifierAbi = require("./build/contracts/RelayVerifier.json").abi;
+
+  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, "${SMART_WALLET_DEPLOY_VERIFIER_ADDRESS}");
+  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, "${SMART_WALLET_RELAY_VERIFIER_ADDRESS}");
+  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, "${CUSTOM_SMART_WALLET_DEPLOY_VERIFIER_ADDRESS}");
+  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, "${CUSTOM_SMART_WALLET_RELAY_VERIFIER_ADDRESS}");
+
+  const tokenAddresses = '${TOKEN_ADDRESSES}'.split(',');
+
+  const accounts = await web3.eth.getAccounts();
+
+  try {
+    for (let tokenAddress of tokenAddresses) {
+      try {
+        await smartWalletDeployVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
+      } catch (error) {
+        const reason = await getRevertReason(error.receipt.transactionHash);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet deploy verifier", reason);
+        throw error;
+      }
+      try {
+        await smartWalletRelayVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
+      } catch (error) {
+        const reason = await getRevertReason(error.receipt.transactionHash);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet relay verifier", reason);
+        throw error;
+      }
+      try {
+        await customSmartWalletDeployVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
+      } catch (error) {
+        const reason = await getRevertReason(error.receipt.transactionHash);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart deploy verifier", reason);
+        throw error;
+      }
+      try {
+        await customSmartWalletRelayVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
+      } catch (error) {
+        const reason = await getRevertReason(error.receipt.transactionHash);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart wallet relay verifier", reason);
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error("Fail to allow tokens");
+    return;
+  }
+  console.log("Tokens allowed successfully!");
+}
+EOF
+
+truffle exec --network ${NETWORK_ID} allowTokens.js
+
+rm allowTokens.js

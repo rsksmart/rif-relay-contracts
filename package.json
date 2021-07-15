@@ -13,7 +13,9 @@
     "prepublishOnly": "npm run prepare",
     "lint:ts": "eslint . --ext .ts",
     "lint:ts:fix": "eslint . --ext .ts --fix",
-    "lint:sol": "solhint -f unix \"contracts/**/*.sol\" --max-warnings 0"
+    "lint:sol": "solhint -f unix \"contracts/**/*.sol\" --max-warnings 0",
+    "allowTokens": "./scripts/allowTokens",
+    "allowedTokens": "./scripts/allowedTokens"
   },
   "author": "Relaying Services Team",
   "license": "MIT",
