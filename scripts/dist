@@ -2,4 +2,6 @@
 
 rm -rf build && rm -rf dist
 
-npx truffle compile && typechain --target trufflehotfix './build/contracts/**/*.json' && webpack
+npm run compile
+
+npx webpack

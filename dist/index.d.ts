@@ -22,4 +22,5 @@ declare const SmartWalletFactory: any;
 declare const TestDeployVerifierEverythingAccepted: any;
 declare const TestVerifierEverythingAccepted: any;
 declare const VersionRegistry: any;
-export { EnvelopingTypes, ICustomSmartWalletFactory, IDeployVerifier, IForwarder, IPenalizer, IRelayHub, IRelayVerifier, ISmartWalletFactory, ITokenHandler, IVersionRegistry, IWalletCustomLogic, IWalletFactory, CustomSmartWallet, CustomSmartWalletDeployVerifier, CustomSmartWalletFactory, DeployVerifier, Penalizer, RelayHub, RelayVerifier, SmartWallet, SmartWalletFactory, TestDeployVerifierEverythingAccepted, TestVerifierEverythingAccepted, VersionRegistry };
+declare const ContractAddresses: any;
+export { EnvelopingTypes, ICustomSmartWalletFactory, IDeployVerifier, IForwarder, IPenalizer, IRelayHub, IRelayVerifier, ISmartWalletFactory, ITokenHandler, IVersionRegistry, IWalletCustomLogic, IWalletFactory, CustomSmartWallet, CustomSmartWalletDeployVerifier, CustomSmartWalletFactory, DeployVerifier, Penalizer, RelayHub, RelayVerifier, SmartWallet, SmartWalletFactory, TestDeployVerifierEverythingAccepted, TestVerifierEverythingAccepted, VersionRegistry, ContractAddresses };

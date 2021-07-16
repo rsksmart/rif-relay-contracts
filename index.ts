@@ -26,6 +26,9 @@ const TestDeployVerifierEverythingAccepted = require('./build/contracts/TestDepl
 const TestVerifierEverythingAccepted = require('./build/contracts/TestVerifierEverythingAccepted.json');
 const VersionRegistry = require('./build/contracts/VersionRegistry.json');
 
+// deployed addresses
+const ContractAddresses = require('./contract-addresses.json');
+
 export {
     // interfaces
     EnvelopingTypes,
@@ -52,5 +55,7 @@ export {
     SmartWalletFactory,
     TestDeployVerifierEverythingAccepted,
     TestVerifierEverythingAccepted,
-    VersionRegistry
+    VersionRegistry,
+    // deployed addresses
+    ContractAddresses
 };

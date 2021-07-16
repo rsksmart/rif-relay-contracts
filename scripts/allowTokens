@@ -12,11 +12,6 @@ if [ "${NETWORK_ID}" == "" ]; then
         NETWORK_ID="rsk"
 fi
 
-SMART_WALLET_DEPLOY_VERIFIER_ADDRESS="0x1938517B0762103d52590Ca21d459968c25c9E67"
-SMART_WALLET_RELAY_VERIFIER_ADDRESS="0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2"
-CUSTOM_SMART_WALLET_DEPLOY_VERIFIER_ADDRESS="0x3eE31F6049065B616f85470985c0eF067f2bEbDE"
-CUSTOM_SMART_WALLET_RELAY_VERIFIER_ADDRESS="0xDE8Ae20488BE104f0782C0126038b6682ECc1eC7"
-
 cat > allowTokens.js << EOF
 
 async function getRevertReason(txHash) {
@@ -45,14 +40,15 @@ async function getRevertReason(txHash) {
 }
 
 module.exports = async function(callback) {
+  const contractAddresses = require('./contract-addresses.json');
   const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
   const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
   const relayVerifierAbi = require("./build/contracts/RelayVerifier.json").abi;
 
-  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, "${SMART_WALLET_DEPLOY_VERIFIER_ADDRESS}");
-  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, "${SMART_WALLET_RELAY_VERIFIER_ADDRESS}");
-  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, "${CUSTOM_SMART_WALLET_DEPLOY_VERIFIER_ADDRESS}");
-  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, "${CUSTOM_SMART_WALLET_RELAY_VERIFIER_ADDRESS}");
+  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses.smartWalletDeployVerifier);
+  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses.smartWalletRelayVerifier);
+  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses.customSmartWalletDeployVerifier);
+  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses.customSmartWalletRelayVerifier);
 
   const tokenAddresses = '${TOKEN_ADDRESSES}'.split(',');
 
