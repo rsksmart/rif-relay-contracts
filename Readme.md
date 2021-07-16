@@ -119,3 +119,15 @@ import this dependency on your project, basically you need to keep this repo in 
 as your project and the change your package.json file to import this dependency like this 
 `"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",` instead of having the repository url. That
 will let you have always the latest version and addresses for your contracts.
+
+#### Husky and linters
+
+We use husky to check linters and code styles on commits, if you commit your
+changes and the commit fails on lint or prettier checks you can use these command
+to check and fix the errors before trying to commit again:
+
+* `npm run lint:ts`: to check linter bugs for typescript
+* `npm run lint:ts:fix`: to fix linter bugs for typescript
+* `npm run lint:sol`: to see bugs on solidity
+* `npm run prettier`: to check codestyles errors
+* `npm run prettier:fix`: to fix codestyles errors
