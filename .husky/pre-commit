@@ -6,6 +6,6 @@ if [ -d "$HOME/.nvm" ]; then
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 fi
 
-npx prettier --check .
+npm run prettier:fix
 npm run lint:ts:fix
 npm run lint:sol

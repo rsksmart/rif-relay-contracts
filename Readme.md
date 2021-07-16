@@ -1,7 +1,12 @@
-### Rif Relay Contracts
+## Rif Relay Contracts
 
 This project is part of the rif relay ecosystem, it contains all the contracts that
 the rif relay system use.
+
+### Pre-Requisites
+
+* An RSKJ Node running locally
+* Node version 12.18
 
 #### How to deploy contracts
 

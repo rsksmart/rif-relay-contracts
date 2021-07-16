@@ -1,7 +1,8 @@
 require('ts-node/register/transpile-only');
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const mnemonic = 'digital unknown jealous mother legal hedgehog save glory december universe spread figure custom found six';
+const mnemonic =
+    'digital unknown jealous mother legal hedgehog save glory december universe spread figure custom found six';
 
 const secretMnemonicFile = './secret_mnemonic';
 const fs = require('fs');
@@ -30,7 +31,10 @@ module.exports = {
         },
         testnet: {
             provider: function () {
-                return new HDWalletProvider(mnemonic, 'https://public-node.testnet.rsk.co')
+                return new HDWalletProvider(
+                    mnemonic,
+                    'https://public-node.testnet.rsk.co'
+                );
             },
             network_id: 31,
             gas: 6300000,
@@ -38,7 +42,10 @@ module.exports = {
         },
         mainnet: {
             provider: function () {
-                return new HDWalletProvider(secretMnemonic, 'https://public-node.rsk.co')
+                return new HDWalletProvider(
+                    secretMnemonic,
+                    'https://public-node.rsk.co'
+                );
             },
             network_id: 30,
             gas: 6300000,
@@ -68,4 +75,4 @@ module.exports = {
         }
     },
     migrations_directory: './migrations'
-}
+};

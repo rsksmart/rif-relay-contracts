@@ -1,0 +1,15 @@
+.gitignore
+.prettierignore
+package.json
+package-lock.json
+prettierrc.json5
+Readme.md
+tsconfig.json
+.eslintignore
+.eslintrc
+node_modules
+.solhint.json
+.solhintignore
+webpack.config.js
+build
+dist

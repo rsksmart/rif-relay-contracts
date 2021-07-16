@@ -1,1 +1,16 @@
-{"regtest":{"penalizer":"0x54bAf1c909Bf5426B7254018b4A76F3584183801","relayHub":"0x05B703d982F53da5B8ddE868EBBffDd8102549a6","smartWallet":"0x5d5e660d564eb99561A4907f0b07D51f61c33704","smartWalletFactory":"0x0B3759F4922F915F9B58ad1c99e0B0abbE53EBe3","smartWalletDeployVerifier":"0x54D2Ab58823c75F45AFD0725a633835bbA2EA00d","smartWalletRelayVerifier":"0x15eeeEA40771309E5682Fb094Dd9415F5259AeD7","customSmartWallet":"0x7562af45f4D0F1C3a3e09ba62ABd61dec68aB925","customSmartWalletFactory":"0x4Bc162B5ed6967E8c7F38d46a6d56ec122ffca43","customSmartWalletDeployVerifier":"0xD1003d10f6E426d1B1c82CEbe5E1cb4128589deB","customSmartWalletRelayVerifier":"0xfb633E977B84ffF04eEc12C3c9785caD3846d9fD","sampleRecipient":"0x829Bfae4c492b737BE00B635076daB2BDFc46c55","testToken":"0xB4c021f13840880b04C985dc5ef07bb8A484dF59"}}
+{
+    "regtest": {
+        "penalizer": "0x54bAf1c909Bf5426B7254018b4A76F3584183801",
+        "relayHub": "0x05B703d982F53da5B8ddE868EBBffDd8102549a6",
+        "smartWallet": "0x5d5e660d564eb99561A4907f0b07D51f61c33704",
+        "smartWalletFactory": "0x0B3759F4922F915F9B58ad1c99e0B0abbE53EBe3",
+        "smartWalletDeployVerifier": "0x54D2Ab58823c75F45AFD0725a633835bbA2EA00d",
+        "smartWalletRelayVerifier": "0x15eeeEA40771309E5682Fb094Dd9415F5259AeD7",
+        "customSmartWallet": "0x7562af45f4D0F1C3a3e09ba62ABd61dec68aB925",
+        "customSmartWalletFactory": "0x4Bc162B5ed6967E8c7F38d46a6d56ec122ffca43",
+        "customSmartWalletDeployVerifier": "0xD1003d10f6E426d1B1c82CEbe5E1cb4128589deB",
+        "customSmartWalletRelayVerifier": "0xfb633E977B84ffF04eEc12C3c9785caD3846d9fD",
+        "sampleRecipient": "0x829Bfae4c492b737BE00B635076daB2BDFc46c55",
+        "testToken": "0xB4c021f13840880b04C985dc5ef07bb8A484dF59"
+    }
+}
