@@ -21,6 +21,10 @@ network and then run `npm run deploy <YOUR_NETWORK>`.
 That will start the migration on `<YOUR_NETWORK>`, at the end you should see a summary with all the 
 contract addresses.
 
+Each time we deploy contracts on a specific network the `contract-addresses.json` is 
+updated, the deployer has to commit that change and update this repository with the 
+new version of the file, we need to keep those addresses updated for testnet and mainnet.
+
 #### How to compile contracts
 
 Just run `npx truffle compile` at the root of the project and that will compile the 
