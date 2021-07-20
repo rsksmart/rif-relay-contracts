@@ -52,6 +52,12 @@ const iForwarderAbi = IForwarder.abi;
 this dependency since we don't have a release version at this time. A way to install it for now is to add to your dependencies on the `package.json` file this line 
 `"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts",` and then run `npm i`**
 
+**IMPORTANT: when you publish a version postinstall scripts must be disabled, if you
+are publishing a new version on the repository directly you need to run `npm run disablePostInstall`
+command to disable postinstall scripts since is not automatically disabled.
+That is only automatically disabled when you run `npm publish` to publish your
+library on node registry.**
+
 #### How to add new resources
 
 You always can add new solidity files inside the contracts folder at the root

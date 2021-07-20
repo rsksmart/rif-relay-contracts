@@ -8,8 +8,8 @@
     "dist": "scripts/dist",
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
-    "postinstall": "scripts/postinstall",
-    "prepublish": "scripts/prepublish",
+    "_postinstall": "scripts/postinstall",
+    "prepublishOnly": "scripts/prepublishOnly",
     "postpublish": "scripts/postpublish",
     "publishManually": "scripts/publishManually",
     "lint:ts": "eslint . --ext .ts",
@@ -18,7 +18,8 @@
     "allowTokens": "./scripts/allowTokens",
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
-    "prettier": "npx prettier --check ."
+    "prettier": "npx prettier --check .",
+    "disablePostInstall": "scripts/disablePostInstall"
   },
   "author": "Relaying Services Team",
   "license": "MIT",
