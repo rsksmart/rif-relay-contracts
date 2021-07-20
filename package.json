@@ -9,7 +9,7 @@
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
     "postinstall": "scripts/postinstall",
-    "prepublishOnly": "scripts/prepublishOnly",
+    "prepublish": "scripts/prepublish",
     "postpublish": "scripts/postpublish",
     "publishManually": "scripts/publishManually",
     "lint:ts": "eslint . --ext .ts",
