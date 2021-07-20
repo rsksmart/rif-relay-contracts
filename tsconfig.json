@@ -25,9 +25,9 @@
       "truffle-contracts"
     ],
     "lib": [
+      "es2018",
       "dom",
-      "es2015",
-      "esnext.asynciterable"
+      "esnext"
     ],
     "sourceMap": true
   },

@@ -19,7 +19,7 @@
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
     "prettier": "npx prettier --check .",
-    "disablePostInstall": "scripts/disablePostInstall"
+    "switchPostInstall": "scripts/switchPostInstall"
   },
   "author": "Relaying Services Team",
   "license": "MIT",

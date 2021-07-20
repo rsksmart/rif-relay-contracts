@@ -53,10 +53,10 @@ this dependency since we don't have a release version at this time. A way to ins
 `"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts",` and then run `npm i`**
 
 **IMPORTANT: when you publish a version postinstall scripts must be disabled, if you
-are publishing a new version on the repository directly you need to run `npm run disablePostInstall`
+are publishing a new version on the repository directly you need to run `npm run switchPostInstall disable`
 command to disable postinstall scripts since is not automatically disabled.
 That is only automatically disabled when you run `npm publish` to publish your
-library on node registry.**
+library on node registry. If you want to enable postinstall scripts again for development you can run `npm run switchPostInstall enable`**
 
 #### How to add new resources
 
