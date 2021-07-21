@@ -27,7 +27,7 @@ async function getRevertReason(txHash) {
     delete tx['r'];
     delete tx['s'];
 
-    const result = await web3.eth.call(tx, txBlockNumber);
+    let result = await web3.eth.call(tx, txBlockNumber);
     result = result.startsWith('0x') ? result : '0x' + result;
     if (result && result.substr(138)) {
       return web3.utils.toAscii(result.substr(138));
