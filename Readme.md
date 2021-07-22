@@ -13,12 +13,12 @@ the rif relay system use.
 To deploy you can use 2 ways:
 
 1. Configure the `truffle.js` file on the root of the project to set
-your network and later run `npx truffle migrate --network <YOUR_NETWORK>`. 
+your network and later run `npx truffle migrate --network <NETWORK_NAME>`. 
 
 2. Configure the `truffle.js` file on the root of the project to set the rsk
-network and then run `npm run deploy <YOUR_NETWORK>`.
+network and then run `npm run deploy <NETWORK_NAME>`.
 
-That will start the migration on `<YOUR_NETWORK>`, at the end you should see a summary with all the 
+That will start the migration on `<NETWORK_NAME>`, at the end you should see a summary with all the 
 contract addresses.
 
 Each time we deploy contracts on a specific network the `contract-addresses.json` is 
@@ -106,15 +106,16 @@ outside this project then you need to follow some steps. Basically you make your
 Once you have the contracts deployed you need to allow tokens to be able to work with them
 on the rif relay system, you have some commands you can use:
 
-1. To allow a specific token you run `npm run allowTokens <TOKEN_ADDRESS>` where
-`<TOKEN_ADDRESS>` is the token address you want to allow on the available verifiers.
+1. To allow a specific token you run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
+* `<TOKEN_ADDRESSES>` is a list (separated by comma) of the token addresses you want to allow on the available verifiers.
+* `<NETWORK_NAME>` it's an optional parameter for the network name from the `truffle.js` (default value is `regtest`) **Important: Should be the same network name you use for the deployment.**
    
 2. To retrieve the allowed tokens you can run `npm run allowedTokens` and that will
 prompt the tokens allowed on the console.
    
 #### Contract Addresses
 
-Each time you run `npm run deploy <NETWORK>` a json file is updated with the
+Each time you run `npm run deploy <NETWORK_NAME>` a json file is updated with the
 new contract addresses on the root of this project, that file is called `contract-addresses.json`
 and it contains all the addresses of the deployed contracts on the selected network. This file also is being
 exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet
