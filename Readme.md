@@ -68,11 +68,14 @@ library on node registry. If you want to enable postinstall scripts again for de
 You always can add new solidity files inside the contracts folder at the root
 of this repository, but you need to understand a few rules before doing that.
 
-1. If your new file is not meant to be used outside this repository (internal contract or contract that will not be
+1. The first thing you need to do always is to make sure you run `npm run switchPostInstall enable` 
+to enable post install hooks like husky (those are disabled on publish).
+
+2. If your new file is not meant to be used outside this repository (internal contract or contract that will not be
    be manually instantiated) then you don't need to worry about anything else than just making solidity compile using
    `npm run compile` and making the linter work running `npm run lint:sol`.
    
-2. If your file it's a contract that needs to be manually instantiated or referenced from
+3. If your file it's a contract that needs to be manually instantiated or referenced from
 outside this project then you need to follow some steps. Basically you make your
    changes on solidity, then run `npm run compile` and `npm run lint:sol`, if everything went well then
    your next step should be going to the `index.ts` file in the root of this project
