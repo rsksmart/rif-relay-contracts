@@ -8,6 +8,11 @@ the rif relay system use.
 * An RSKJ Node running locally
 * Node version 12.18
 
+#### How to start
+
+To start working with this project you need to run `npm install` to install 
+all the dependencies.
+
 #### How to deploy contracts
 
 To deploy you can use 2 ways:
