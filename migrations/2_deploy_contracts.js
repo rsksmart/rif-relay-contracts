@@ -1,4 +1,5 @@
 const fs = require('fs');
+const truffleConfig = require('../truffle');
 
 // Primary contracts
 const RelayHub = artifacts.require('RelayHub');
@@ -107,7 +108,10 @@ module.exports = async function (deployer, network, accounts) {
         jsonConfig = {};
     }
 
-    jsonConfig[network] = {
+    const networkConfiguration = truffleConfig.networks[network];
+    const networkId = networkConfiguration.network_id;
+
+    jsonConfig[networkId] = {
         penalizer: Penalizer.address,
         relayHub: RelayHub.address,
         smartWallet: SmartWallet.address,
