@@ -34,6 +34,9 @@ contract RelayHub is IRelayHub {
     // maps relay managers to their stakes
     mapping(address => StakeInfo) public stakes;
 
+    //maps relay manager address to the relay data
+    mapping(address => RelayData) public relayData;
+
     constructor(
         address _penalizer,
         uint256 _maxWorkerCount,
@@ -63,6 +66,11 @@ contract RelayHub is IRelayHub {
         requireManagerStaked(msg.sender);
 
         require(workerCount[msg.sender] > 0, "no relay workers");
+
+        relayData[msg.sender].manager = msg.sender;
+        relayData[msg.sender].url = url;
+        relayData[msg.sender].registered = true;
+
         emit RelayServerRegistered(msg.sender, url);
     }
 
@@ -277,13 +285,20 @@ contract RelayHub is IRelayHub {
         uint256 toBurn = SafeMath.div(amount, 2);
         uint256 reward = SafeMath.sub(amount, toBurn);
 
+        require(relayData[relayManager].manager != address(0), "Relay is not registered");
+        relayData[relayManager].penalized = true;
+
         // RBTC is burned and transferred
         address(0).transfer(toBurn);
         beneficiary.transfer(reward);
         emit StakePenalized(relayManager, beneficiary, reward);
     }
 
-        function getStakeInfo(address relayManager)
+    function getRelayData(address relayManager) external view override returns (RelayData memory relayInfo) {
+        return relayData[relayManager];
+    }
+
+    function getStakeInfo(address relayManager)
         external
         view
         override
@@ -330,6 +345,8 @@ contract RelayHub is IRelayHub {
         stakeInfo.owner = msg.sender;
         stakeInfo.stake += msg.value;
         stakeInfo.unstakeDelay = unstakeDelay;
+        relayData[relayManager].manager = relayManager;
+        relayData[relayManager].stakeAdded = true;
         emit StakeAdded(
             relayManager,
             stakeInfo.owner,
@@ -351,6 +368,8 @@ contract RelayHub is IRelayHub {
         require(info.owner == msg.sender, "not owner");
         require(info.withdrawBlock > 0, "Withdrawal is not scheduled");
         require(info.withdrawBlock <= block.number, "Withdrawal is not due");
+        require(relayData[relayManager].manager != address(0), "Relay is not registered");
+        relayData[relayManager].penalized = true;
         uint256 amount = info.stake;
         delete stakes[relayManager];
         msg.sender.transfer(amount);
