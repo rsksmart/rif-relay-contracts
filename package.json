@@ -8,7 +8,7 @@
     "dist": "scripts/dist",
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
-    "postinstall": "scripts/postinstall",
+    "_postinstall": "scripts/postinstall",
     "prepublishOnly": "scripts/prepublishOnly",
     "postpublish": "scripts/postpublish",
     "publishManually": "scripts/publishManually",
