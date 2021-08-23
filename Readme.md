@@ -57,7 +57,7 @@ const iForwarderAbi = IForwarder.abi;
 this dependency since we don't have a release version at this time. A way to install it for now is to add to your dependencies on the `package.json` file this line 
 `"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts",` and then run `npm i`**
 
-**IMPORTANT: when you publish a version postinstall scripts must be disabled. This is disabled by default, don't push any change on postinstall scripts section in the `package.json` file.**
+**IMPORTANT: when you publish a version postinstall scripts must be disabled. This is disabled by default, don't push any changes to the postinstall scripts section in the `package.json` file.**
 
 #### How to add new resources
 
