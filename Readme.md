@@ -65,8 +65,7 @@ any change on postinstall scripts section in the `package.json` file.**
 You always can add new solidity files inside the contracts folder at the root
 of this repository, but you need to understand a few rules before doing that.
 
-1. The first thing you need to do always is to make sure you have `postinstall` scripts enabled on the `package.json`. These
-are disabled by default due to distribution issues. (This will be solve in the future).
+1. The first thing you always need to make sure of is that `postinstall` scripts are enabled in the `package.json` file. These are disabled by default due to distribution issues (which will be solved in the future).
 
 2. If your new file is not meant to be used outside this repository (internal contract or contract that will not be
    be manually instantiated) then you don't need to worry about anything else than just making solidity compile using
