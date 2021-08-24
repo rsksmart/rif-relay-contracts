@@ -12,7 +12,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Addresses**](#addresses)
   - [**Allowing tokens**](#allowing-tokens)
 - [**Library usage**](#library-usage)
-  - [**Use as dependency**](#use-as-dependency)
+  - [**As a dependency**](#as-a-dependency)
   - [**Development**](#development)
     - [**Adding new files**](#adding-new-files)
     - [**Contract addresses**](#contract-addresses)
@@ -59,13 +59,13 @@ This file also is being exported on the distributable version to provide the con
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. There are some helpful commands for this:
 
 1. To allow a specific token, run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
-    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses you want to allow on the available verifiers.
-    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name used for deployment.** 
-2. To query allowed tokens run `npm run allowedTokens`, which will display them on the console.
+    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name used for deployment** 
+2. To query allowed tokens run `npm run allowedTokens`. This will display them on the console.
 
 ## Library usage
 
-### Use as dependency
+### As a dependency
 
 You can install this project like any other dependency through: 
 
@@ -82,7 +82,13 @@ const relayHubContractAbi = RelayHub.abi;
 const iForwarderAbi = IForwarder.abi;
 ```
 
-**Note: you can't use `npm i --save @rsksmart/rif-relay-contracts` to install this dependency since there is no released version at this time. An alternative is to add the line `"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts",` to your dependencies listed in the `package.json` file, and then run `npm i`.**
+**Note: it's not possible to use `npm i --save @rsksmart/rif-relay-contracts` to install this dependency since there is no released version at this time. An alternative is to add the line:**
+
+```
+"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts"
+``` 
+
+**to your dependencies listed in the `package.json` file, and then run `npm i`.**
 
 ### Development
 
