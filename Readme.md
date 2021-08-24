@@ -60,7 +60,7 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
 
 1. To allow a specific token, run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
-    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name used for deployment** 
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name as the one used to deployed the contracts** 
 2. To query allowed tokens run `npm run allowedTokens`. This will display them on the console.
 
 ## Library usage
@@ -94,9 +94,9 @@ const iForwarderAbi = IForwarder.abi;
 
 #### Adding new files
 
-You always can add new solidity files inside the contracts folder at the root of this repository, but note that:
+New solidity files can be added inside the contracts folder at the root of this repository, but note that:
 
-1. Make sure that `postinstall` scripts are enabled in the `package.json` file. These are disabled by default due to distribution issues (which will be solved in the future).
+1. You must make sure that `postinstall` scripts are enabled in the `package.json` file. These are disabled by default due to distribution issues (which will be solved in the future).
 2. If your new file is not meant to be used outside this repository (internal contract or contract that will not be manually instantiated) then you don't need to worry about anything else than just making solidity compile using `npm run compile` and making the linter work running `npm run lint:sol`.  
 3. If your file is a contract that needs to be manually instantiated or referenced from outside this project, you'll also need to run `npm run compile` and `npm run lint:sol`. If everything goes well, go to the `index.ts` file at the root of this project and add those new contracts/interfaces to the import/export declarations:
 ```typescript
@@ -110,7 +110,17 @@ export {
 
 ### Contract addresses
 
-When you are working on develop and making changes to the contract and deploying several times the config file will be updated each time a migration is executed. To use these new addresses each time you make a change and keep all updated you can change the way you import this dependency on your project, basically you need to keep this repo in the same folder as your project and the change your package.json file to import this dependency like this `"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",` instead of having the repository url. That will let you have always the latest version and addresses for your contracts.
+During development, the smart contract addresses config file can be expected to be updated each time a migration is executed. 
+
+To automatically use these new addresses each time a change is made, the way this dependency is imported can be changed. 
+
+You'll need keep this repo in the same folder as your project and then change your `package.json` file to import this dependency like this: 
+
+```
+"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",
+``` 
+
+instead of having the repository url. This will allow you to always have the latest version and addresses for your contracts.
 
 #### Husky and linters
 
