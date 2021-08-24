@@ -5,17 +5,17 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
 ## Table of Contents
 
 - [**Installation**](#installation)
-  - [**Pre-Requisites**](#pre-requisites)
+  - [**Pre-requisites**](#pre-requisites)
   - [**Dependencies**](#dependencies)
 - [**Smart Contracts**](#smart-contracts)
   - [**Deployment**](#deployment)
   - [**Addresses**](#addresses)
-  - [**Allowing Tokens**](#allowing-tokens)
-- [**Library Usage**](#library-usage)
+  - [**Allowing tokens**](#allowing-tokens)
+- [**Library usage**](#library-usage)
   - [**Use as dependency**](#use-as-dependency)
   - [**Development**](#development)
     - [**Adding new files**](#adding-new-files)
-    - [**Contract Addresses**](#contract-addresses)
+    - [**Contract addresses**](#contract-addresses)
     - [**Husky and linters**](#husky-and-linters)
     - [**Generating a new distributable version**](#generating-a-new-distributable-version)
       - [**For GitHub**](#for-github) 
@@ -24,7 +24,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
 
 ## Installation
 
-### Pre-Requisites
+### Pre-requisites
 
 - An RSKJ Node running locally
 - Node version 12.18
@@ -54,7 +54,7 @@ This change can be commited and so that this repository is updated with the new 
 
 This file also is being exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet when we begin to release the project as a node js dependency.
 
-### Allowing Tokens
+### Allowing tokens
 
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. There are some helpful commands for this:
 
@@ -63,7 +63,7 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
   - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name used for deployment.** 
 2. To query allowed tokens run `npm run allowedTokens`, which will display them on the console.
 
-## Library Usage
+## Library usage
 
 ### Use as dependency
 
@@ -102,7 +102,7 @@ export {
 };
 ```
 
-### Contract Addresses
+### Contract addresses
 
 When you are working on develop and making changes to the contract and deploying several times the config file will be updated each time a migration is executed. To use these new addresses each time you make a change and keep all updated you can change the way you import this dependency on your project, basically you need to keep this repo in the same folder as your project and the change your package.json file to import this dependency like this `"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",` instead of having the repository url. That will let you have always the latest version and addresses for your contracts.
 
@@ -124,7 +124,7 @@ We use husky to check linters and code styles on commits, if you commit your cha
 2. Bump the version on the `package.json` file (not strictly needed).
 3. Commit and push any changes, including the version bump.
 
-##### For GitGub
+##### For GitHub
 
 1. Run `npm pack` to generate the tarball to be published as a release on GitHub.
 2. Generate a new release on GitHub and upload the generated tarball.
