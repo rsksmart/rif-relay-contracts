@@ -134,9 +134,9 @@ We use Husky to check linters and code style for every commit. If commiting chan
    
 #### Generating a new distributable version
 
-**IMPORTANT: when you publish a version postinstall scripts must be disabled. This is disabled by default, don't push any changes to the postinstall scripts section in the `package.json` file.**
+**IMPORTANT: when you publish a version postinstall scripts must be disabled. This is disabled by default, so don't push any changes to the postinstall scripts section in the `package.json` file.**
 
-1. Run the `npm run dist` command to generate the dist folder with the distributable version inside.
+1. Run the `npm run dist` command to generate the `dist` folder with the distributable version inside.
 2. Bump the version on the `package.json` file (not strictly needed).
 3. Commit and push any changes, including the version bump.
 
@@ -152,4 +152,4 @@ We use Husky to check linters and code style for every commit. If commiting chan
 
 ##### For direct use (no publishing)
 
-No extra steps are needed beyond generating the dist folder and merging it to `master`.
+No extra steps are needed beyond generating the `dist` folder and merging it to `master`.
