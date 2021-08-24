@@ -48,9 +48,9 @@ This will start the migration on `<NETWORK_NAME>`; at the end of it you should s
 
 ### Addresses
 
-Each time the smart contracts are deployed on a specific network the `contract-addresses.json` file is updated, which contains all the addresses of the deployed contracts on the selected network. 
+Each time the smart contracts are deployed, the `contract-addresses.json` file is updated. This file contains all contracts addresses for the network they were selected to be deployed on. 
 
-This change can be commited and so that this repository is updated with the new version of the file; addresses for testnet and mainnet should be kept up to date.
+This change can be commited so that this repository is updated with the new version of the file; addresses for testnet and mainnet should be kept up to date.
 
 This file also is being exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet when we begin to release the project as a node js dependency.
 
