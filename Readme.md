@@ -124,7 +124,7 @@ instead of having the repository url. This will allow you to always have the lat
 
 #### Husky and linters
 
-We use husky to check linters and code styles on commits, if you commit your changes and the commit fails on lint or prettier checks you can use these commands to check and fix the errors before trying to commit again:
+We use Husky to check linters and code style for every commit. If commiting changes fails on lint or prettier checks you can use these commands to check and fix the errors before trying again:
 
 * `npm run lint:ts`: to check linter bugs for typescript
 * `npm run lint:ts:fix`: to fix linter bugs for typescript
