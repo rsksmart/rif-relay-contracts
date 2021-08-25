@@ -10,6 +10,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
 - [**Smart Contracts**](#smart-contracts)
   - [**Deployment**](#deployment)
   - [**Addresses**](#addresses)
+- [**System usage**](#system-usage)
   - [**Allowing tokens**](#allowing-tokens)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
@@ -53,6 +54,8 @@ Each time the smart contracts are deployed, the `contract-addresses.json` file i
 This change can be commited so that this repository is updated with the new version of the file; addresses for testnet and mainnet should be kept up to date.
 
 This file also is being exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet when we begin to release the project as a node js dependency.
+
+## System usage
 
 ### Allowing tokens
 
