@@ -1,50 +1,82 @@
-## Rif Relay Contracts
+# RIF Relay Contracts
 
-This project is part of the rif relay ecosystem, it contains all the contracts that
-the rif relay system use.
+This project is part of the RIF Relay ecosystem. It contains all the smart contracts that the system uses.
 
-### Pre-Requisites
+## Table of Contents
 
-* An RSKJ Node running locally
-* Node version 12.18
+- [**Installation**](#installation)
+  - [**Pre-requisites**](#pre-requisites)
+  - [**Dependencies**](#dependencies)
+- [**Smart Contracts**](#smart-contracts)
+  - [**Deployment**](#deployment)
+  - [**Addresses**](#addresses)
+- [**System usage**](#system-usage)
+  - [**Allowing tokens**](#allowing-tokens)
+- [**Library usage**](#library-usage)
+  - [**As a dependency**](#as-a-dependency)
+  - [**Development**](#development)
+    - [**Adding new files**](#adding-new-files)
+    - [**Contract addresses**](#contract-addresses)
+    - [**Husky and linters**](#husky-and-linters)
+    - [**Generating a new distributable version**](#generating-a-new-distributable-version)
+      - [**For GitHub**](#for-github) 
+      - [**For NPM**](#for-npm)
+      - [**For direct use (no publishing)**](#for-direct-use-no-publishing)
 
-#### How to start
+## Installation
 
-To start working with this project you need to run `npm install` to install 
-all the dependencies.
+### Pre-requisites
 
-#### How to deploy contracts
+- An RSKJ Node running locally
+- Node version 12.18
 
-To deploy you can use 2 ways:
+### Dependencies
 
-1. Configure the `truffle.js` file on the root of the project to set
-your network and later run `npx truffle migrate --network <NETWORK_NAME>`. 
+Install all dependencies by running `npm install`.
 
-2. Configure the `truffle.js` file on the root of the project to set the rsk
-network and then run `npm run deploy <NETWORK_NAME>`.
+The project is ready to be used at this point.
 
-That will start the migration on `<NETWORK_NAME>`, at the end you should see a summary with all the 
-contract addresses.
+## Smart Contracts
 
-Each time we deploy contracts on a specific network the `contract-addresses.json` is 
-updated, the deployer has to commit that change and update this repository with the 
-new version of the file, we need to keep those addresses updated for testnet and mainnet.
+### Deployment
 
-#### How to compile contracts
+The contracts can be deployed in the following way:
 
-Just run `npx truffle compile` at the root of the project and that will compile the 
-contracts and generate a folder build with all the compiled contracts inside.
+1. Configure the `truffle.js` file on the root of the project to set your network 
+2. Run `npx truffle migrate --network <NETWORK_NAME>` 
 
-#### How to generate a dist version
-Run this command `npm run dist` to generate the dist folder with the distributable 
-version inside.
+This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
-#### How to use the contracts as library
+### Addresses
 
-To use this project as a dependency you can install it on your project like any
-other dependency like this `npm i --save @rsksmart/rif-relay-contracts`. That will
-provide you with a way to get the contracts and interfaces. You can use them
-like this:
+Each time the smart contracts are deployed, the `contract-addresses.json` file is updated. This file contains all contracts addresses for the network they were selected to be deployed on. 
+
+This change can be commited so that this repository is updated with the new version of the file; addresses for testnet and mainnet should be kept up to date.
+
+This file also is being exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet when we begin to release the project as a node js dependency.
+
+## System usage
+
+### Allowing tokens
+
+Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. There are some helpful commands for this:
+
+1. To allow a specific token, run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
+    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name as the one used to deployed the contracts** 
+2. To query allowed tokens run `npm run allowedTokens`. This will display them on the console.
+
+## Library usage
+
+### As a dependency
+
+You can install this project like any other dependency through: 
+
+```bash
+npm i --save @rsksmart/rif-relay-contracts
+```
+
+which will provide you with a way to use the contracts and interfaces, e.g.:
 
 ```javascript
 import {RelayHub, IForwarder} from '@rsksmart/rif-relay-contracts';
@@ -53,100 +85,74 @@ const relayHubContractAbi = RelayHub.abi;
 const iForwarderAbi = IForwarder.abi;
 ```
 
-**Note: you can't use `npm i --save @rsksmart/rif-relay-contracts` to install
-this dependency since we don't have a release version at this time. A way to install it for now is to add to your dependencies on the `package.json` file this line 
-`"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts",` and then run `npm i`**
+**Note: it's not possible to use `npm i --save @rsksmart/rif-relay-contracts` to install this dependency since there is no released version at this time. An alternative is to add the line:**
 
-**IMPORTANT: when you publish a version postinstall scripts must be disabled, if you
-are publishing a new version on the repository directly you need to run `npm run switchPostInstall disable`
-command to disable postinstall scripts since is not automatically disabled.
-That is only automatically disabled when you run `npm publish` to publish your
-library on node registry. If you want to enable postinstall scripts again for development you can run `npm run switchPostInstall enable`**
+```
+"@rsksmart/rif-relay-contracts": "https://github.com/anarancio/rif-relay-contracts"
+``` 
 
-#### How to add new resources
+**to your dependencies listed in the `package.json` file, and then run `npm i`.**
 
-You always can add new solidity files inside the contracts folder at the root
-of this repository, but you need to understand a few rules before doing that.
+### Development
 
-1. The first thing you need to do always is to make sure you run `npm run switchPostInstall enable` 
-to enable post install hooks like husky (those are disabled on publish).
+#### Adding new files
 
-2. If your new file is not meant to be used outside this repository (internal contract or contract that will not be
-   be manually instantiated) then you don't need to worry about anything else than just making solidity compile using
-   `npm run compile` and making the linter work running `npm run lint:sol`.
-   
-3. If your file it's a contract that needs to be manually instantiated or referenced from
-outside this project then you need to follow some steps. Basically you make your
-   changes on solidity, then run `npm run compile` and `npm run lint:sol`, if everything went well then
-   your next step should be going to the `index.ts` file in the root of this project
-   and add those new contracts/interfaces to the import/export declarations like this.
-   ```typescript
-      const SomeContract = require('./build/contracts/SomeContract.json');
-   
-      export {
-         ...,
-         SomeContract
-      };
-   ```
-   
-#### How to generate a new distributable version
+New solidity files can be added inside the contracts folder at the root of this repository, but note that:
 
-1. Bump the version on the `package.json` file.
-2. Commit and push any changes included the bump.
+1. You must make sure that `postinstall` scripts are enabled in the `package.json` file. These are disabled by default due to distribution issues (which will be solved in the future).
+2. If your new file is not meant to be used outside this repository (internal contract or contract that will not be manually instantiated) then you don't need to worry about anything else than just making solidity compile using `npm run compile` and making the linter work running `npm run lint:sol`.  
+3. If your file is a contract that needs to be manually instantiated or referenced from outside this project, you'll also need to run `npm run compile` and `npm run lint:sol`. If everything goes well, go to the `index.ts` file at the root of this project and add those new contracts/interfaces to the import/export declarations:
+```typescript
+const SomeContract = require('./build/contracts/SomeContract.json');
 
-#### For Github
+export {
+   ...,
+   SomeContract
+};
+```
 
-1. Run `npm pack` to generate the tarball to be publish as release on github.
-2. Generate a new release on github and upload the generated tarball.
+### Contract addresses
 
-#### For NPM
+During development, the smart contract addresses config file can be expected to be updated each time a migration is executed. 
 
-1. Run `npm login` to login to your account on npm registry.
-2. Run `npm publish` to generate the distributable version for NodeJS
+To automatically use these new addresses each time a change is made, the way this dependency is imported can be changed. 
 
-#### For direct use
+You'll need keep this repo in the same folder as your project and then change your `package.json` file to import this dependency like this: 
 
-1. Run `npm run dist` to generate the distributable version.
-2. Commit and push the dist folder with the updated version to the repository on master.
+```
+"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",
+``` 
 
-#### How to allow tokens
-
-Once you have the contracts deployed you need to allow tokens to be able to work with them
-on the rif relay system, you have some commands you can use:
-
-1. To allow a specific token you run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
-* `<TOKEN_ADDRESSES>` is a list (separated by comma) of the token addresses you want to allow on the available verifiers.
-* `<NETWORK_NAME>` it's an optional parameter for the network name from the `truffle.js` (default value is `regtest`) **Important: Should be the same network name you use for the deployment.**
-   
-2. To retrieve the allowed tokens you can run `npm run allowedTokens` and that will
-prompt the tokens allowed on the console.
-   
-#### Contract Addresses
-
-Each time you run `npm run deploy <NETWORK_NAME>` a json file is updated with the
-new contract addresses on the root of this project, that file is called `contract-addresses.json`
-and it contains all the addresses of the deployed contracts on the selected network. This file also is being
-exported on the distributable version to provide the consumers a way to know the contract addresses on testnet and mainnet
-when we start to deliver this as a node js dependency.
-
-#### Contract Addresses on development
-
-When you are working on develop and making changes to the contract and deploying 
-several times the config file will be updated each time a migration is executed. 
-To use these new addresses each time you make a change and keep all updated you can change the way you
-import this dependency on your project, basically you need to keep this repo in the same folder
-as your project and the change your package.json file to import this dependency like this 
-`"@rsksmart/rif-relay-contracts": "../rif-relay-contracts",` instead of having the repository url. That
-will let you have always the latest version and addresses for your contracts.
+instead of having the repository url. This will allow you to always have the latest version and addresses for your contracts.
 
 #### Husky and linters
 
-We use husky to check linters and code styles on commits, if you commit your
-changes and the commit fails on lint or prettier checks you can use these command
-to check and fix the errors before trying to commit again:
+We use Husky to check linters and code style for every commit. If commiting changes fails on lint or prettier checks you can use these commands to check and fix the errors before trying again:
 
 * `npm run lint:ts`: to check linter bugs for typescript
 * `npm run lint:ts:fix`: to fix linter bugs for typescript
 * `npm run lint:sol`: to see bugs on solidity
-* `npm run prettier`: to check codestyles errors
-* `npm run prettier:fix`: to fix codestyles errors
+* `npm run prettier`: to check code style errors
+* `npm run prettier:fix`: to fix code style errors
+   
+#### Generating a new distributable version
+
+**IMPORTANT: when you publish a version postinstall scripts must be disabled. This is disabled by default, so don't push any changes to the postinstall scripts section in the `package.json` file.**
+
+1. Run the `npm run dist` command to generate the `dist` folder with the distributable version inside.
+2. Bump the version on the `package.json` file (not strictly needed).
+3. Commit and push any changes, including the version bump.
+
+##### For GitHub
+
+1. Run `npm pack` to generate the tarball to be published as a release on GitHub.
+2. Generate a new release on GitHub and upload the generated tarball.
+
+##### For NPM
+
+1. Run `npm login` to login to your account on npm registry.
+2. Run `npm publish` to generate the distributable version for NodeJS.
+
+##### For direct use (no publishing)
+
+No extra steps are needed beyond generating the `dist` folder and merging it to `master`.
