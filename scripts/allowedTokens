@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NETWORK_ID=$2
+NETWORK_ID=$1
 
 if [ "${NETWORK_ID}" == "" ]; then
         NETWORK_ID="regtest"
