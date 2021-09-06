@@ -108,10 +108,7 @@ module.exports = async function (deployer, network, accounts) {
         jsonConfig = {};
     }
 
-    const networkConfiguration = truffleConfig.networks[network];
-    const networkId = networkConfiguration.network_id;
-
-    jsonConfig[networkId] = {
+    jsonConfig[network] = {
         penalizer: Penalizer.address,
         relayHub: RelayHub.address,
         smartWallet: SmartWallet.address,

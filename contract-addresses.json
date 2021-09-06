@@ -1,16 +1,1 @@
-{
-    "33": {
-        "penalizer": "0xe8C7C6f18c3B9532343487faD807060750C1fE95",
-        "relayHub": "0x3bA95e1cccd397b5124BcdCC5bf0952114E6A701",
-        "smartWallet": "0xB7a001eE69E7C1eef25Eb8e628e46214Ea74BF0F",
-        "smartWalletFactory": "0x8C1108cFCd7ddad09D8910e5f42982A6c54aD9cD",
-        "smartWalletDeployVerifier": "0x1938517B0762103d52590Ca21d459968c25c9E67",
-        "smartWalletRelayVerifier": "0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2",
-        "customSmartWallet": "0x96A90Ee24C20c78Ba20AcE1a2aa4D59F79353C54",
-        "customSmartWalletFactory": "0x89bac3BB0517F7Dc0E5E94265217A9Acc5cc489f",
-        "customSmartWalletDeployVerifier": "0x3eE31F6049065B616f85470985c0eF067f2bEbDE",
-        "customSmartWalletRelayVerifier": "0xDE8Ae20488BE104f0782C0126038b6682ECc1eC7",
-        "sampleRecipient": "0xB08E0D333F139AC71DE04f4bfE7e75ca1e6122a0",
-        "testToken": "0x5D0aBdE7Ed6B7e122eD55EAe514E617d6c08f407"
-    }
-}
+{"33":{"penalizer":"0x7CFf7386dDC8af724AC46c97E00d42b70131e2B6","relayHub":"0x9DC4Ee9d379f2F2D3bEc094Ea5D68b179790D580","smartWallet":"0x0bf88c200cc8f5f2cA409a35adf69dcbFc2e6Caf","smartWalletFactory":"0x2Ec01561f6F2e2325630A58Eb1Be43c51d7bdf70","smartWalletDeployVerifier":"0xA5344b32BFeEB51bf70693bBFECe3F23d82c39bE","smartWalletRelayVerifier":"0x69788F628C5Db69AC37506573162Ac15C735f726","customSmartWallet":"0xAED72be45dd3206635183013E910f415c9732CCa","customSmartWalletFactory":"0xE9797325c5C3A841B4C4f03D15334e5401f9F78F","customSmartWalletDeployVerifier":"0x545c8EEA346855eF6961346dCc1568a1a028EA50","customSmartWalletRelayVerifier":"0xf02976B499c43FfC1Ec16611581e96C2A750ADcf","sampleRecipient":"0xb4ed846447053EA8502E9292edbC8620CAe3F386","testToken":"0x896A78a1d3E37588079D984291b09532916ae6CB"},"regtest":{"penalizer":"0xe8C7C6f18c3B9532343487faD807060750C1fE95","relayHub":"0x3bA95e1cccd397b5124BcdCC5bf0952114E6A701","smartWallet":"0xB7a001eE69E7C1eef25Eb8e628e46214Ea74BF0F","smartWalletFactory":"0x8C1108cFCd7ddad09D8910e5f42982A6c54aD9cD","smartWalletDeployVerifier":"0x1938517B0762103d52590Ca21d459968c25c9E67","smartWalletRelayVerifier":"0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2","customSmartWallet":"0x96A90Ee24C20c78Ba20AcE1a2aa4D59F79353C54","customSmartWalletFactory":"0x89bac3BB0517F7Dc0E5E94265217A9Acc5cc489f","customSmartWalletDeployVerifier":"0x3eE31F6049065B616f85470985c0eF067f2bEbDE","customSmartWalletRelayVerifier":"0xDE8Ae20488BE104f0782C0126038b6682ECc1eC7","sampleRecipient":"0xB08E0D333F139AC71DE04f4bfE7e75ca1e6122a0","testToken":"0x5D0aBdE7Ed6B7e122eD55EAe514E617d6c08f407"}}
