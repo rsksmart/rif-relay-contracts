@@ -86,6 +86,7 @@ module.exports = async function(callback) {
       }
     }
   } catch (error) {
+    console.error(error);
     console.error("Fail to allow tokens");
     return;
   }
