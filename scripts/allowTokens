@@ -1,15 +1,15 @@
 #!/bin/bash
 
 TOKEN_ADDRESSES=$1
-NETWORK_ID=$2
+NETWORK_NAME=$2
 
 if [ "${TOKEN_ADDRESSES}" == "" ]; then
         echo "You need to specify at least one token address."
         exit 1
 fi
 
-if [ "${NETWORK_ID}" == "" ]; then
-        NETWORK_ID="regtest"
+if [ "${NETWORK_NAME}" == "" ]; then
+        NETWORK_NAME="regtest"
 fi
 
 cat > allowTokens.js << EOF
@@ -45,10 +45,10 @@ module.exports = async function(callback) {
   const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
   const relayVerifierAbi = require("./build/contracts/RelayVerifier.json").abi;
 
-  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses["${NETWORK_ID}"].smartWalletDeployVerifier);
-  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_ID}"].smartWalletRelayVerifier);
-  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses["${NETWORK_ID}"].customSmartWalletDeployVerifier);
-  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_ID}"].customSmartWalletRelayVerifier);
+  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses["${NETWORK_NAME}"].smartWalletDeployVerifier);
+  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_NAME}"].smartWalletRelayVerifier);
+  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses["${NETWORK_NAME}"].customSmartWalletDeployVerifier);
+  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_NAME}"].customSmartWalletRelayVerifier);
 
   const tokenAddresses = '${TOKEN_ADDRESSES}'.split(',');
 
@@ -94,6 +94,6 @@ module.exports = async function(callback) {
 }
 EOF
 
-truffle exec --network ${NETWORK_ID} allowTokens.js
+truffle exec --network ${NETWORK_NAME} allowTokens.js
 
 rm allowTokens.js
