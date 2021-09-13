@@ -118,8 +118,7 @@ on the rif relay system, you have some commands you can use:
 * `<TOKEN_ADDRESSES>` is a list (separated by comma) of the token addresses you want to allow on the available verifiers.
 * `<NETWORK_NAME>` it's an optional parameter for the network name from the `truffle.js` (default value is `regtest`) **Important: Should be the same network name you use for the deployment.**
    
-2. To retrieve the allowed tokens you can run `npm run allowedTokens` and that will
-prompt the tokens allowed on the console.
+2. To retrieve the allowed tokens you can run `npm run allowedTokens <NETWORK_NAME>` and that will prompt the allowed tokens on the console.
    
 #### Contract Addresses
 
