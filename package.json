@@ -18,8 +18,7 @@
     "allowTokens": "./scripts/allowTokens",
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
-    "prettier": "npx prettier --check .",
-    "switchPostInstall": "scripts/switchPostInstall"
+    "prettier": "npx prettier --check ."
   },
   "author": "Relaying Services Team",
   "license": "MIT",
@@ -38,7 +37,6 @@
     "@typescript-eslint/parser": "^4.28.3",
     "eslint": "^7.30.0",
     "husky": "^6.0.0",
-    "pinst": "^2.1.6",
     "prettier": "2.3.0",
     "solhint": "3.0.0",
     "truffle": "^5.1.52",
