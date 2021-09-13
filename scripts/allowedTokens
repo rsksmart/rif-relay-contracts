@@ -6,7 +6,7 @@ if [ "${NETWORK_NAME}" == "" ]; then
         NETWORK_NAME="regtest"
 fi
 
-cat > allowTokens.js << EOF
+cat > allowedTokens.js << EOF
 module.exports = async function(callback) {
   const contractAddresses = require('./contract-addresses.json');
   const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
@@ -56,6 +56,6 @@ module.exports = async function(callback) {
 }
 EOF
 
-truffle exec --network ${NETWORK_NAME} allowTokens.js
+truffle exec --network ${NETWORK_NAME} allowedTokens.js
 
-rm allowTokens.js
+rm allowedTokens.js
