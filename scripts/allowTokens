@@ -14,32 +14,7 @@ fi
 
 cat > allowTokens.js << EOF
 
-async function getRevertReason(txHash) {
-  const tx = await web3.eth.getTransaction(txHash);
-  const txBlockNumber = tx.blockNumber;
-  try {
-
-    delete tx['hash'];
-    delete tx['blockHash'];
-    delete tx['blockNumber'];
-    delete tx['transactionIndex'];
-    delete tx['v'];
-    delete tx['r'];
-    delete tx['s'];
-
-    let result = await web3.eth.call(tx, txBlockNumber);
-    result = result.startsWith('0x') ? result : '0x' + result;
-    if (result && result.substr(138)) {
-      return web3.utils.toAscii(result.substr(138));
-    } else {
-      return 'Cannot get reason - No return value';
-    }
-  } catch (reason) {
-    return reason;
-  }
-}
-
-module.exports = async function(callback) {
+module.exports = async function( ) {
   const contractAddresses = require('./contract-addresses.json');
   const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
   const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
@@ -59,29 +34,25 @@ module.exports = async function(callback) {
       try {
         await smartWalletDeployVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
       } catch (error) {
-        const reason = await getRevertReason(error.receipt.transactionHash);
-        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet deploy verifier", reason);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet deploy verifier", error);
         throw error;
       }
       try {
         await smartWalletRelayVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
       } catch (error) {
-        const reason = await getRevertReason(error.receipt.transactionHash);
-        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet relay verifier", reason);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on smart wallet relay verifier", error);
         throw error;
       }
       try {
         await customSmartWalletDeployVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
       } catch (error) {
-        const reason = await getRevertReason(error.receipt.transactionHash);
-        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart deploy verifier", reason);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart deploy verifier", error);
         throw error;
       }
       try {
         await customSmartWalletRelayVerifier.methods.acceptToken(tokenAddress).send({from: accounts[0]});
       } catch (error) {
-        const reason = await getRevertReason(error.receipt.transactionHash);
-        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart wallet relay verifier", reason);
+        console.error("Error adding token with address " + tokenAddress + " to allowed tokens on custom smart wallet relay verifier", error);
         throw error;
       }
     }
