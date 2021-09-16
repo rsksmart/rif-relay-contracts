@@ -66,6 +66,25 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name as the one used to deployed the contracts** 
 2. To query allowed tokens run `npm run allowedTokens`. This will display them on the console.
 
+### TestToken Minting
+
+Once the smart contracts are deployed, TestToken can be minted and transferred by using the related script.
+```bash
+npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc123> --amount <amount_in_wei>
+```
+Parameters:
+- `tokenReceiver`: the address of the account the token will be transferred to (default value - `(await web3.eth.getAccounts())[0]`)
+- `amount`: the amount of the token will be minted and transferred (default value - `web3.utils.toWei('1', 'ether');`).
+
+#### Warning message
+Truffle doesn't support additional arguments natively when running `truffle exec` command, so the user can ignore the warning shown when the command is executed.
+
+```bash
+Warning: possible unsupported (undocumented in help) command line option(s): --tokenReceiver,--amount
+```
+
+For further info about `truffle exec`, please have a look at its [official documentation](https://www.trufflesuite.com/docs/truffle/reference/truffle-commands#exec).
+
 ## Library usage
 
 ### As a dependency
