@@ -68,7 +68,7 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
 
 ### TestToken Minting
 
-Once the smart contracts are deployed, TestToken can be minted and transferred by using the related script.
+Once the smart contracts are deployed, [TestToken](./contracts/test/tokens/TestToken.sol)s can be minted and transferred by using the related script:
 ```bash
 npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc123> --amount <amount_in_wei>
 ```
