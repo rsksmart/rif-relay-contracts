@@ -12,6 +12,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Addresses**](#addresses)
 - [**System usage**](#system-usage)
   - [**Allowing tokens**](#allowing-tokens)
+  - [**TestToken Minting**](#testtoken-minting)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
   - [**Development**](#development)

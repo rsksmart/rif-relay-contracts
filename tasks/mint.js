@@ -5,12 +5,8 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 
-const getTestTokenInstance = async (from) => {
-    const testTokenArtifact = require(path.resolve(__dirname, '../build/contracts/TestToken.json'));
-    const TruffleContract = require('@truffle/contract');
-    const TestToken = TruffleContract(testTokenArtifact);
-    TestToken.defaults({ from });
-    TestToken.setProvider(web3.currentProvider);
+const getTestTokenInstance = async () => {
+    const TestToken = artifacts.require('TestToken');
     const testTokenInstance = await TestToken.deployed();
     return testTokenInstance;
 };
@@ -26,7 +22,7 @@ module.exports = async (callback) => {
     console.log(
         `Minting ${amount} tokens and transferring them to ${tokenReceiver}...`
     );
-    const testTokenInstance = await getTestTokenInstance(accounts[0]);
+    const testTokenInstance = await getTestTokenInstance();
     const balanceBefore = await testTokenInstance.balanceOf(tokenReceiver);
     console.log(`Balance before: ${balanceBefore}`);
     const tx = await testTokenInstance.mint(amount, tokenReceiver);
