@@ -24,7 +24,7 @@ module.exports = async (callback) => {
         callback(new Error(`invalid "tokenReceiver" address: ${tokenReceiver}`));
     }
     console.log(
-        `Minting ${amount} and transferring them to ${tokenReceiver}...`
+        `Minting ${amount} tokens and transferring them to ${tokenReceiver}...`
     );
     const testTokenInstance = await getTestTokenInstance(accounts[0]);
     const balanceBefore = await testTokenInstance.balanceOf(tokenReceiver);
