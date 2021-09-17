@@ -21,7 +21,7 @@ module.exports = async (callback) => {
     const defaultAmount = web3.utils.toWei('1', 'ether');
     const { tokenReceiver = defaultReceiver, amount = defaultAmount } = argv;
     if (!web3.utils.isAddress(tokenReceiver)) {
-        callback(new Error(`"tokenReceiver" invalid: ${tokenReceiver}`));
+        callback(new Error(`invalid "tokenReceiver" address: ${tokenReceiver}`));
     }
     console.log(
         `Minting ${amount} and transferring them to ${tokenReceiver}...`
