@@ -74,7 +74,7 @@ npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc12
 ```
 Parameters:
 - `tokenReceiver`: the address of the account the token will be transferred to (default value - `(await web3.eth.getAccounts())[0]`)
-- `amount`: the amount of the token will be minted and transferred (default value - `web3.utils.toWei('1', 'ether');`).
+- `amount`: the amount of tokens that will be minted and transferred (default value - `web3.utils.toWei('1', 'ether');`).
 
 #### Warning message
 Truffle doesn't support additional arguments natively when running `truffle exec` command, so the user can ignore the warning shown when the command is executed.
