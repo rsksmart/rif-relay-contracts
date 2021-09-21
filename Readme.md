@@ -65,7 +65,7 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
 1. To allow a specific token, run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! this should be the same network name as the one used to deployed the contracts** 
-2. To query allowed tokens run `npm run allowedTokens`. This will display them on the console.
+2. To query allowed tokens run `npm run allowedTokens <NETWORK_NAME>`. This will display them on the console.
 
 ### TestToken Minting
 
