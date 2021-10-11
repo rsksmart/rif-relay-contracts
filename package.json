@@ -39,7 +39,7 @@
     "eslint": "~7.30.0",
     "husky": "~6.0.0",
     "pinst": "~2.1.6",
-    "prettier": "2.3.0",
+    "prettier": "^2.3.0",
     "solhint": "3.0.0",
     "truffle": "~5.1.52",
     "ts-loader": "~9.2.3",
