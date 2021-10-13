@@ -13,3 +13,4 @@ node_modules
 webpack.config.js
 build
 dist
+types/truffle-contracts
