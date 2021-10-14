@@ -1,5 +1,5 @@
 {
-    "33": {
+    "regtest": {
         "penalizer": "0xe8C7C6f18c3B9532343487faD807060750C1fE95",
         "relayHub": "0x3bA95e1cccd397b5124BcdCC5bf0952114E6A701",
         "smartWallet": "0xB7a001eE69E7C1eef25Eb8e628e46214Ea74BF0F",
