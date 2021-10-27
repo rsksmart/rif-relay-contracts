@@ -107,11 +107,11 @@ interface IRelayHub {
 
     function isRelayManagerStaked(address relayManager) external view returns(bool);
 
-    // get the relay data from the manager address
-    function getRelayData(address relayManager) external view returns(RelayData memory relayInfo);
+    // get the relay info from the manager address
+    function getRelayInfo(address relayManager) external view returns(RelayInfo memory relayInfo);
 
-    // Represents the relay data for the relay
-    struct RelayData {
+    // Represents the relay data for a particular relay manager
+    struct RelayInfo {
         address manager;
         bool penalized;
         bool stakeAdded;

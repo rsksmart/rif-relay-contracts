@@ -35,7 +35,7 @@ contract RelayHub is IRelayHub {
     mapping(address => StakeInfo) public stakes;
 
     //maps relay manager address to the relay data
-    mapping(address => RelayData) public relayData;
+    mapping(address => RelayInfo) public relayData;
 
     constructor(
         address _penalizer,
@@ -294,7 +294,7 @@ contract RelayHub is IRelayHub {
         emit StakePenalized(relayManager, beneficiary, reward);
     }
 
-    function getRelayData(address relayManager) external view override returns (RelayData memory relayInfo) {
+    function getRelayInfo(address relayManager) external view override returns (RelayInfo memory relayInfo) {
         return relayData[relayManager];
     }
 
