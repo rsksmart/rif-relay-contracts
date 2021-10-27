@@ -2625,7 +2625,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
-  getRelayManagerData(
+  getRelayInfo(
     relayManager: string | BN,
     txDetails?: Truffle.TransactionDetails
   ): Promise<{
@@ -4388,7 +4388,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
     ): Promise<number>;
   };
 
-  getRelayManagerData(
+  getRelayInfo(
     relayManager: string | BN,
     txDetails?: Truffle.TransactionDetails
   ): Promise<{

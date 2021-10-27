@@ -294,7 +294,7 @@ contract RelayHub is IRelayHub {
         emit StakePenalized(relayManager, beneficiary, reward);
     }
 
-    function getRelayManagerData(address relayManager) external view override returns (RelayManagerData memory relayManagerData) {
+    function getRelayInfo(address relayManager) external view override returns (RelayManagerData memory relayManagerData) {
         return relayData[relayManager];
     }
 
