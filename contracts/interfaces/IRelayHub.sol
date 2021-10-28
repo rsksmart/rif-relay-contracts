@@ -113,8 +113,7 @@ interface IRelayHub {
     // Represents the relay data for a particular relay manager
     struct RelayManagerData {
         address manager;
-        bool penalized;
-        bool stakeAdded;
+        bool currentlyStaked;
         bool registered;
         string url;
     }
