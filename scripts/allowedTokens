@@ -8,15 +8,20 @@ fi
 
 cat > allowedTokens.js << EOF
 module.exports = async function(callback) {
+  const truffleConfig = require('./truffle');
   const contractAddresses = require('./contract-addresses.json');
+
+  const networkConfiguration = truffleConfig.networks["${NETWORK_NAME}"];
+  const networkId = networkConfiguration.network_id;
+
   const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
   const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
   const relayVerifierAbi = require("./build/contracts/RelayVerifier.json").abi;
 
-  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses["${NETWORK_NAME}"].smartWalletDeployVerifier);
-  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_NAME}"].smartWalletRelayVerifier);
-  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses["${NETWORK_NAME}"].customSmartWalletDeployVerifier);
-  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses["${NETWORK_NAME}"].customSmartWalletRelayVerifier);
+  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses[networkId].smartWalletDeployVerifier);
+  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses[networkId].smartWalletRelayVerifier);
+  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses[networkId].customSmartWalletDeployVerifier);
+  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses[networkId].customSmartWalletRelayVerifier);
 
   const accounts = await web3.eth.getAccounts();
 
