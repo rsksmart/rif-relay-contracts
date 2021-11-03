@@ -2625,13 +2625,12 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
-  getRelayData(
+  getRelayInfo(
     relayManager: string | BN,
     txDetails?: Truffle.TransactionDetails
   ): Promise<{
     manager: string;
-    penalized: boolean;
-    stakeAdded: boolean;
+    currentlyStaked: boolean;
     registered: boolean;
     url: string;
   }>;
@@ -4083,7 +4082,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
   relayData(
     arg0: string | BN,
     txDetails?: Truffle.TransactionDetails
-  ): Promise<[string, boolean, boolean, boolean, string]>;
+  ): Promise<[string, boolean, boolean, string]>;
 
   stakes(
     arg0: string | BN,
@@ -4388,13 +4387,12 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
     ): Promise<number>;
   };
 
-  getRelayData(
+  getRelayInfo(
     relayManager: string | BN,
     txDetails?: Truffle.TransactionDetails
   ): Promise<{
     manager: string;
-    penalized: boolean;
-    stakeAdded: boolean;
+    currentlyStaked: boolean;
     registered: boolean;
     url: string;
   }>;

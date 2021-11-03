@@ -1,3 +1,4 @@
+import { RelayManagerData } from "./types/RelayManagerData";
 declare const EnvelopingTypes: any;
 declare const ICustomSmartWalletFactory: any;
 declare const IDeployVerifier: any;
@@ -23,4 +24,4 @@ declare const TestDeployVerifierEverythingAccepted: any;
 declare const TestVerifierEverythingAccepted: any;
 declare const VersionRegistry: any;
 declare const ContractAddresses: any;
-export { EnvelopingTypes, ICustomSmartWalletFactory, IDeployVerifier, IForwarder, IPenalizer, IRelayHub, IRelayVerifier, ISmartWalletFactory, ITokenHandler, IVersionRegistry, IWalletCustomLogic, IWalletFactory, CustomSmartWallet, CustomSmartWalletDeployVerifier, CustomSmartWalletFactory, DeployVerifier, Penalizer, RelayHub, RelayVerifier, SmartWallet, SmartWalletFactory, TestDeployVerifierEverythingAccepted, TestVerifierEverythingAccepted, VersionRegistry, ContractAddresses };
+export { EnvelopingTypes, ICustomSmartWalletFactory, IDeployVerifier, IForwarder, IPenalizer, IRelayHub, IRelayVerifier, ISmartWalletFactory, ITokenHandler, IVersionRegistry, IWalletCustomLogic, IWalletFactory, CustomSmartWallet, CustomSmartWalletDeployVerifier, CustomSmartWalletFactory, DeployVerifier, Penalizer, RelayHub, RelayVerifier, SmartWallet, SmartWalletFactory, TestDeployVerifierEverythingAccepted, TestVerifierEverythingAccepted, VersionRegistry, ContractAddresses, RelayManagerData };
