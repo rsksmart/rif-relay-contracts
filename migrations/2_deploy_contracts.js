@@ -20,7 +20,7 @@ const CustomSmartWalletDeployVerifier = artifacts.require(
     'CustomSmartWalletDeployVerifier'
 );
 
-module.exports = async function (deployer, network, accounts) {
+module.exports = async function (deployer, network) {
     await deployer.deploy(Penalizer);
     await deployer.deploy(RelayHub, Penalizer.address, 1, 1, 1, 1);
     await deployer.deploy(SmartWallet);
@@ -108,7 +108,10 @@ module.exports = async function (deployer, network, accounts) {
         jsonConfig = {};
     }
 
-    jsonConfig[network] = {
+    const networkConfiguration = truffleConfig.networks[network];
+    const networkId = networkConfiguration.network_id;
+
+    jsonConfig[networkId] = {
         penalizer: Penalizer.address,
         relayHub: RelayHub.address,
         smartWallet: SmartWallet.address,
