@@ -14,3 +14,4 @@ webpack.config.js
 build
 dist
 types/truffle-contracts
+pull_request_template.md

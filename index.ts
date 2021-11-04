@@ -1,4 +1,4 @@
-import { RelayManagerData } from "./types/RelayManagerData";
+import { RelayManagerData } from './types/RelayManagerData';
 
 // interfaces
 const EnvelopingTypes = require('./build/contracts/EnvelopingTypes.json');
