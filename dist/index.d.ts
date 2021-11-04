@@ -1,4 +1,4 @@
-import { RelayManagerData } from "./types/RelayManagerData";
+import { RelayManagerData } from './types/RelayManagerData';
 declare const EnvelopingTypes: any;
 declare const ICustomSmartWalletFactory: any;
 declare const IDeployVerifier: any;
