@@ -40,7 +40,7 @@ interface IRelayHub {
         address  relayWorker,
         bytes32 relayRequestSigHash,
         bytes reason);
-    
+
     event TransactionResult(
         bytes returnValue
     );
@@ -58,7 +58,7 @@ interface IRelayHub {
 
     // Disable a relayWorker account so it cannot relay calls anymore (e.g, if the account was compromised)
     // Once disabled, a relay worker cannot be re-enabled
-    function disableRelayWorkers(address[] calldata relayWorkers) external; 
+    function disableRelayWorkers(address[] calldata relayWorkers) external;
 
     function registerRelayServer(string calldata url) external;
 
@@ -86,7 +86,7 @@ interface IRelayHub {
         EnvelopingTypes.DeployRequest calldata deployRequest,
         bytes calldata signature    )
     external;
-    
+
     function penalize(address relayWorker, address payable beneficiary) external;
 
     /* getters */
@@ -106,6 +106,17 @@ interface IRelayHub {
     function workerCount(address manager) external view returns(uint256);
 
     function isRelayManagerStaked(address relayManager) external view returns(bool);
+
+    // get the relay info from the manager address
+    function getRelayInfo(address relayManager) external view returns(RelayManagerData memory relayManagerData);
+
+    // Represents the relay data for a particular relay manager
+    struct RelayManagerData {
+        address manager;
+        bool currentlyStaked;
+        bool registered;
+        string url;
+    }
 
     function versionHub() external view returns (string memory);
 

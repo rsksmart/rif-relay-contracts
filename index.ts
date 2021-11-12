@@ -1,3 +1,5 @@
+import { RelayManagerData } from './types/RelayManagerData';
+
 // interfaces
 const EnvelopingTypes = require('./build/contracts/EnvelopingTypes.json');
 const ICustomSmartWalletFactory = require('./build/contracts/ICustomSmartWalletFactory.json');
@@ -57,5 +59,7 @@ export {
     TestVerifierEverythingAccepted,
     VersionRegistry,
     // deployed addresses
-    ContractAddresses
+    ContractAddresses,
+    // types
+    RelayManagerData
 };
