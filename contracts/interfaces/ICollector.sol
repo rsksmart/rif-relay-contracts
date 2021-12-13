@@ -3,7 +3,7 @@ pragma solidity ^0.6.12;
 
 interface ICollector{
     struct Participant{
-        address beneficiary;
+        address payable beneficiary;
         uint share;
     }
 
