@@ -7,7 +7,7 @@ interface ICollector{
         uint share;
     }
 
-    struct Share{
+    struct Shares{
         Participant relayOperator;
         Participant walletProvider;
         Participant liquidityProvider;
