@@ -11,11 +11,17 @@ contract Collector is ICollector{
     constructor(
         Shares memory _shares
     )public {
+        require(_shares.relayOperator.beneficiary != address(0), "relayOperator must be set");
+        require(_shares.walletProvider.beneficiary != address(0), "walletProvider must be set");
+        require(_shares.liquidityProvider.beneficiary != address(0), "liquidityProvider must be set");
+        require(_shares.iovLabsRecipient.beneficiary != address(0), "iovLabsRecipient must be set");
+
         require(
-            _shares.relayOperator.beneficiary &&
-            _shares.walletProvider.beneficiary &&
-            _shares.liquidityProvider.beneficiary && 
-            _shares.iovLabsRecipient.beneficiary
+            _shares.relayOperator.share +
+            _shares.walletProvider.share +
+            _shares.liquidityProvider.share + 
+            _shares.iovLabsRecipient.share == 100,
+            "total shares must add up to 100%"
         );
     }
 }
