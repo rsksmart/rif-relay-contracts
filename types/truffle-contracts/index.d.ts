@@ -15,6 +15,7 @@ export interface BlackListContract extends Truffle.Contract<BlackListInstance> {
 
 export interface CollectorContract extends Truffle.Contract<CollectorInstance> {
   "new"(
+    _multisigOwner: string | BN,
     _shares: {
       relayOperator: { beneficiary: string | BN; share: number | BN | string };
       walletProvider: { beneficiary: string | BN; share: number | BN | string };
@@ -620,6 +621,8 @@ export interface BlackListInstance extends Truffle.ContractInstance {
 }
 
 export interface CollectorInstance extends Truffle.ContractInstance {
+  multisigOwner(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
   updateShares: {
     (
       _shares: {

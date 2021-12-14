@@ -7,40 +7,52 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector{
 
+    address public multisigOwner;
     Shares private revenueShares;
 
-    constructor(Shares memory _shares)
+    constructor(
+        address _multisigOwner,
+        Shares memory _shares
+    )
     public
     validShares(_shares)
-    {
+    {   
+        multisigOwner = _multisigOwner;
         revenueShares = _shares;
     }
 
-    // TODO: add multisig requirement
     function updateShares(Shares memory _shares) 
     public
     validShares(_shares)
+    onlyMultisigOwner()
     {
         revenueShares = _shares;
     }
 
     receive() external payable{
-        // Relay payments should be made to this endpoint
+        // relay payments should be made to this endpoint
     }
 
-    // TODO: add multisig requirement
-    function withdraw() public {
+    function withdraw() 
+    public 
+    onlyMultisigOwner()
+    {
         uint balance = address(this).balance;
         
-        // Calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
-        revenueShares.relayOperator.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.relayOperator.share));
-        revenueShares.walletProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.walletProvider.share));
-        revenueShares.liquidityProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.liquidityProvider.share));
-        revenueShares.iovLabsRecipient.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.iovLabsRecipient.share));
+        // calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
+        revenueShares.relayOperator.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.relayOperator.share), 100));
+        revenueShares.walletProvider.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.walletProvider.share), 100));
+        revenueShares.liquidityProvider.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.liquidityProvider.share), 100));
+        revenueShares.iovLabsRecipient.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.iovLabsRecipient.share), 100));
+    }
+
+    modifier onlyMultisigOwner(){
+        require(msg.sender == multisigOwner, "can only call from multisig owner");
+        _;
     }
 
     modifier validShares(Shares memory _shares){
-        // These requires could eventually be removed if their addresses are deemed optional
+        // these require staments could eventually be removed if their addresses are deemed optional
         require(_shares.relayOperator.beneficiary != address(0), "relayOperator must be set");
         require(_shares.walletProvider.beneficiary != address(0), "walletProvider must be set");
         require(_shares.liquidityProvider.beneficiary != address(0), "liquidityProvider must be set");
