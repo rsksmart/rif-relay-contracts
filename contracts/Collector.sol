@@ -16,6 +16,7 @@ contract Collector is ICollector{
         revenueShares = _shares;
     }
 
+    // TODO: add multisig requirement
     function updateShares(Shares memory _shares) 
     public
     validShares(_shares)
@@ -23,7 +24,23 @@ contract Collector is ICollector{
         revenueShares = _shares;
     }
 
+    receive() external payable{
+        // Relay payments should be made to this endpoint
+    }
+
+    // TODO: add multisig requirement
+    function withdraw() public {
+        uint balance = address(this).balance;
+        
+        // Calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
+        revenueShares.relayOperator.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.relayOperator.share));
+        revenueShares.walletProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.walletProvider.share));
+        revenueShares.liquidityProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.liquidityProvider.share));
+        revenueShares.iovLabsRecipient.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.iovLabsRecipient.share));
+    }
+
     modifier validShares(Shares memory _shares){
+        // These requires could eventually be removed if their addresses are deemed optional
         require(_shares.relayOperator.beneficiary != address(0), "relayOperator must be set");
         require(_shares.walletProvider.beneficiary != address(0), "walletProvider must be set");
         require(_shares.liquidityProvider.beneficiary != address(0), "liquidityProvider must be set");
@@ -38,17 +55,5 @@ contract Collector is ICollector{
         );
 
         _;
-    }
-
-    // solhint-disable-next-line no-empty-blocks
-    receive() external payable{}
-
-    function withdraw() public {
-        uint balance = address(this).balance;
-        
-        revenueShares.relayOperator.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.relayOperator.share));
-        revenueShares.walletProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.walletProvider.share));
-        revenueShares.liquidityProvider.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.liquidityProvider.share));
-        revenueShares.iovLabsRecipient.beneficiary.transfer(SafeMath.mul(SafeMath.div(balance, 100), revenueShares.iovLabsRecipient.share));
     }
 }
