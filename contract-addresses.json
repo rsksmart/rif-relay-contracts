@@ -1,4 +1,18 @@
 {
+    "31": {
+        "penalizer": "0x91FdF681D6e2294bC2bd4D6B8F2685AA95Ee2Aa2",
+        "relayHub": "0x66Fa9FEAfB8Db66Fe2160ca7aEAc7FC24e254387",
+        "smartWallet": "0xEdB6D515C2DB4F9C3C87D7f6Cefb260B3DEe8014",
+        "smartWalletFactory": "0xeaB5b9fA91aeFFaA9c33F9b33d12AB7088fa7f6f",
+        "smartWalletDeployVerifier": "0x5C6e96a84271AC19974C3e99d6c4bE4318BfE483",
+        "smartWalletRelayVerifier": "0x56ccdB6D312307Db7A4847c3Ea8Ce2449e9B79e9",
+        "customSmartWallet": "0x25b03F90DD4D20Ba500b1950e3E3044ebC49E5fD",
+        "customSmartWalletFactory": "0x425A3d21eB298480b45d5f6D9b20cAcc27660E01",
+        "customSmartWalletDeployVerifier": "0x24445B6454cA52f6d8B2716952dA9D1Fc30B4344",
+        "customSmartWalletRelayVerifier": "0x9c29fEE0317178c69c411aeD358Ffb17E4EbFe29",
+        "sampleRecipient": "0x22167CE0c7646C49049a6Ae9F877a14310d24B4E",
+        "testToken": "0xF5859303f76596dD558B438b18d0Ce0e1660F3ea"
+    },
     "33": {
         "penalizer": "0xe8C7C6f18c3B9532343487faD807060750C1fE95",
         "relayHub": "0x3bA95e1cccd397b5124BcdCC5bf0952114E6A701",
