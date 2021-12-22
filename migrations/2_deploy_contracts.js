@@ -46,10 +46,10 @@ module.exports = async function (deployer, network) {
 
     const multisigOwner = '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826' // accounts[0]
     const shares = {
-        'relayOperator':        { 'beneficiary': '0x7986b3DF570230288501EEa3D890bd66948C9B79', 'share': 25}, // accounts[1]
-        'walletProvider':       { 'beneficiary': '0x0a3aA774752ec2042c46548456c094A76C7F3a79', 'share': 25}, // accounts[2]
-        'liquidityProvider':    { 'beneficiary': '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036', 'share': 25}, // accounts[3]
-        'iovLabsRecipient':     { 'beneficiary': '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409', 'share': 25}, // accounts[4]
+        'relayOperator':        { 'beneficiary': '0x7986b3DF570230288501EEa3D890bd66948C9B79', 'share': 20}, 
+        'walletProvider':       { 'beneficiary': '0x0a3aA774752ec2042c46548456c094A76C7F3a79', 'share': 35}, 
+        'liquidityProvider':    { 'beneficiary': '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036', 'share': 13}, 
+        'iovLabsRecipient':     { 'beneficiary': '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409', 'share': 32}, 
     }
     await deployer.deploy(Collector, multisigOwner, shares);
 
