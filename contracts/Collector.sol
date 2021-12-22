@@ -38,7 +38,8 @@ contract Collector is ICollector{
     onlyMultisigOwner()
     {
         uint balance = address(this).balance;
-        
+        require(balance > 0, "no revenue to share");
+
         // calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
         revenueShares.relayOperator.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.relayOperator.share), 100));
         revenueShares.walletProvider.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.walletProvider.share), 100));
