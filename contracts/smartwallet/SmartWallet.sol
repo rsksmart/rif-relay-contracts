@@ -124,12 +124,14 @@ contract SmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
         nonce++;
 
+        address collectorContract = 0x59e3133F4D815805921047feC6fc2e60ABAAb423;
+
         if(req.tokenAmount > 0){
             /* solhint-disable avoid-tx-origin */
             (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
                     hex"a9059cbb", 
-                    tx.origin,
+                    collectorContract,
                     req.tokenAmount
                 )
             );
