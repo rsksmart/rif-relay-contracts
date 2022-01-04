@@ -124,14 +124,17 @@ contract SmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
         nonce++;
 
-        address collectorContract = 0x59e3133F4D815805921047feC6fc2e60ABAAb423;
-
         if(req.tokenAmount > 0){
+            address feesReceiver = req.collectorContract;
+            if(feesReceiver == address(0)){
+                // pay worker if no collector contract is specified
+                feesReceiver = tx.origin;
+            }
             /* solhint-disable avoid-tx-origin */
             (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
                     hex"a9059cbb", 
-                    collectorContract,
+                    feesReceiver,
                     req.tokenAmount
                 )
             );
@@ -202,12 +205,13 @@ contract SmartWallet is IForwarder {
     ) private pure returns (bytes memory) {
         return
             abi.encodePacked(
-                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"), //requestTypeHash,
+                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,address collectorContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"), //requestTypeHash,
                 abi.encode(
                     req.relayHub,
                     req.from,
                     req.to,
                     req.tokenContract,
+                    req.collectorContract,
                     req.value,
                     req.gas,
                     req.nonce,
