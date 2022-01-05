@@ -3,21 +3,25 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ICollector.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector{
 
     address public multisigOwner;
+    IERC20 public token;
     Shares private revenueShares;
 
     constructor(
         address _multisigOwner,
+        IERC20 _token,
         Shares memory _shares
     )
     public
     validShares(_shares)
     {   
         multisigOwner = _multisigOwner;
+        token = _token;
         revenueShares = _shares;
     }
 
