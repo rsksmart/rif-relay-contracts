@@ -41,14 +41,14 @@ contract Collector is ICollector{
     public 
     onlyMultisigOwner()
     {
-        uint balance = address(this).balance;
+        uint balance = token.balanceOf(address(this));
         require(balance > 0, "no revenue to share");
 
         // calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
-        revenueShares.relayOperator.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.relayOperator.share), 100));
-        revenueShares.walletProvider.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.walletProvider.share), 100));
-        revenueShares.liquidityProvider.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.liquidityProvider.share), 100));
-        revenueShares.iovLabsRecipient.beneficiary.transfer(SafeMath.div(SafeMath.mul(balance, revenueShares.iovLabsRecipient.share), 100));
+        token.transfer(revenueShares.relayOperator.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.relayOperator.share), 100));
+        token.transfer(revenueShares.walletProvider.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.walletProvider.share), 100));
+        token.transfer(revenueShares.liquidityProvider.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.liquidityProvider.share), 100));
+        token.transfer(revenueShares.iovLabsRecipient.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.iovLabsRecipient.share), 100));
     }
 
     modifier onlyMultisigOwner(){
