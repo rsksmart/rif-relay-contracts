@@ -51,7 +51,7 @@ module.exports = async function (deployer, network) {
         'liquidityProvider':    { 'beneficiary': '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036', 'share': 13}, 
         'iovLabsRecipient':     { 'beneficiary': '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409', 'share': 32}, 
     }
-    await deployer.deploy(Collector, multisigOwner, shares);
+    await deployer.deploy(Collector, multisigOwner, TestToken.address, shares);
 
     console.log(
         '|===================================|============================================|'
