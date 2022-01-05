@@ -33,10 +33,6 @@ contract Collector is ICollector{
         revenueShares = _shares;
     }
 
-    receive() external payable{
-        // relay payments should be made to this endpoint
-    }
-
     function withdraw() 
     public 
     onlyMultisigOwner()
