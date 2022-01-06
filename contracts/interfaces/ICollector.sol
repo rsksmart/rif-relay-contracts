@@ -13,4 +13,6 @@ interface ICollector{
         Participant liquidityProvider;
         Participant iovLabsRecipient;
     }
+
+    function withdraw() external; 
 }

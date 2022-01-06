@@ -92,6 +92,11 @@ export interface HeavyTaskContract extends Truffle.Contract<HeavyTaskInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<HeavyTaskInstance>;
 }
 
+export interface ICollectorContract
+  extends Truffle.Contract<ICollectorInstance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<ICollectorInstance>;
+}
+
 export interface ICustomSmartWalletFactoryContract
   extends Truffle.Contract<ICustomSmartWalletFactoryInstance> {
   "new"(
@@ -1931,6 +1936,17 @@ export interface HeavyTaskInstance extends Truffle.ContractInstance {
       infoC: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
+  };
+}
+
+export interface ICollectorInstance extends Truffle.ContractInstance {
+  withdraw: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
   };
 }
 
