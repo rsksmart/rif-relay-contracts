@@ -13,6 +13,25 @@ export interface BlackListContract extends Truffle.Contract<BlackListInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<BlackListInstance>;
 }
 
+export interface CollectorContract extends Truffle.Contract<CollectorInstance> {
+  "new"(
+    _multisigOwner: string | BN,
+    _shares: {
+      relayOperator: { beneficiary: string | BN; share: number | BN | string };
+      walletProvider: { beneficiary: string | BN; share: number | BN | string };
+      liquidityProvider: {
+        beneficiary: string | BN;
+        share: number | BN | string;
+      };
+      iovLabsRecipient: {
+        beneficiary: string | BN;
+        share: number | BN | string;
+      };
+    },
+    meta?: Truffle.TransactionDetails
+  ): Promise<CollectorInstance>;
+}
+
 export interface CustomSmartWalletContract
   extends Truffle.Contract<CustomSmartWalletInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<CustomSmartWalletInstance>;
@@ -598,6 +617,106 @@ export interface BlackListInstance extends Truffle.ContractInstance {
       _blackListedUser: string | BN,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
+  };
+}
+
+export interface CollectorInstance extends Truffle.ContractInstance {
+  multisigOwner(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
+  updateShares: {
+    (
+      _shares: {
+        relayOperator: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        walletProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        liquidityProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        iovLabsRecipient: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+      },
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _shares: {
+        relayOperator: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        walletProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        liquidityProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        iovLabsRecipient: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+      },
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _shares: {
+        relayOperator: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        walletProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        liquidityProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        iovLabsRecipient: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+      },
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _shares: {
+        relayOperator: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        walletProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        liquidityProvider: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+        iovLabsRecipient: {
+          beneficiary: string | BN;
+          share: number | BN | string;
+        };
+      },
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  withdraw: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
   };
 }
 
