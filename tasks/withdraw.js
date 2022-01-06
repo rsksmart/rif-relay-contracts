@@ -1,12 +1,25 @@
 const safeCoreSdk = require('@gnosis.pm/safe-core-sdk');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-const { getTestTokenInstance, getCollectorInstance, signWithAddress, contractNetworks } = require('./utils');
+const {
+    getTestTokenInstance,
+    getCollectorInstance,
+    signWithAddress,
+    contractNetworks
+} = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
+const printStatus = async (collectorAddress, owners, testTokenInstance) => {
+    const collectorBalance = await testTokenInstance.balanceOf(collectorAddress);
+    console.log(`Collector balance: ${collectorBalance}`);
+    for (const owner of owners) {
+        const balance = await testTokenInstance.balanceOf(owner);
+        console.log(`Address ${owner} balance: ${balance}`);
+    }
+};
 
 module.exports = async (callback) => {
     const accounts = await web3.eth.getAccounts();
@@ -21,17 +34,16 @@ module.exports = async (callback) => {
     if (!web3.utils.isAddress(safeAddress)) {
         callback(new Error(`invalid "safeAddress": ${safeAddress}`));
     }
+    const collectorInstance = await getCollectorInstance(artifacts);
+    const collectorAddress = collectorInstance.address;
 
     // print the initial status
     const safeBalance = await web3.eth.getBalance(safeAddress);
     console.log('Safe balance', web3.utils.fromWei(safeBalance));
     const testTokenInstance = await getTestTokenInstance(artifacts);
-    
+
     console.log('---Token balance before---');
-    for (const owner of owners) {
-        const balance = await testTokenInstance.balanceOf(owner);
-        console.log(`Address ${owner}: ${balance}`);
-    }
+    await printStatus(collectorAddress, owners, testTokenInstance);
 
     const ethAdapterOwner1 = new Web3Adapter({
         web3,
@@ -52,10 +64,9 @@ module.exports = async (callback) => {
         []
     );
 
-    const collectorInstance = await getCollectorInstance(artifacts);
     const transactions = [
         {
-            to: collectorInstance.address,
+            to: collectorAddress,
             value: 0,
             data: encodedWithdrawFunction
         }
@@ -81,10 +92,7 @@ module.exports = async (callback) => {
     await safeTxResponse.transactionResponse?.wait();
 
     console.log('---Token balance after---');
-    for (const owner of owners) {
-        const balance = await testTokenInstance.balanceOf(owner);
-        console.log(`Address ${owner}: ${balance}`);
-    }
+    await printStatus(collectorAddress, owners, testTokenInstance);
 
     // try to execute a transaction, but then we need to move this part into anther task probably
     callback();
