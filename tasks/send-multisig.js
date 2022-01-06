@@ -6,6 +6,7 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 const { contractNetworks, signWithAddress } = require('./utils');
+const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 
 const EMPTY_DATA = '0x';
 
@@ -20,8 +21,19 @@ const EMPTY_DATA = '0x';
 module.exports = async (callback) => {
     const accounts = await web3.eth.getAccounts();
 
-    const owner1 = accounts[0];
-    const owner2 = accounts[1];
+    const chainId = await web3.eth.getChainId();
+    const {
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    } = RevenueSharingAddresses[chainId.toString()];
+    const owners = [
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    ];
 
     // check the address received
     const { safeAddress } = argv;
@@ -37,7 +49,7 @@ module.exports = async (callback) => {
     // initialize the sdk to sign transaction with the first owner
     const ethAdapterOwner1 = new Web3Adapter({
         web3,
-        signerAddress: owner1
+        signerAddress: owners[0]
     });
     const safeSdk = await Safe.create({
         ethAdapter: ethAdapterOwner1,
@@ -57,10 +69,13 @@ module.exports = async (callback) => {
     }];
     const safeTransaction = await safeSdk.createTransaction(...transactions);
 
-    // owner2 signs the transaction
-    await signWithAddress(web3, safeSdk, safeTransaction, owner2);
+    //The first owner will sign and execute the transaction
+    for (let index = 1; index < owners.length; index++) {
+        const owner = owners[index];
+        await signWithAddress(web3, safeSdk, safeTransaction, owner);
+    }
 
-    // owner1 executes (and implicitly signs) the transaction
+    // owners[0] executes (and implicitly signs) the transaction
     const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {gasLimit:'1081903'});
 
     await safeTxResponse.transactionResponse?.wait();

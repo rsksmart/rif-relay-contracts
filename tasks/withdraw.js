@@ -10,6 +10,7 @@ const {
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
+const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
 const printStatus = async (collectorAddress, owners, testTokenInstance) => {
@@ -22,13 +23,20 @@ const printStatus = async (collectorAddress, owners, testTokenInstance) => {
 };
 
 module.exports = async (callback) => {
-    const accounts = await web3.eth.getAccounts();
+    const chainId = await web3.eth.getChainId();
+    const {
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    } = RevenueSharingAddresses[chainId.toString()];
 
-    const owner1 = accounts[0];
-    const owner2 = accounts[1];
-
-    // TODO: To be changed according with the partner addresses
-    const owners = [owner1, owner2];
+    const owners = [
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    ];
 
     const { safeAddress } = argv;
     if (!web3.utils.isAddress(safeAddress)) {
@@ -47,7 +55,7 @@ module.exports = async (callback) => {
 
     const ethAdapterOwner1 = new Web3Adapter({
         web3,
-        signerAddress: owner1
+        signerAddress: owners[0]
     });
     const safeSdk = await Safe.create({
         ethAdapter: ethAdapterOwner1,
@@ -73,16 +81,11 @@ module.exports = async (callback) => {
     ];
     const safeTransaction = await safeSdk.createTransaction(...transactions);
 
-    // TODO: To be changed according with the number of safe owners
-    /**
-     * The first owner will sign and execute the transaction
+    // The first owner will sign and execute the transaction
     for (let index = 1; index < owners.length; index++) {
         const owner = owners[index];
         await signWithAddress(web3, safeSdk, safeTransaction, owner);
     }
-     */
-    // owner2 signs the transaction
-    await signWithAddress(web3, safeSdk, safeTransaction, owner2);
 
     // owner1 execute (and implicitly signs) the transaction
     const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {

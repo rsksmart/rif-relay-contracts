@@ -42,5 +42,7 @@ module.exports = {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
-    contractNetworks
+    contractNetworks,
+    safeMasterCopyAddress,
+    safeProxyFactoryAddress
 };

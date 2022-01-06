@@ -1,175 +1,6 @@
-const safeFactoryABI = [
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: false,
-                internalType: 'contract GnosisSafeProxy',
-                name: 'proxy',
-                type: 'address'
-            }
-        ],
-        name: 'ProxyCreation',
-        type: 'event'
-    },
-    {
-        constant: false,
-        inputs: [
-            {
-                internalType: 'address',
-                name: 'masterCopy',
-                type: 'address'
-            },
-            {
-                internalType: 'bytes',
-                name: 'data',
-                type: 'bytes'
-            }
-        ],
-        name: 'createProxy',
-        outputs: [
-            {
-                internalType: 'contract GnosisSafeProxy',
-                name: 'proxy',
-                type: 'address'
-            }
-        ],
-        payable: false,
-        stateMutability: 'nonpayable',
-        type: 'function'
-    },
-    {
-        constant: true,
-        inputs: [],
-        name: 'proxyRuntimeCode',
-        outputs: [
-            {
-                internalType: 'bytes',
-                name: '',
-                type: 'bytes'
-            }
-        ],
-        payable: false,
-        stateMutability: 'pure',
-        type: 'function'
-    },
-    {
-        constant: true,
-        inputs: [],
-        name: 'proxyCreationCode',
-        outputs: [
-            {
-                internalType: 'bytes',
-                name: '',
-                type: 'bytes'
-            }
-        ],
-        payable: false,
-        stateMutability: 'pure',
-        type: 'function'
-    },
-    {
-        constant: false,
-        inputs: [
-            {
-                internalType: 'address',
-                name: '_mastercopy',
-                type: 'address'
-            },
-            {
-                internalType: 'bytes',
-                name: 'initializer',
-                type: 'bytes'
-            },
-            {
-                internalType: 'uint256',
-                name: 'saltNonce',
-                type: 'uint256'
-            }
-        ],
-        name: 'createProxyWithNonce',
-        outputs: [
-            {
-                internalType: 'contract GnosisSafeProxy',
-                name: 'proxy',
-                type: 'address'
-            }
-        ],
-        payable: false,
-        stateMutability: 'nonpayable',
-        type: 'function'
-    },
-    {
-        constant: false,
-        inputs: [
-            {
-                internalType: 'address',
-                name: '_mastercopy',
-                type: 'address'
-            },
-            {
-                internalType: 'bytes',
-                name: 'initializer',
-                type: 'bytes'
-            },
-            {
-                internalType: 'uint256',
-                name: 'saltNonce',
-                type: 'uint256'
-            },
-            {
-                internalType: 'contract IProxyCreationCallback',
-                name: 'callback',
-                type: 'address'
-            }
-        ],
-        name: 'createProxyWithCallback',
-        outputs: [
-            {
-                internalType: 'contract GnosisSafeProxy',
-                name: 'proxy',
-                type: 'address'
-            }
-        ],
-        payable: false,
-        stateMutability: 'nonpayable',
-        type: 'function'
-    },
-    {
-        constant: false,
-        inputs: [
-            {
-                internalType: 'address',
-                name: '_mastercopy',
-                type: 'address'
-            },
-            {
-                internalType: 'bytes',
-                name: 'initializer',
-                type: 'bytes'
-            },
-            {
-                internalType: 'uint256',
-                name: 'saltNonce',
-                type: 'uint256'
-            }
-        ],
-        name: 'calculateCreateProxyWithNonceAddress',
-        outputs: [
-            {
-                internalType: 'contract GnosisSafeProxy',
-                name: 'proxy',
-                type: 'address'
-            }
-        ],
-        payable: false,
-        stateMutability: 'nonpayable',
-        type: 'function'
-    }
-];
-const safeProxyFactoryAddress = '0x73ec81da0C72DD112e06c09A6ec03B5544d26F05';
+const { safeMasterCopyAddress, safeProxyFactoryAddress } = require('./utils');
+const SafeFactory = require('./safeFactory.json');
 
-const safeMasterCopyAddress = '0x83C5541A6c8D2dBAD642f385d8d06Ca9B6C731ee';
 const setupFunctionDefinition = {
     constant: false,
     inputs: [
@@ -222,14 +53,14 @@ const setupFunctionDefinition = {
 };
 const ZERO_ADDRESS = `0x${'0'.repeat(40)}`;
 const EMPTY_DATA = '0x';
+const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 
 async function deploySafe(web3, owners, threshold, initialBalance) {
-    // TODO: We could receive safeProxyFactoryAddress and safeMasterCopyAddress from input
     const accounts = await web3.eth.getAccounts();
     const sender = accounts[0];
 
     const safeFactoryContract = new web3.eth.Contract(
-        safeFactoryABI,
+        SafeFactory.abi,
         safeProxyFactoryAddress
     );
     const encodedSetupFunction = web3.eth.abi.encodeFunctionCall(
@@ -253,7 +84,6 @@ async function deploySafe(web3, owners, threshold, initialBalance) {
         createTx?.events?.ProxyCreation?.returnValues.proxy;
     console.log({ safeAddressCreated });
 
-    
     // give some rbtc to the safe account just created
     const sendBalanceTx = await web3.eth.sendTransaction({
         to: safeAddressCreated,
@@ -265,15 +95,30 @@ async function deploySafe(web3, owners, threshold, initialBalance) {
 }
 
 module.exports = async (callback) => {
-    const accounts = await web3.eth.getAccounts();
+    const chainId = await web3.eth.getChainId();
+    const {
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    } = RevenueSharingAddresses[chainId.toString()];
 
-    const owner1 = accounts[0];
-    const owner2 = accounts[1];
-    const threshold = 2;
+    const owners = [
+        relayOperator,
+        walletProvider,
+        liquidityProvider,
+        iovLabsRecipient
+    ];
+    const threshold = owners.length;
     const initialBalance = web3.utils.toWei('10');
 
-    const safeAddress = await deploySafe(web3, [owner1, owner2], threshold, initialBalance);
-    
+    const safeAddress = await deploySafe(
+        web3,
+        owners,
+        threshold,
+        initialBalance
+    );
+
     const safeBalance = await web3.eth.getBalance(safeAddress);
     console.log('Safe balance', web3.utils.fromWei(safeBalance));
 
