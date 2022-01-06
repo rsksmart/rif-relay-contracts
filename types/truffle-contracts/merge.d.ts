@@ -28,6 +28,7 @@ declare global {
         name: "FailureCustomLogic"
       ): TruffleContracts.FailureCustomLogicContract;
       require(name: "HeavyTask"): TruffleContracts.HeavyTaskContract;
+      require(name: "ICollector"): TruffleContracts.ICollectorContract;
       require(
         name: "ICustomSmartWalletFactory"
       ): TruffleContracts.ICustomSmartWalletFactoryContract;

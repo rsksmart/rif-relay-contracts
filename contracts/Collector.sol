@@ -34,7 +34,8 @@ contract Collector is ICollector{
     }
 
     function withdraw() 
-    public 
+    external 
+    override
     onlyMultisigOwner()
     {
         uint balance = token.balanceOf(address(this));
