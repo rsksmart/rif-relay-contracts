@@ -1,15 +1,10 @@
-const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 
-const getTestTokenInstance = async () => {
-    const TestToken = artifacts.require('TestToken');
-    const testTokenInstance = await TestToken.deployed();
-    return testTokenInstance;
-};
+const { getTestTokenInstance } = require('./utils');
 
 module.exports = async (callback) => {
     const accounts = await web3.eth.getAccounts();
@@ -24,7 +19,7 @@ module.exports = async (callback) => {
     console.log(
         `Minting ${amount} tokens and transferring them to ${tokenReceiver}...`
     );
-    const testTokenInstance = await getTestTokenInstance();
+    const testTokenInstance = await getTestTokenInstance(artifacts);
     const balanceBefore = await testTokenInstance.balanceOf(tokenReceiver);
     console.log(`Balance before: ${balanceBefore}`);
     const tx = await testTokenInstance.mint(amount, tokenReceiver);
