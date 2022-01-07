@@ -81,7 +81,8 @@ module.exports = async (callback) => {
     ];
     const safeTransaction = await safeSdk.createTransaction(...transactions);
 
-    // The first owner will sign and execute the transaction
+    // All the owners but the first one will sign the transaction before,
+    // while the owners[0] will sign the transaction on execution.
     for (let index = 1; index < owners.length; index++) {
         const owner = owners[index];
         await signWithAddress(web3, safeSdk, safeTransaction, owner);

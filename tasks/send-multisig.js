@@ -14,8 +14,9 @@ const EMPTY_DATA = '0x';
  * This script can be called with the following format:
  * `npx truffle --network regtest exec tasks/send-multisig.js --safeAddress='0x3d9518b0852183c5c544a2161575208A6543D61C'`
  * Please keep in mind the following assumptions:
- * 1. the safe have two owners, that are the first two accounts (accounts[0], accounts[1])
- * 2. the safe is created with a threshold set to 2
+ * 1. the safe have 4 owners (relayOperator, walletProvider, liquidityProvider, iovLabsRecipient) 
+ *      according with the file revenue-sharing-addresses.json
+ * 2. the safe is created with a threshold set to 4
  * 3. the safe has some funds
  */
 module.exports = async (callback) => {

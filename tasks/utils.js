@@ -31,7 +31,7 @@ const safeProxyFactoryAddress = '0x73ec81da0C72DD112e06c09A6ec03B5544d26F05';
 const multiSendAddress = '0x5159345aaB821172e795d56274D0f5FDFdC6aBD9';
 const safeMasterCopyAddress = '0x83C5541A6c8D2dBAD642f385d8d06Ca9B6C731ee';
 const contractNetworks = {
-    33: {
+    '33': {
         multiSendAddress,
         safeMasterCopyAddress,
         safeProxyFactoryAddress
@@ -42,7 +42,5 @@ module.exports = {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
-    contractNetworks,
-    safeMasterCopyAddress,
-    safeProxyFactoryAddress
+    contractNetworks
 };

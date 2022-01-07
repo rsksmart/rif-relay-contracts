@@ -1,4 +1,4 @@
-const { safeMasterCopyAddress, safeProxyFactoryAddress } = require('./utils');
+const { contractNetworks } = require('./utils');
 const SafeFactory = require('./safeFactory.json');
 
 const setupFunctionDefinition = {
@@ -55,7 +55,7 @@ const ZERO_ADDRESS = `0x${'0'.repeat(40)}`;
 const EMPTY_DATA = '0x';
 const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 
-async function deploySafe(web3, owners, threshold, initialBalance) {
+async function deploySafe(web3, safeMasterCopyAddress, safeProxyFactoryAddress, owners, threshold, initialBalance) {
     const accounts = await web3.eth.getAccounts();
     const sender = accounts[0];
 
@@ -79,18 +79,17 @@ async function deploySafe(web3, owners, threshold, initialBalance) {
     const createTx = await safeFactoryContract.methods
         .createProxy(safeMasterCopyAddress, encodedSetupFunction)
         .send({ from: sender, gas: '1081903' });
-    // console.log('createTx', { createTx });
+    
     const safeAddressCreated =
         createTx?.events?.ProxyCreation?.returnValues.proxy;
     console.log({ safeAddressCreated });
 
     // give some rbtc to the safe account just created
-    const sendBalanceTx = await web3.eth.sendTransaction({
+    await web3.eth.sendTransaction({
         to: safeAddressCreated,
         value: initialBalance,
         from: sender
     });
-    // console.log('sendBalanceTx', sendBalanceTx);
     return safeAddressCreated;
 }
 
@@ -103,6 +102,8 @@ module.exports = async (callback) => {
         iovLabsRecipient
     } = RevenueSharingAddresses[chainId.toString()];
 
+    const { safeMasterCopyAddress, safeProxyFactoryAddress } = contractNetworks[chainId];
+
     const owners = [
         relayOperator,
         walletProvider,
@@ -114,6 +115,8 @@ module.exports = async (callback) => {
 
     const safeAddress = await deploySafe(
         web3,
+        safeMasterCopyAddress,
+        safeProxyFactoryAddress,
         owners,
         threshold,
         initialBalance
