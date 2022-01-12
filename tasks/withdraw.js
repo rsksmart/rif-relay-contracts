@@ -5,7 +5,8 @@ const {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
-    contractNetworks
+    contractNetworks,
+    getTransactionReceipt
 } = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
@@ -93,7 +94,7 @@ module.exports = async (callback) => {
         // we need to manually set the gasLimit in order to execute multisig tx on rsk
         gasLimit: '1081903'
     });
-    await safeTxResponse.transactionResponse?.wait();
+    await getTransactionReceipt(web3, safeTxResponse.hash);
 
     console.log('---Token balance after---');
     await printStatus(collectorAddress, owners, testTokenInstance);
