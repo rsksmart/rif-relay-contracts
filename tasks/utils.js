@@ -30,7 +30,7 @@ const sleep = async (milliseconds) => {
  * @param {number} initialBackoff initial time to wait for. Each time the receipt is not available it will multiplied by 2.
  * @returns 
  */
-const getTransactionReceipt= async (
+const getTransactionReceipt = async (
     web3,
     transactionHash,
     retries = WAIT_FOR_RECEIPT_RETRIES,
