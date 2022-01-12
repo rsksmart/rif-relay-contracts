@@ -5,7 +5,7 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
-const { contractNetworks, signWithAddress } = require('./utils');
+const { contractNetworks, signWithAddress, getTransactionReceipt } = require('./utils');
 const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 
 const EMPTY_DATA = '0x';
@@ -78,8 +78,7 @@ module.exports = async (callback) => {
 
     // owners[0] executes (and implicitly signs) the transaction
     const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {gasLimit:'1081903'});
-
-    await safeTxResponse.transactionResponse?.wait();
+    await getTransactionReceipt(web3, safeTxResponse.hash);
     
     // print the balance after the transaction execution
     const balanceReceiverAfter = await web3.eth.getBalance(receiver);
