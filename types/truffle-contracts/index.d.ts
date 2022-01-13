@@ -4976,6 +4976,37 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
 
   nonce(from: string | BN, txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
+  hashMessage: {
+    (
+      owner: string | BN,
+      recoverer: string | BN,
+      index: number | BN | string,
+      sig: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      owner: string | BN,
+      recoverer: string | BN,
+      index: number | BN | string,
+      sig: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    sendTransaction(
+      owner: string | BN,
+      recoverer: string | BN,
+      index: number | BN | string,
+      sig: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      owner: string | BN,
+      recoverer: string | BN,
+      index: number | BN | string,
+      sig: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
   createUserSmartWallet: {
     (
       owner: string | BN,
