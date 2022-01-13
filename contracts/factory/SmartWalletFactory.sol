@@ -109,18 +109,21 @@ contract SmartWalletFactory is ISmartWalletFactory {
         return nonces[from];
     }
 
-    function hashMessage(address owner,
+    function hashMessage(
+        address factory,
+        address owner,
         address recoverer,
         uint256 index,
-        bytes calldata sig
+        string calldata prefix
     ) external returns (bytes32){
         bytes32 _hash = keccak256(abi.encodePacked(
-            address(this),
+            factory,
             owner,
             recoverer,
             index
         ));
-        return _hash;
+        bytes32 r = keccak256(abi.encodePacked(prefix, _hash));
+        return r;
     }
 
     function createUserSmartWallet(
