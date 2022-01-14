@@ -6,7 +6,7 @@ const Collector = artifacts.require('Collector');
 const TestToken = artifacts.require('TestToken');
 
 module.exports = async function (deployer, network) {
-    const multisigSafe = '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826'; // accounts[0]
+    const multisigSafe = '0xA58bBC3F790F40384fd76372f4Bc576ABAbf6Bd4';
 
     const relayOperator = '0x7986b3DF570230288501EEa3D890bd66948C9B79';     // accounts[1]
     const walletProvider = '0x0a3aA774752ec2042c46548456c094A76C7F3a79';    // accounts[2] 
