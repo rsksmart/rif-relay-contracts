@@ -3,70 +3,59 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ICollector.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract Collector is ICollector{
-
-    address public multisigOwner;
+contract Collector is ICollector, Ownable{
     IERC20 public token;
-    Shares private revenueShares;
+    mapping(uint => RevenuePartner) private partners;
+    uint private partnersSize;
 
     constructor(
-        address _multisigOwner,
         IERC20 _token,
-        Shares memory _shares
+        RevenuePartner[] memory _partners
     )
     public
-    validShares(_shares)
+    validShares(_partners)
     {   
-        multisigOwner = _multisigOwner;
         token = _token;
-        revenueShares = _shares;
+        partnersSize = _partners.length;
+        for (uint i = 0; i < partnersSize; i++)
+            partners[i] = _partners[i];
     }
 
-    function updateShares(Shares memory _shares) 
+    function updateShares(RevenuePartner[] memory _partners) 
     public
-    validShares(_shares)
-    onlyMultisigOwner()
+    validShares(_partners)
+    onlyOwner()
     {
-        revenueShares = _shares;
+        for (uint i = 0; i < partnersSize; i++)
+            delete partners[i];
+        
+        partnersSize = _partners.length;
+        for (uint i = 0; i < partnersSize; i++)
+            partners[i] = _partners[i];
     }
 
     function withdraw() 
     external 
     override
-    onlyMultisigOwner()
+    onlyOwner()
     {
         uint balance = token.balanceOf(address(this));
         require(balance > 0, "no revenue to share");
 
-        // calculate percentage of earnings correspondent to each beneficiary which revenues are shared with
-        token.transfer(revenueShares.relayOperator.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.relayOperator.share), 100));
-        token.transfer(revenueShares.walletProvider.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.walletProvider.share), 100));
-        token.transfer(revenueShares.liquidityProvider.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.liquidityProvider.share), 100));
-        token.transfer(revenueShares.iovLabsRecipient.beneficiary, SafeMath.div(SafeMath.mul(balance, revenueShares.iovLabsRecipient.share), 100));
+        for(uint i = 0; i < partnersSize; i++)
+            token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
     }
 
-    modifier onlyMultisigOwner(){
-        require(msg.sender == multisigOwner, "can only call from multisig owner");
-        _;
-    }
+    modifier validShares(RevenuePartner[] memory _partners){
+        uint totalShares = 0;            
+        for(uint i = 0; i < _partners.length; i++)
+            totalShares = totalShares + _partners[i].share;
 
-    modifier validShares(Shares memory _shares){
-        // these require staments could eventually be removed if their addresses are deemed optional
-        require(_shares.relayOperator.beneficiary != address(0), "relayOperator must be set");
-        require(_shares.walletProvider.beneficiary != address(0), "walletProvider must be set");
-        require(_shares.liquidityProvider.beneficiary != address(0), "liquidityProvider must be set");
-        require(_shares.iovLabsRecipient.beneficiary != address(0), "iovLabsRecipient must be set");
-
-        require(
-            _shares.relayOperator.share +
-            _shares.walletProvider.share +
-            _shares.liquidityProvider.share + 
-            _shares.iovLabsRecipient.share == 100,
-            "total shares must add up to 100%"
-        );
+        require(totalShares == 100, "total shares must add up to 100%");
 
         _;
     }

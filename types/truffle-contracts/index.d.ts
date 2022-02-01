@@ -15,20 +15,8 @@ export interface BlackListContract extends Truffle.Contract<BlackListInstance> {
 
 export interface CollectorContract extends Truffle.Contract<CollectorInstance> {
   "new"(
-    _multisigOwner: string | BN,
     _token: string | BN,
-    _shares: {
-      relayOperator: { beneficiary: string | BN; share: number | BN | string };
-      walletProvider: { beneficiary: string | BN; share: number | BN | string };
-      liquidityProvider: {
-        beneficiary: string | BN;
-        share: number | BN | string;
-      };
-      iovLabsRecipient: {
-        beneficiary: string | BN;
-        share: number | BN | string;
-      };
-    },
+    _partners: { beneficiary: string | BN; share: number | BN | string }[],
     meta?: Truffle.TransactionDetails
   ): Promise<CollectorInstance>;
 }
@@ -627,93 +615,52 @@ export interface BlackListInstance extends Truffle.ContractInstance {
 }
 
 export interface CollectorInstance extends Truffle.ContractInstance {
-  multisigOwner(txDetails?: Truffle.TransactionDetails): Promise<string>;
+  owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
+  renounceOwnership: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
 
   token(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
-  updateShares: {
-    (
-      _shares: {
-        relayOperator: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        walletProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        liquidityProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        iovLabsRecipient: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-      },
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<Truffle.TransactionResponse>;
+  transferOwnership: {
+    (newOwner: string | BN, txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
     call(
-      _shares: {
-        relayOperator: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        walletProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        liquidityProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        iovLabsRecipient: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-      },
+      newOwner: string | BN,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
     sendTransaction(
-      _shares: {
-        relayOperator: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        walletProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        liquidityProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        iovLabsRecipient: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-      },
+      newOwner: string | BN,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      _shares: {
-        relayOperator: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        walletProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        liquidityProvider: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-        iovLabsRecipient: {
-          beneficiary: string | BN;
-          share: number | BN | string;
-        };
-      },
+      newOwner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  updateShares: {
+    (
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
