@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector, Ownable{
     IERC20 public token;
-    mapping(uint => RevenuePartner) private partners;
-    uint private partnersSize;
+    RevenuePartner[] private partners;
 
     constructor(
         IERC20 _token,
@@ -20,9 +19,8 @@ contract Collector is ICollector, Ownable{
     validShares(_partners)
     {   
         token = _token;
-        partnersSize = _partners.length;
-        for (uint i = 0; i < partnersSize; i++)
-            partners[i] = _partners[i];
+        for (uint i = 0; i < _partners.length; i++)
+            partners.push(_partners[i]);
     }
 
     function updateShares(RevenuePartner[] memory _partners) 
@@ -30,12 +28,13 @@ contract Collector is ICollector, Ownable{
     validShares(_partners)
     onlyOwner()
     {
-        for (uint i = 0; i < partnersSize; i++)
-            delete partners[i];
+        uint balance = token.balanceOf(address(this));
+        require(balance == 0, "can't update with balance > 0");
+    
+        delete partners;
         
-        partnersSize = _partners.length;
-        for (uint i = 0; i < partnersSize; i++)
-            partners[i] = _partners[i];
+        for (uint i = 0; i < _partners.length; i++)
+            partners.push(_partners[i]);
     }
 
     function withdraw() 
@@ -46,7 +45,7 @@ contract Collector is ICollector, Ownable{
         uint balance = token.balanceOf(address(this));
         require(balance > 0, "no revenue to share");
 
-        for(uint i = 0; i < partnersSize; i++)
+        for(uint i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
     }
 
