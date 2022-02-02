@@ -8,45 +8,35 @@ const TestToken = artifacts.require('TestToken');
 module.exports = async function (deployer, network) {
     const multisigSafe = '0xA58bBC3F790F40384fd76372f4Bc576ABAbf6Bd4';
 
-    const relayOperator = '0x7986b3DF570230288501EEa3D890bd66948C9B79';     // accounts[1]
-    const walletProvider = '0x0a3aA774752ec2042c46548456c094A76C7F3a79';    // accounts[2] 
-    const liquidityProvider = '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036'; // accounts[3] 
-    const iovLabsRecipient = '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409';  // accounts[4] 
-
-    const relayOperatorShare = 20;
-    const walletProviderShare = 35;
-    const liquidityProviderShare = 13;
-    const iovLabsRecipientShare = 32;
-
-    const shares = {
-        'relayOperator':        { 'beneficiary': relayOperator, 'share': relayOperatorShare}, 
-        'walletProvider':       { 'beneficiary': walletProvider, 'share': walletProviderShare}, 
-        'liquidityProvider':    { 'beneficiary': liquidityProvider, 'share': liquidityProviderShare}, 
-        'iovLabsRecipient':     { 'beneficiary': iovLabsRecipient, 'share': iovLabsRecipientShare}, 
-    }
+    const revenueSharingPartners = [
+        {'beneficiary': '0x7986b3DF570230288501EEa3D890bd66948C9B79', 'share': 20}, // accounts[1]
+        {'beneficiary': '0x0a3aA774752ec2042c46548456c094A76C7F3a79', 'share': 35}, // accounts[2]
+        {'beneficiary': '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036', 'share': 13}, // accounts[3] 
+        {'beneficiary': '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409', 'share': 32}, // accounts[4]
+    ]
     
     await TestToken.deployed();
-    const collectorInstance = await deployer.deploy(Collector, multisigSafe, TestToken.address, shares);
+    const collectorInstance = await deployer.deploy(Collector, multisigSafe, TestToken.address, revenueSharingPartners);
 
     console.log(
-        '|=============================================|=================================================|'
+        '|=============================================|==================================================|'
     );
     console.log(
-        '| Entity                                      | Address                                         |'
+        '| Entity                                      | Address                                          |'
     );
     console.log(
-        '|=============================================|=================================================|'
+        '|=============================================|==================================================|'
     );
-    console.log(`| Multisig Safe address                       | ${multisigSafe}      |`);
-    console.log(`| Relay Operator / Safe Owner #1, share       | ${relayOperator}, ${relayOperatorShare}% |`);
-    console.log(`| Wallet Provider / Safe Owner #2, share      | ${walletProvider}, ${walletProviderShare}% |`);
-    console.log(`| Liquidity Provider / Safe Owner #3, share   | ${liquidityProvider}, ${liquidityProviderShare}% |`);
-    console.log(`| IOV Labs Recipient / Safe Owner #4, share   | ${iovLabsRecipient}, ${iovLabsRecipientShare}% |`);
-    console.log(`| Collector Contract                          | ${Collector.address}      |`);
-    console.log(`| Collector Safe                              | ${await collectorInstance.multisigOwner.call()}      |`);
-    console.log(`| Collector Token                             | ${await collectorInstance.token.call()}      |`);
+    console.log(`| Multisig Safe address                       | ${multisigSafe}       |`);
+    revenueSharingPartners.forEach(function (partner, i) {
+        console.log(`| Revenue Partner #${i+1}, share` + " ".repeat(20 - (i+1).toString().length) 
+        + `| ${partner.beneficiary}, ${partner.share}%` + " ".repeat(4 - partner.share.toString().length) + `|`);
+    });
+    console.log(`| Collector Contract                          | ${Collector.address}       |`);
+    console.log(`| Collector Owner                             | ${await collectorInstance.owner.call()}       |`);
+    console.log(`| Collector Token                             | ${await collectorInstance.token.call()}       |`);
     console.log(
-        '|=============================================|=================================================|\n'
+        '|=============================================|==================================================|\n'
     );
 
     console.log('Generating json config file...');
@@ -67,18 +57,15 @@ module.exports = async function (deployer, network) {
 
     jsonConfig[networkId] = {
         multisigOwner: multisigSafe,
-        relayOperator: relayOperator,
-        walletProvider: walletProvider,
-        liquidityProvider: liquidityProvider,
-        iovLabsRecipient: iovLabsRecipient,
-        relayOperatorShare: relayOperatorShare,
-        walletProviderShare: walletProviderShare,
-        liquidityProviderShare: liquidityProviderShare,
-        iovLabsRecipientShare: iovLabsRecipientShare,
         collectorContract: Collector.address,
-        collectorSafe: await collectorInstance.multisigOwner.call(),
+        collectorSafe: await collectorInstance.owner.call(),
         collectorToken: await collectorInstance.token.call(),
     };
+
+    revenueSharingPartners.forEach(function (partner, i) {
+        jsonConfig[networkId]["partner" + (i+1)] = partner.beneficiary;
+        jsonConfig[networkId]["partner" + (i+1) + "Share"] = partner.share;
+    });
 
     fs.writeFileSync(configFileName, JSON.stringify(jsonConfig));
 };
