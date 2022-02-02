@@ -51,7 +51,7 @@ contract Collector is ICollector{
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
     }
 
-    function transferOwner(address _owner)
+    function transferOwnership(address _owner)
     external 
     override
     onlyOwner()
