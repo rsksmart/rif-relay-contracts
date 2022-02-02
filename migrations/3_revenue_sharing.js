@@ -6,7 +6,7 @@ const Collector = artifacts.require('Collector');
 const TestToken = artifacts.require('TestToken');
 
 module.exports = async function (deployer, network) {
-    const multisigSafe = '0xA58bBC3F790F40384fd76372f4Bc576ABAbf6Bd4';
+    const collectorOwner = '0xA58bBC3F790F40384fd76372f4Bc576ABAbf6Bd4';
 
     const revenueSharingPartners = [
         {'beneficiary': '0x7986b3DF570230288501EEa3D890bd66948C9B79', 'share': 20}, // accounts[1]
@@ -16,7 +16,7 @@ module.exports = async function (deployer, network) {
     ]
     
     await TestToken.deployed();
-    const collectorInstance = await deployer.deploy(Collector, multisigSafe, TestToken.address, revenueSharingPartners);
+    const collectorInstance = await deployer.deploy(Collector, collectorOwner, TestToken.address, revenueSharingPartners);
 
     console.log(
         '|=============================================|==================================================|'
@@ -27,7 +27,6 @@ module.exports = async function (deployer, network) {
     console.log(
         '|=============================================|==================================================|'
     );
-    console.log(`| Multisig Safe address                       | ${multisigSafe}       |`);
     revenueSharingPartners.forEach(function (partner, i) {
         console.log(`| Revenue Partner #${i+1}, share` + " ".repeat(20 - (i+1).toString().length) 
         + `| ${partner.beneficiary}, ${partner.share}%` + " ".repeat(4 - partner.share.toString().length) + `|`);
@@ -56,9 +55,8 @@ module.exports = async function (deployer, network) {
     const networkId = networkConfiguration.network_id;
 
     jsonConfig[networkId] = {
-        multisigOwner: multisigSafe,
         collectorContract: Collector.address,
-        collectorSafe: await collectorInstance.owner.call(),
+        collectorOwner: await collectorInstance.owner.call(),
         collectorToken: await collectorInstance.token.call(),
     };
 
