@@ -3,21 +3,23 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ICollector.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract Collector is ICollector, Ownable{
+contract Collector is ICollector{
     IERC20 public token;
+    address public owner;
     RevenuePartner[] private partners;
 
     constructor(
+        address _owner,
         IERC20 _token,
         RevenuePartner[] memory _partners
     )
     public
     validShares(_partners)
     {   
+        owner = _owner;
         token = _token;
         for (uint i = 0; i < _partners.length; i++)
             partners.push(_partners[i]);
@@ -49,6 +51,14 @@ contract Collector is ICollector, Ownable{
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
     }
 
+    function transferOwner(address _owner)
+    external 
+    override
+    onlyOwner()
+    {
+        owner = _owner;
+    }
+
     modifier validShares(RevenuePartner[] memory _partners){
         uint totalShares = 0;            
         for(uint i = 0; i < _partners.length; i++)
@@ -56,6 +66,11 @@ contract Collector is ICollector, Ownable{
 
         require(totalShares == 100, "total shares must add up to 100%");
 
+        _;
+    }
+
+    modifier onlyOwner(){
+        require(msg.sender == owner, "can only call from owner");
         _;
     }
 }

@@ -8,4 +8,6 @@ interface ICollector{
     }
 
     function withdraw() external; 
+
+    function transferOwner(address _owner) external;
 }
