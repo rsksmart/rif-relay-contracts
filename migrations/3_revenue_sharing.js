@@ -61,8 +61,10 @@ module.exports = async function (deployer, network) {
     };
 
     revenueSharingPartners.forEach(function (partner, i) {
-        jsonConfig[networkId]["partner" + (i+1)] = partner.beneficiary;
-        jsonConfig[networkId]["partner" + (i+1) + "Share"] = partner.share;
+        jsonConfig[networkId]["partner" + (i+1)] = {
+            "address": partner.beneficiary,
+            "share": partner.share,
+        }
     });
 
     fs.writeFileSync(configFileName, JSON.stringify(jsonConfig));
