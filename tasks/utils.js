@@ -1,4 +1,5 @@
 const safeCoreSdk = require('@gnosis.pm/safe-core-sdk');
+const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 const { Web3Adapter } = safeCoreSdk;
 
 const getTestTokenInstance = async (artifacts) => {
@@ -80,10 +81,36 @@ const contractNetworks = {
     }
 };
 
+const getPartnerKey = (index) => `partner${index}`;
+
+const getPartners = async (web3) => {
+    const chainId = await web3.eth.getChainId();
+    const networkAddresses = RevenueSharingAddresses[chainId.toString()];
+    if ( !networkAddresses) {
+        throw new Error(`The file revenue-sharing-addresses.json doesn't include configuration for network: ${chainId}`);
+    }
+    const partners = [];
+    // partners are stored with keys having the format "partner1", "partner2", etc...
+    let index = 1;
+    let partnerKey;
+    while ((partnerKey = getPartnerKey(index)) in networkAddresses) {
+        const partnerOpts = networkAddresses[partnerKey];
+        partners.push(partnerOpts);
+        index += 1;
+    }
+    return partners;
+};
+
+const getPartnerAddresses = async (web3) => {
+    const partners = await getPartners(web3);
+    return partners.map((partner) => partner['address']);
+};
+
 module.exports = {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
     contractNetworks,
-    getTransactionReceipt
+    getTransactionReceipt,
+    getPartnerAddresses
 };

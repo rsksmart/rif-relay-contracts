@@ -5,8 +5,7 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
-const { contractNetworks, signWithAddress, getTransactionReceipt } = require('./utils');
-const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
+const { contractNetworks, signWithAddress, getTransactionReceipt, getPartnerAddresses } = require('./utils');
 
 const EMPTY_DATA = '0x';
 
@@ -21,20 +20,7 @@ const EMPTY_DATA = '0x';
  */
 module.exports = async (callback) => {
     const accounts = await web3.eth.getAccounts();
-
-    const chainId = await web3.eth.getChainId();
-    const {
-        relayOperator,
-        walletProvider,
-        liquidityProvider,
-        iovLabsRecipient
-    } = RevenueSharingAddresses[chainId.toString()];
-    const owners = [
-        relayOperator,
-        walletProvider,
-        liquidityProvider,
-        iovLabsRecipient
-    ];
+    const owners = await getPartnerAddresses(web3);
 
     // check the address received
     const { safeAddress } = argv;

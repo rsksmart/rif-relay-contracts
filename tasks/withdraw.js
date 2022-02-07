@@ -6,12 +6,12 @@ const {
     getCollectorInstance,
     signWithAddress,
     contractNetworks,
-    getTransactionReceipt
+    getTransactionReceipt,
+    getPartnerAddresses
 } = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
-const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
 const printStatus = async (collectorAddress, owners, testTokenInstance) => {
@@ -24,20 +24,7 @@ const printStatus = async (collectorAddress, owners, testTokenInstance) => {
 };
 
 module.exports = async (callback) => {
-    const chainId = await web3.eth.getChainId();
-    const {
-        relayOperator,
-        walletProvider,
-        liquidityProvider,
-        iovLabsRecipient
-    } = RevenueSharingAddresses[chainId.toString()];
-
-    const owners = [
-        relayOperator,
-        walletProvider,
-        liquidityProvider,
-        iovLabsRecipient
-    ];
+    const owners = await getPartnerAddresses(web3);
 
     const { safeAddress } = argv;
     if (!web3.utils.isAddress(safeAddress)) {
