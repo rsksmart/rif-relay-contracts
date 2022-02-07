@@ -5,7 +5,12 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
-const { contractNetworks, signWithAddress, getTransactionReceipt, getPartnerAddresses } = require('./utils');
+const {
+    contractNetworks,
+    signWithAddress,
+    getTransactionReceipt,
+    getPartnerAddresses
+} = require('./utils');
 
 const EMPTY_DATA = '0x';
 
@@ -13,7 +18,7 @@ const EMPTY_DATA = '0x';
  * This script can be called with the following format:
  * `npx truffle --network regtest exec tasks/send-multisig.js --safeAddress='0x3d9518b0852183c5c544a2161575208A6543D61C'`
  * Please keep in mind the following assumptions:
- * 1. the safe have 4 owners (relayOperator, walletProvider, liquidityProvider, iovLabsRecipient) 
+ * 1. the safe have 4 owners (relayOperator, walletProvider, liquidityProvider, iovLabsRecipient)
  *      according with the file revenue-sharing-addresses.json
  * 2. the safe is created with a threshold set to 4
  * 3. the safe has some funds
@@ -25,9 +30,7 @@ module.exports = async (callback) => {
     // check the address received
     const { safeAddress } = argv;
     if (!web3.utils.isAddress(safeAddress)) {
-        callback(
-            new Error(`invalid "safeAddress": ${safeAddress}`)
-        );
+        callback(new Error(`invalid "safeAddress": ${safeAddress}`));
     }
     // print the initial balance
     const safeBalance = await web3.eth.getBalance(safeAddress);
@@ -46,14 +49,19 @@ module.exports = async (callback) => {
 
     const receiver = accounts[2];
     const balanceReceiverBefore = await web3.eth.getBalance(receiver);
-    console.log('Receiver balance before the transaction execution', web3.utils.fromWei(balanceReceiverBefore));
-    
-    // create the transaction 
-    const transactions = [{
-        to: receiver,
-        value: web3.utils.toWei('1'),
-        data: EMPTY_DATA
-    }];
+    console.log(
+        'Receiver balance before the transaction execution',
+        web3.utils.fromWei(balanceReceiverBefore)
+    );
+
+    // create the transaction
+    const transactions = [
+        {
+            to: receiver,
+            value: web3.utils.toWei('1'),
+            data: EMPTY_DATA
+        }
+    ];
     const safeTransaction = await safeSdk.createTransaction(...transactions);
 
     //The first owner will sign and execute the transaction
@@ -63,14 +71,22 @@ module.exports = async (callback) => {
     }
 
     // owners[0] executes (and implicitly signs) the transaction
-    const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {gasLimit:'1081903'});
+    const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {
+        gasLimit: '1081903'
+    });
     await getTransactionReceipt(web3, safeTxResponse.hash);
-    
+
     // print the balance after the transaction execution
     const balanceReceiverAfter = await web3.eth.getBalance(receiver);
-    console.log('Receiver balance after the transaction execution', web3.utils.fromWei(balanceReceiverAfter));
+    console.log(
+        'Receiver balance after the transaction execution',
+        web3.utils.fromWei(balanceReceiverAfter)
+    );
     const safeBalanceAfter = await web3.eth.getBalance(safeAddress);
-    console.log('Safe balance after the transaction is executed', web3.utils.fromWei(safeBalanceAfter));
+    console.log(
+        'Safe balance after the transaction is executed',
+        web3.utils.fromWei(safeBalanceAfter)
+    );
 
     // try to execute a transaction, but then we need to move this part into anther task probably
     callback();

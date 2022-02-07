@@ -15,7 +15,9 @@ const argv = yargs(hideBin(process.argv)).parserConfiguration({
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
 const printStatus = async (collectorAddress, owners, testTokenInstance) => {
-    const collectorBalance = await testTokenInstance.balanceOf(collectorAddress);
+    const collectorBalance = await testTokenInstance.balanceOf(
+        collectorAddress
+    );
     console.log(`Collector balance: ${collectorBalance}`);
     for (const owner of owners) {
         const balance = await testTokenInstance.balanceOf(owner);

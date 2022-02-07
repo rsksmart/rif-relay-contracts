@@ -24,12 +24,12 @@ const sleep = async (milliseconds) => {
 /**
  * Extracted from rif-relay-common.js, it waits for a transaction receipt to be available or
  * it throws an error after a number of tries.
- * 
+ *
  * @param {Web3} web3 Web3.js
  * @param {string} transactionHash transaction hash
  * @param {number} retries number of times to retries
  * @param {number} initialBackoff initial time to wait for. Each time the receipt is not available it will multiplied by 2.
- * @returns 
+ * @returns
  */
 const getTransactionReceipt = async (
     web3,
@@ -42,18 +42,14 @@ const getTransactionReceipt = async (
         tryCount < retries;
         tryCount++, backoff *= 2
     ) {
-        const receipt = await web3.eth.getTransactionReceipt(
-            transactionHash
-        );
+        const receipt = await web3.eth.getTransactionReceipt(transactionHash);
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (receipt) {
             return receipt;
         }
         await sleep(backoff);
     }
-    throw new Error(
-        `No receipt found for this transaction ${transactionHash}`
-    );
+    throw new Error(`No receipt found for this transaction ${transactionHash}`);
 };
 
 const signWithAddress = async (web3, safeSdk, safeTransaction, owner) => {
@@ -74,7 +70,7 @@ const safeProxyFactoryAddress = '0xB7a001eE69E7C1eef25Eb8e628e46214Ea74BF0F';
 const multiSendAddress = '0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2';
 const safeMasterCopyAddress = '0xe8C7C6f18c3B9532343487faD807060750C1fE95';
 const contractNetworks = {
-    '33': {
+    33: {
         multiSendAddress,
         safeMasterCopyAddress,
         safeProxyFactoryAddress
@@ -86,8 +82,10 @@ const getPartnerKey = (index) => `partner${index}`;
 const getPartners = async (web3) => {
     const chainId = await web3.eth.getChainId();
     const networkAddresses = RevenueSharingAddresses[chainId.toString()];
-    if ( !networkAddresses) {
-        throw new Error(`The file revenue-sharing-addresses.json doesn't include configuration for network: ${chainId}`);
+    if (!networkAddresses) {
+        throw new Error(
+            `The file revenue-sharing-addresses.json doesn't include configuration for network: ${chainId}`
+        );
     }
     const partners = [];
     // partners are stored with keys having the format "partner1", "partner2", etc...
