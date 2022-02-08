@@ -3,8 +3,7 @@ const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
-})
-.argv;
+}).argv;
 
 const defaultConfigFileName = 'deploy-collector.input.json';
 const defaultOutputFileName = 'revenue-sharing-addresses.json';
@@ -13,17 +12,19 @@ const Collector = artifacts.require('Collector');
 const TestToken = artifacts.require('TestToken');
 
 module.exports = async (callback) => {
-    
     let { collectorConfig, outputFile = defaultOutputFileName } = argv;
-    if ( !collectorConfig ) {
-        console.warn("Missing '--collectorConfig' parameter, 'deploy-collector.input.json' will be used");
+    if (!collectorConfig) {
+        console.warn(
+            "Missing '--collectorConfig' parameter, 'deploy-collector.input.json' will be used"
+        );
         collectorConfig = defaultConfigFileName;
     }
-    
-    
+
     if (!fs.existsSync(collectorConfig)) {
-        callback(new Error(`Configuration file ${collectorConfig} doesn't exist`));
-        return;   
+        callback(
+            new Error(`Configuration file ${collectorConfig} doesn't exist`)
+        );
+        return;
     }
     const inputConfig = JSON.parse(
         fs.readFileSync(collectorConfig, { encoding: 'UTF-8' })
@@ -36,7 +37,9 @@ module.exports = async (callback) => {
         TestToken.address,
         revenueSharingPartners
     );
-    const deploymentReceipt = await web3.eth.getTransactionReceipt(collectorInstance.transactionHash);
+    const deploymentReceipt = await web3.eth.getTransactionReceipt(
+        collectorInstance.transactionHash
+    );
     printReceipt(deploymentReceipt);
 
     console.log();
@@ -103,35 +106,21 @@ module.exports = async (callback) => {
     callback();
 };
 
-
 function printReceipt(txReceipt) {
-    const printLine = () => console.log(
-        '-'.repeat(98)
-    );
+    const printLine = () => console.log('-'.repeat(98));
 
     console.log('Transaction Receipt');
     printLine();
-    
-    const fieldsToPrint = [
-        'transactionHash',
-        'from',
-        'blockNumber',
-        'gasUsed'
-    ];
+
+    const fieldsToPrint = ['transactionHash', 'from', 'blockNumber', 'gasUsed'];
     fieldsToPrint.forEach((field) => {
         console.log(
             `> ${field} ` +
-            `${' '.repeat(20 - field.length)}` +
-            `| ${txReceipt[field]} ` +
-            `${' '.repeat(70 - (txReceipt[field].toString()).length)} |` 
-            
+                `${' '.repeat(20 - field.length)}` +
+                `| ${txReceipt[field]} ` +
+                `${' '.repeat(70 - txReceipt[field].toString().length)} |`
         );
     });
     printLine();
     console.log();
 }
-
-/* > transactionHash      | 0xdea41b7fe57d29c0cc9469a60a0918131e156e125faacf06c4b2278082c04932       |
-> from      | 0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826       |
-> blockNumber      | 57       |
-> gasUsed      | 0xe943b       | */
