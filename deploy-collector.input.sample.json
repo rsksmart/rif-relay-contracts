@@ -17,5 +17,6 @@
             "beneficiary": "0x39B12C05E8503356E3a7DF0B7B33efA4c054C409",
             "share": 32
         }
-    ]
+    ],
+    "tokenAddress": "0x5501F9dF7140fCD1E3091A6E8227E66C34d8913b"
 }

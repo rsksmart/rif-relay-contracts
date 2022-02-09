@@ -9,7 +9,6 @@ const defaultConfigFileName = 'deploy-collector.input.json';
 const defaultOutputFileName = 'revenue-sharing-addresses.json';
 // Contracts
 const Collector = artifacts.require('Collector');
-const TestToken = artifacts.require('TestToken');
 
 module.exports = async (callback) => {
     let { collectorConfig, outputFile = defaultOutputFileName } = argv;
@@ -30,11 +29,10 @@ module.exports = async (callback) => {
         fs.readFileSync(collectorConfig, { encoding: 'UTF-8' })
     );
 
-    const { collectorOwner, partners: revenueSharingPartners } = inputConfig;
-    await TestToken.deployed();
+    const { collectorOwner, partners: revenueSharingPartners, tokenAddress } = inputConfig;
     const collectorInstance = await Collector.new(
         collectorOwner,
-        TestToken.address,
+        tokenAddress,
         revenueSharingPartners
     );
     const deploymentReceipt = await web3.eth.getTransactionReceipt(

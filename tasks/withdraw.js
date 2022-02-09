@@ -3,7 +3,6 @@ const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const {
     getTestTokenInstance,
-    getCollectorInstance,
     signWithAddress,
     contractNetworks,
     getTransactionReceipt,
@@ -28,12 +27,15 @@ const printStatus = async (collectorAddress, owners, testTokenInstance) => {
 module.exports = async (callback) => {
     const owners = await getPartnerAddresses(web3);
 
-    const { safeAddress } = argv;
+    const { safeAddress, collectorAddress } = argv;
     if (!web3.utils.isAddress(safeAddress)) {
         callback(new Error(`invalid "safeAddress": ${safeAddress}`));
+        return;
     }
-    const collectorInstance = await getCollectorInstance(artifacts);
-    const collectorAddress = collectorInstance.address;
+    if (!web3.utils.isAddress(collectorAddress)) {
+        callback(new Error(`invalid "collectorAddress": ${collectorAddress}`));
+        return;
+    }
 
     // print the initial status
     const safeBalance = await web3.eth.getBalance(safeAddress);
