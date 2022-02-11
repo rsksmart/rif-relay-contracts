@@ -48,6 +48,17 @@ The contracts can be deployed in the following way:
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
+#### Collector Deployment
+
+To deploy a collector, we need to run the script `deploy-collector.js`; it receives two parameters:
+- `collectorConfig`: used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
+- `outputFile`: used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
+
+E.g.:
+```bash
+npx truffle --network <network_name> exec tasks/deploy-collector.js --collectorConfig="<collector_configuration.json>" --outputFile="output.json"
+```
+
 ### Addresses
 
 Each time the smart contracts are deployed, the `contract-addresses.json` file is updated. This file contains all contracts addresses for the network they were selected to be deployed on. 
