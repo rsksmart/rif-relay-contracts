@@ -18,7 +18,6 @@ index 5de91fb..86d9264 100644
 +    tokenAmount?: BN | number | string;
 +    tokenContract?: string;
 +    forceGas?: BN | number | string;
-+    collectorContract?: string;
    }
  
    export interface TransactionLog {
