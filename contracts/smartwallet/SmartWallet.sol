@@ -128,9 +128,9 @@ contract SmartWallet is IForwarder {
             address feesReceiver = req.collectorContract;
             if(feesReceiver == address(0)){
                 // pay worker if no collector contract is specified
+                /* solhint-disable avoid-tx-origin */
                 feesReceiver = tx.origin;
             }
-            /* solhint-disable avoid-tx-origin */
             (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
                     hex"a9059cbb", 
