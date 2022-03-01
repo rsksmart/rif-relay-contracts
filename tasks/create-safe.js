@@ -84,7 +84,7 @@ async function deploySafe(
     );
     const createTx = await safeFactoryContract.methods
         .createProxy(safeMasterCopyAddress, encodedSetupFunction)
-        .send({ from: sender, gas: '1081903' });
+        .send({ from: sender });
 
     const safeAddressCreated =
         createTx?.events?.ProxyCreation?.returnValues.proxy;
