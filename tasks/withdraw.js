@@ -6,7 +6,8 @@ const {
     contractNetworks,
     getTransactionReceipt,
     getPartnerAddresses,
-    getCollectorTokenAddress
+    getCollectorTokenAddress,
+    getCollectorContractAddress
 } = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
@@ -47,10 +48,11 @@ const getERC20Balance = async (erc20Contract, address) => {
 module.exports = async (callback) => {
     const owners = await getPartnerAddresses(web3);
     const collectorTokenAddress = await getCollectorTokenAddress(web3);
+    const collectorAddressFromConfig = await getCollectorContractAddress(web3);
 
     const {
         safeAddress,
-        collectorAddress,
+        collectorAddress = collectorAddressFromConfig,
         tokenAddress = collectorTokenAddress
     } = argv;
     // If safeAddress is specified, then we need a multisig transaction to withdraw
