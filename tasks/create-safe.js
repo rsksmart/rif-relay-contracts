@@ -1,4 +1,4 @@
-const { contractNetworks } = require('./utils');
+const { contractNetworks, getPartnerAddresses } = require('./utils');
 const SafeFactory = require('./safeFactory.json');
 
 const setupFunctionDefinition = {
@@ -101,21 +101,10 @@ async function deploySafe(
 
 module.exports = async (callback) => {
     const chainId = await web3.eth.getChainId();
-    // These addresses are the same of the ones used in migrations/3_revenue_sharing.js
-    const relayOperator = '0x7986b3DF570230288501EEa3D890bd66948C9B79'; // accounts[1]
-    const walletProvider = '0x0a3aA774752ec2042c46548456c094A76C7F3a79'; // accounts[2]
-    const liquidityProvider = '0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036'; // accounts[3]
-    const iovLabsRecipient = '0x39B12C05E8503356E3a7DF0B7B33efA4c054C409'; // accounts[4]
-
     const { safeMasterCopyAddress, safeProxyFactoryAddress } =
         contractNetworks[chainId];
 
-    const owners = [
-        relayOperator,
-        walletProvider,
-        liquidityProvider,
-        iovLabsRecipient
-    ];
+    const owners = await getPartnerAddresses(web3);
     const threshold = owners.length;
     const initialBalance = web3.utils.toWei('10');
 
