@@ -48,6 +48,33 @@ The contracts can be deployed in the following way:
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
+#### Create a Multisig account
+
+The repo includes a script that can be run to create a multisig account.
+
+Pre-requirements: [Safe contracts v1.2.0](https://github.com/gnosis/safe-contracts/tree/v1.2.0) deployed within the network.
+Please check that the Safe addresses defined at `scripts/utils.js#69-78` reflect the addresses of the deployed Safe contracts.
+
+```bash
+npx truffle --network regtest exec tasks/create-safe.js --owners="<0xaddr_1>,<0xaddr_2>,..."
+```
+
+Parameters:
+- `owners`: a comma-separated list of addresses (e.g.: `"0x7986b3DF570230288501EEa3D890bd66948C9B79,0x0a3aA774752ec2042c46548456c094A76C7F3a79,0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036,0x39B12C05E8503356E3a7DF0B7B33efA4c054C409"`); if not specified, the script uses the first 4 accounts retrieved from `web3.eth.getAccounts` (useful for local development only).
+
+#### Withdraw
+
+To call the `withdraw` method available on the Collector contract, the repo provides the script `/tasks/withdraw.js`. It allows the user to call the `withdraw` whether the contract owner is a Multisig account or an EOA.
+
+```bash
+npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_address>' --collectorAddress='<0xcollector_address>' --tokenAddress='<0xtoken_address>'
+```
+
+Parameters:
+* `safeAddress`: Address of the Safe account set as owner of the Collector. It must be used only when then collector owner is a multisig account;
+* `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
+* `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
+
 #### Collector Deployment
 
 To deploy a collector, we need to run the script `deploy-collector.js`; it receives two parameters:
