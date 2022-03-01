@@ -1,4 +1,9 @@
-const { contractNetworks, getPartnerAddresses } = require('./utils');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+const argv = yargs(hideBin(process.argv)).parserConfiguration({
+    'parse-numbers': false
+}).argv;
+const { contractNetworks } = require('./utils');
 const SafeFactory = require('./safeFactory.json');
 
 const setupFunctionDefinition = {
@@ -82,9 +87,11 @@ async function deploySafe(
             ZERO_ADDRESS
         ]
     );
+    // TODO: Value extracted from regtest, likely we need to adapt it for testnet/mainnet
+    const createTxGasLimit = '1081903';
     const createTx = await safeFactoryContract.methods
         .createProxy(safeMasterCopyAddress, encodedSetupFunction)
-        .send({ from: sender });
+        .send({ from: sender, gas: createTxGasLimit });
 
     const safeAddressCreated =
         createTx?.events?.ProxyCreation?.returnValues.proxy;
@@ -104,7 +111,26 @@ module.exports = async (callback) => {
     const { safeMasterCopyAddress, safeProxyFactoryAddress } =
         contractNetworks[chainId];
 
-    const owners = await getPartnerAddresses(web3);
+    let { owners } = argv;
+    if (!owners) {
+        console.warn(
+            "Missing '--owners' parameter. The first 4 addresses retrieved from 'web3.eth.getAccounts' will be used."
+        );
+        const accounts = await web3.eth.getAccounts();
+        if (accounts.length < 4) {
+            callback(
+                new Error(
+                    'No enough addresses can be retrieved using "web3.eth.getAccounts"'
+                )
+            );
+            return;
+        }
+        const [owner1, owner2, owner3, owner4] = accounts;
+        owners = [owner1, owner2, owner3, owner4];
+    } else {
+        owners = owners.split(',');
+    }
+
     const threshold = owners.length;
     const initialBalance = web3.utils.toWei('10');
 
