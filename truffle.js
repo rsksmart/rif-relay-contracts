@@ -15,7 +15,7 @@ module.exports = {
     networks: {
         development: {
             verbose: process.env.VERBOSE,
-            host: '172.18.0.2',
+            host: '127.0.0.1',
             port: 4444,
             network_id: 33,
             gas: 6300000,
