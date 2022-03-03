@@ -62,19 +62,6 @@ npx truffle --network regtest exec tasks/create-safe.js --owners="<0xaddr_1>,<0x
 Parameters:
 - `owners`: a comma-separated list of addresses (e.g.: `"0x7986b3DF570230288501EEa3D890bd66948C9B79,0x0a3aA774752ec2042c46548456c094A76C7F3a79,0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036,0x39B12C05E8503356E3a7DF0B7B33efA4c054C409"`); if not specified, the script uses the first 4 accounts retrieved from `web3.eth.getAccounts` (useful for local development only).
 
-#### Withdraw
-
-To call the `withdraw` method available on the Collector contract, the repo provides the script `/tasks/withdraw.js`. It allows the user to call the `withdraw` whether the contract owner is a Multisig account or an EOA.
-
-```bash
-npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_address>' --collectorAddress='<0xcollector_address>' --tokenAddress='<0xtoken_address>'
-```
-
-Parameters:
-* `safeAddress`: Address of the Safe account set as owner of the Collector. It must be used only when then collector owner is a multisig account;
-* `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
-* `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
-
 #### Collector Deployment
 
 To deploy a collector, we need to run the script `deploy-collector.js`; it receives two parameters:
@@ -123,6 +110,21 @@ Warning: possible unsupported (undocumented in help) command line option(s): --t
 ```
 
 For further info about `truffle exec`, please have a look at its [official documentation](https://www.trufflesuite.com/docs/truffle/reference/truffle-commands#exec).
+
+### Withdraw
+
+To call the `withdraw` method available on the Collector contract, the repo provides the script `/tasks/withdraw.js`. It allows the user to call the `withdraw` whether the contract owner is a Multisig account or an EOA.
+
+```bash
+npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_address>' --safeOwners='<0xsafe_owner1,0xsafe_owner2>' --collectorAddress='<0xcollector_address>' --tokenAddress='<0xtoken_address>' --partners='<0xpartner1,0xpartner2>' 
+```
+
+Parameters:
+* `safeAddress`: Address of the Safe account set as owner of the Collector. It must be used only when then collector owner is a multisig account;
+* `safeOwners`: Comma-separated list of addresses that are the owners of the Safe account
+* `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
+* `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
+* `partners`: Comma-separated list of addresses to which the Collector distributes the token.
 
 ## Library usage
 

@@ -4,23 +4,20 @@ const { hideBin } = require('yargs/helpers');
 const {
     signWithAddress,
     contractNetworks,
-    getTransactionReceipt,
-    getPartnerAddresses,
-    getCollectorTokenAddress,
-    getCollectorContractAddress
+    getTransactionReceipt
 } = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
-const printStatus = async (collectorAddress, owners, erc20TokenInstance) => {
+const printStatus = async (collectorAddress, partners, erc20TokenInstance) => {
     const collectorBalance = await getERC20Balance(
         erc20TokenInstance,
         collectorAddress
     );
     console.log(`Collector balance: ${collectorBalance}`);
-    for (const owner of owners) {
+    for (const owner of partners) {
         const balance = await getERC20Balance(erc20TokenInstance, owner);
         console.log(`Address ${owner} balance: ${balance}`);
     }
@@ -46,14 +43,12 @@ const getERC20Balance = async (erc20Contract, address) => {
 };
 
 module.exports = async (callback) => {
-    const owners = await getPartnerAddresses(web3);
-    const collectorTokenAddress = await getCollectorTokenAddress(web3);
-    const collectorAddressFromConfig = await getCollectorContractAddress(web3);
-
     const {
         safeAddress,
-        collectorAddress = collectorAddressFromConfig,
-        tokenAddress = collectorTokenAddress
+        safeOwners,
+        collectorAddress,
+        tokenAddress,
+        partners
     } = argv;
     // If safeAddress is specified, then we need a multisig transaction to withdraw
     const isMultisigWithdraw = ![null, undefined].includes(safeAddress);
@@ -61,8 +56,22 @@ module.exports = async (callback) => {
         callback(new Error(`invalid "safeAddress": ${safeAddress}`));
         return;
     }
+    const parsedSafeOwners = safeOwners && safeOwners.split(',');
+    if (isMultisigWithdraw && !parsedSafeOwners) {
+        callback(
+            new Error(
+                `invalid "safeOwners" parameter received: ${safeOwners}; it accepts a comma-separated list of addresses.`
+            )
+        );
+        return;
+    }
     if (!web3.utils.isAddress(collectorAddress)) {
         callback(new Error(`invalid "collectorAddress": ${collectorAddress}`));
+        return;
+    }
+    const parsedPartners = partners && partners.split(',');
+    if (!parsedPartners) {
+        callback(new Error(`invalid "partners": ${partners}`));
         return;
     }
 
@@ -76,7 +85,7 @@ module.exports = async (callback) => {
         tokenAddress
     );
     console.log('---Token balance before---');
-    await printStatus(collectorAddress, owners, erc20TokenInstance);
+    await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
 
     const encodedWithdrawFunction = web3.eth.abi.encodeFunctionCall(
         {
@@ -96,9 +105,8 @@ module.exports = async (callback) => {
     if (isMultisigWithdraw) {
         const ethAdapterOwner1 = new Web3Adapter({
             web3,
-            signerAddress: owners[0]
+            signerAddress: parsedSafeOwners[0]
         });
-        console.log(contractNetworks);
         const safeSdk = await Safe.create({
             ethAdapter: ethAdapterOwner1,
             safeAddress,
@@ -109,10 +117,10 @@ module.exports = async (callback) => {
             ...transactions
         );
 
-        // All the owners but the first one will sign the transaction before,
-        // while the owners[0] will sign the transaction on execution.
-        for (let index = 1; index < owners.length; index++) {
-            const owner = owners[index];
+        // All the safe owners but the first one will sign the transaction before,
+        // while the parsedSafeOwners[0] will sign the transaction on execution.
+        for (let index = 1; index < parsedSafeOwners.length; index++) {
+            const owner = parsedSafeOwners[index];
             await signWithAddress(web3, safeSdk, safeTransaction, owner);
         }
 
@@ -120,7 +128,7 @@ module.exports = async (callback) => {
          * TODO: We need to manually set the gasLimit in order to execute multisig tx on rsk regtest;
          *       likely this value is going to change on testnet/mainnet
          */
-        const safeTxGasLimit = '160562';
+        const safeTxGasLimit = '300000';
         // owner1 execute (and implicitly signs) the transaction
         const safeTxResponse = await safeSdk.executeTransaction(
             safeTransaction,
@@ -143,7 +151,7 @@ module.exports = async (callback) => {
     await getTransactionReceipt(web3, withdrawTxHash);
 
     console.log('---Token balance after---');
-    await printStatus(collectorAddress, owners, erc20TokenInstance);
+    await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
 
     // try to execute a transaction, but then we need to move this part into anther task probably
     callback();

@@ -109,23 +109,11 @@ const getPartnerAddresses = async (web3) => {
     return partners.map((partner) => partner['address']);
 };
 
-const getCollectorTokenAddress = async (web3) => {
-    const networkAddresses = await getRevenueSharingAddresses(web3);
-    return networkAddresses.collectorToken;
-};
-
-const getCollectorContractAddress = async (web3) => {
-    const networkAddresses = await getRevenueSharingAddresses(web3);
-    return networkAddresses.collectorContract;
-};
-
 module.exports = {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
     contractNetworks,
     getTransactionReceipt,
-    getPartnerAddresses,
-    getCollectorTokenAddress,
-    getCollectorContractAddress
+    getPartnerAddresses
 };
