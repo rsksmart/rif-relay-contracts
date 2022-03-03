@@ -14,17 +14,17 @@
         "testToken": "0xF5859303f76596dD558B438b18d0Ce0e1660F3ea"
     },
     "33": {
-        "penalizer": "0xE61A53eA4Ae0Ec5e5704b9d63d309BfE5089Cee5",
-        "relayHub": "0x80556d67dF2A8614417511B726359C84C0aa5B0D",
-        "smartWallet": "0x0fc11905658D5aC9a329d88dE9A6cAC1B96B25AD",
-        "smartWalletFactory": "0xC112111B1306139a62829BBAE3323DA0E203f0A5",
-        "smartWalletDeployVerifier": "0xc4DBCFf7FB741bEBe6359fD153F0d69aF966908e",
-        "smartWalletRelayVerifier": "0xce97EFE1F7dcf2711B6416B00FeB151a71846bfC",
-        "customSmartWallet": "0x83FFf9A1f7eB12B2f993045D0f02215D88F0c538",
-        "customSmartWalletFactory": "0x4d5dA54C03C7E5b42303CE819cF3D4b23B886007",
-        "customSmartWalletDeployVerifier": "0xd31458be7e5eefB7De6489705CdE5a8c098b90fA",
-        "customSmartWalletRelayVerifier": "0x864D20AD154B5b0f449394BC235903b3BF92A9bF",
-        "sampleRecipient": "0x0BE4E9e8dCdDF1f82c76a3aBA659783F968906D9",
-        "testToken": "0x5501F9dF7140fCD1E3091A6E8227E66C34d8913b"
+        "penalizer": "0xe8C7C6f18c3B9532343487faD807060750C1fE95",
+        "relayHub": "0x3bA95e1cccd397b5124BcdCC5bf0952114E6A701",
+        "smartWallet": "0xB7a001eE69E7C1eef25Eb8e628e46214Ea74BF0F",
+        "smartWalletFactory": "0x8C1108cFCd7ddad09D8910e5f42982A6c54aD9cD",
+        "smartWalletDeployVerifier": "0x1938517B0762103d52590Ca21d459968c25c9E67",
+        "smartWalletRelayVerifier": "0x74Dc4471FA8C8fBE09c7a0C400a0852b0A9d04b2",
+        "customSmartWallet": "0x96A90Ee24C20c78Ba20AcE1a2aa4D59F79353C54",
+        "customSmartWalletFactory": "0x89bac3BB0517F7Dc0E5E94265217A9Acc5cc489f",
+        "customSmartWalletDeployVerifier": "0x3eE31F6049065B616f85470985c0eF067f2bEbDE",
+        "customSmartWalletRelayVerifier": "0xDE8Ae20488BE104f0782C0126038b6682ECc1eC7",
+        "sampleRecipient": "0xB08E0D333F139AC71DE04f4bfE7e75ca1e6122a0",
+        "testToken": "0x5D0aBdE7Ed6B7e122eD55EAe514E617d6c08f407"
     }
 }
