@@ -138,11 +138,14 @@ module.exports = async (callback) => {
         );
         withdrawTxHash = safeTxResponse.hash;
     } else {
-        // TODO: We saw that '137410' is required in regtest, likely this value is going to change on testnet/mainnet
-        const gasRequired = '140000';
+        // TODO: We saw that more than '140000' is required in regtest, likely this value is going to change on testnet/mainnet
+        const CollectorContract = artifacts.require('Collector');
+        const collectorInstance = await CollectorContract.at(collectorAddress);
+        const collectorOwner = await collectorInstance.owner.call();
+        const gasRequired = '200000';
         const tx = await web3.eth.sendTransaction({
             ...withdrawTx,
-            from: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+            from: collectorOwner,
             gas: gasRequired
         });
         withdrawTxHash = tx.transactionHash;
