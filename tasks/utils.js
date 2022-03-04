@@ -79,7 +79,7 @@ const contractNetworks = {
 
 const getPartnerKey = (index) => `partner${index}`;
 
-const getPartners = async (web3) => {
+const getRevenueSharingAddresses = async (web3) => {
     const chainId = await web3.eth.getChainId();
     const networkAddresses = RevenueSharingAddresses[chainId.toString()];
     if (!networkAddresses) {
@@ -87,6 +87,11 @@ const getPartners = async (web3) => {
             `The file revenue-sharing-addresses.json doesn't include configuration for network: ${chainId}`
         );
     }
+    return networkAddresses;
+};
+
+const getPartners = async (web3) => {
+    const networkAddresses = await getRevenueSharingAddresses(web3);
     const partners = [];
     // partners are stored with keys having the format "partner1", "partner2", etc...
     let index = 1;

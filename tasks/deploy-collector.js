@@ -29,7 +29,11 @@ module.exports = async (callback) => {
         fs.readFileSync(collectorConfig, { encoding: 'UTF-8' })
     );
 
-    const { collectorOwner, partners: revenueSharingPartners, tokenAddress } = inputConfig;
+    const {
+        collectorOwner,
+        partners: revenueSharingPartners,
+        tokenAddress
+    } = inputConfig;
     const collectorInstance = await Collector.new(
         collectorOwner,
         tokenAddress,
