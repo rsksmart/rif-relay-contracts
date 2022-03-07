@@ -2,58 +2,90 @@ const safeCoreSdk = require('@gnosis.pm/safe-core-sdk');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const {
-    getTestTokenInstance,
     signWithAddress,
     contractNetworks,
-    getTransactionReceipt,
-    getPartnerAddresses
+    getTransactionReceipt
 } = require('./utils');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
 const { default: Safe, Web3Adapter } = safeCoreSdk;
 
-const printStatus = async (collectorAddress, owners, testTokenInstance) => {
-    const collectorBalance = await testTokenInstance.balanceOf(
+const printStatus = async (collectorAddress, partners, erc20TokenInstance) => {
+    const collectorBalance = await getERC20Balance(
+        erc20TokenInstance,
         collectorAddress
     );
     console.log(`Collector balance: ${collectorBalance}`);
-    for (const owner of owners) {
-        const balance = await testTokenInstance.balanceOf(owner);
+    for (const owner of partners) {
+        const balance = await getERC20Balance(erc20TokenInstance, owner);
         console.log(`Address ${owner} balance: ${balance}`);
     }
 };
 
-module.exports = async (callback) => {
-    const owners = await getPartnerAddresses(web3);
+const getMinimumErc20TokenContract = (web3, tokenAddress) => {
+    // The minimum ABI required to get the ERC20 Token balance
+    const minABI = [
+        // balanceOf
+        {
+            constant: true,
+            inputs: [{ name: '_owner', type: 'address' }],
+            name: 'balanceOf',
+            outputs: [{ name: 'balance', type: 'uint256' }],
+            type: 'function'
+        }
+    ];
+    return new web3.eth.Contract(minABI, tokenAddress);
+};
 
-    const { safeAddress, collectorAddress } = argv;
-    if (!web3.utils.isAddress(safeAddress)) {
+const getERC20Balance = async (erc20Contract, address) => {
+    return await erc20Contract.methods.balanceOf(address).call();
+};
+
+module.exports = async (callback) => {
+    const {
+        safeAddress,
+        safeOwners,
+        collectorAddress,
+        tokenAddress,
+        partners
+    } = argv;
+    // If safeAddress is specified, then we need a multisig transaction to withdraw
+    const isMultisigWithdraw = ![null, undefined].includes(safeAddress);
+    if (isMultisigWithdraw && !web3.utils.isAddress(safeAddress)) {
         callback(new Error(`invalid "safeAddress": ${safeAddress}`));
+        return;
+    }
+    const parsedSafeOwners = safeOwners && safeOwners.split(',');
+    if (isMultisigWithdraw && !parsedSafeOwners) {
+        callback(
+            new Error(
+                `invalid "safeOwners" parameter received: ${safeOwners}; it accepts a comma-separated list of addresses.`
+            )
+        );
         return;
     }
     if (!web3.utils.isAddress(collectorAddress)) {
         callback(new Error(`invalid "collectorAddress": ${collectorAddress}`));
         return;
     }
+    const parsedPartners = partners && partners.split(',');
+    if (!parsedPartners) {
+        callback(new Error(`invalid "partners": ${partners}`));
+        return;
+    }
 
-    // print the initial status
-    const safeBalance = await web3.eth.getBalance(safeAddress);
-    console.log('Safe balance', web3.utils.fromWei(safeBalance));
-    const testTokenInstance = await getTestTokenInstance(artifacts);
-
-    console.log('---Token balance before---');
-    await printStatus(collectorAddress, owners, testTokenInstance);
-
-    const ethAdapterOwner1 = new Web3Adapter({
+    // Log the initial status
+    if (isMultisigWithdraw) {
+        const safeBalance = await web3.eth.getBalance(safeAddress);
+        console.log('Safe balance', web3.utils.fromWei(safeBalance));
+    }
+    const erc20TokenInstance = await getMinimumErc20TokenContract(
         web3,
-        signerAddress: owners[0]
-    });
-    const safeSdk = await Safe.create({
-        ethAdapter: ethAdapterOwner1,
-        safeAddress,
-        contractNetworks
-    });
+        tokenAddress
+    );
+    console.log('---Token balance before---');
+    await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
 
     const encodedWithdrawFunction = web3.eth.abi.encodeFunctionCall(
         {
@@ -63,32 +95,66 @@ module.exports = async (callback) => {
         },
         []
     );
+    const withdrawTx = {
+        to: collectorAddress,
+        value: 0,
+        data: encodedWithdrawFunction
+    };
 
-    const transactions = [
-        {
-            to: collectorAddress,
-            value: 0,
-            data: encodedWithdrawFunction
+    let withdrawTxHash;
+    if (isMultisigWithdraw) {
+        const ethAdapterOwner1 = new Web3Adapter({
+            web3,
+            signerAddress: parsedSafeOwners[0]
+        });
+        const safeSdk = await Safe.create({
+            ethAdapter: ethAdapterOwner1,
+            safeAddress,
+            contractNetworks
+        });
+        const transactions = [withdrawTx];
+        const safeTransaction = await safeSdk.createTransaction(
+            ...transactions
+        );
+
+        // All the safe owners but the first one will sign the transaction before,
+        // while the parsedSafeOwners[0] will sign the transaction on execution.
+        for (let index = 1; index < parsedSafeOwners.length; index++) {
+            const owner = parsedSafeOwners[index];
+            await signWithAddress(web3, safeSdk, safeTransaction, owner);
         }
-    ];
-    const safeTransaction = await safeSdk.createTransaction(...transactions);
 
-    // All the owners but the first one will sign the transaction before,
-    // while the owners[0] will sign the transaction on execution.
-    for (let index = 1; index < owners.length; index++) {
-        const owner = owners[index];
-        await signWithAddress(web3, safeSdk, safeTransaction, owner);
+        /*
+         * TODO: We need to manually set the gasLimit in order to execute multisig tx on rsk regtest;
+         *       likely this value is going to change on testnet/mainnet
+         */
+        const safeTxGasLimit = '300000';
+        // owner1 execute (and implicitly signs) the transaction
+        const safeTxResponse = await safeSdk.executeTransaction(
+            safeTransaction,
+            {
+                gasLimit: safeTxGasLimit
+            }
+        );
+        withdrawTxHash = safeTxResponse.hash;
+    } else {
+        // TODO: We saw that more than '140000' is required in regtest, likely this value is going to change on testnet/mainnet
+        const CollectorContract = artifacts.require('Collector');
+        const collectorInstance = await CollectorContract.at(collectorAddress);
+        const collectorOwner = await collectorInstance.owner.call();
+        const gasRequired = '200000';
+        const tx = await web3.eth.sendTransaction({
+            ...withdrawTx,
+            from: collectorOwner,
+            gas: gasRequired
+        });
+        withdrawTxHash = tx.transactionHash;
     }
 
-    // owner1 execute (and implicitly signs) the transaction
-    const safeTxResponse = await safeSdk.executeTransaction(safeTransaction, {
-        // we need to manually set the gasLimit in order to execute multisig tx on rsk
-        gasLimit: '1081903'
-    });
-    await getTransactionReceipt(web3, safeTxResponse.hash);
+    await getTransactionReceipt(web3, withdrawTxHash);
 
     console.log('---Token balance after---');
-    await printStatus(collectorAddress, owners, testTokenInstance);
+    await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
 
     // try to execute a transaction, but then we need to move this part into anther task probably
     callback();
