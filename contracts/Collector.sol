@@ -39,6 +39,13 @@ contract Collector is ICollector{
             partners.push(_partners[i]);
     }
 
+    function getBalance()
+    external
+    returns (uint)
+    {
+        return token.balanceOf(address(this));
+    }
+
     function withdraw() 
     external 
     override
