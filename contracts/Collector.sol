@@ -63,6 +63,7 @@ contract Collector is ICollector{
     override
     onlyOwner()
     {
+        require(_owner != address(0), "new owner is the zero address");
         owner = _owner;
     }
 
