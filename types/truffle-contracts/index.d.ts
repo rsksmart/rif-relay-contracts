@@ -639,6 +639,15 @@ export interface CollectorInstance extends Truffle.ContractInstance {
     ): Promise<number>;
   };
 
+  getBalance: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<BN>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
+
   withdraw: {
     (txDetails?: Truffle.TransactionDetails): Promise<
       Truffle.TransactionResponse
