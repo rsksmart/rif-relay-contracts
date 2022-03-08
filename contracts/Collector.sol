@@ -26,7 +26,7 @@ contract Collector is ICollector{
     }
 
     function updateShares(RevenuePartner[] memory _partners) 
-    public
+    external
     validShares(_partners)
     onlyOwner()
     {
