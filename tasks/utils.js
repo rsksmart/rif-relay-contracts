@@ -1,5 +1,4 @@
 const safeCoreSdk = require('@gnosis.pm/safe-core-sdk');
-const RevenueSharingAddresses = require('../revenue-sharing-addresses.json');
 const { Web3Adapter } = safeCoreSdk;
 
 const getTestTokenInstance = async (artifacts) => {
@@ -79,9 +78,21 @@ const contractNetworks = {
 
 const getPartnerKey = (index) => `partner${index}`;
 
+const defaultRevenueSharingAddressesPath = '../revenue-sharing-addresses.json';
+let revenueSharingAddresses = undefined;
+const getRevenueSharingAddressesFromFile = (
+    filename = defaultRevenueSharingAddressesPath
+) => {
+    if (revenueSharingAddresses === undefined) {
+        revenueSharingAddresses = require(filename);
+    }
+    return revenueSharingAddresses;
+};
+
 const getRevenueSharingAddresses = async (web3) => {
     const chainId = await web3.eth.getChainId();
-    const networkAddresses = RevenueSharingAddresses[chainId.toString()];
+    const revenueSharingAddresses = getRevenueSharingAddressesFromFile();
+    const networkAddresses = revenueSharingAddresses[chainId.toString()];
     if (!networkAddresses) {
         throw new Error(
             `The file revenue-sharing-addresses.json doesn't include configuration for network: ${chainId}`
