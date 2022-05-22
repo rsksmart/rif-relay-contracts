@@ -1,0 +1,29 @@
+name: CI for RIF-Relay-Contract
+on: [push]
+jobs:
+    linting:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Use Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: '16.x'
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Check Linter bugs for Typescript
+              run: npm run lint:ts
+
+            - name: Fix Linter bugs for Typescript
+              run: npm run lint:ts:fix
+
+            - name: See bugs on solidity
+              run: npm run lint:sol
+
+            - name: Check Codestyles errors
+              run: npm run prettier
+
+            - name: Fix Codestyles bugs
+              run: npm run prettier:fix
