@@ -16,14 +16,8 @@ jobs:
             - name: Check Linter bugs for Typescript
               run: npm run lint:ts
 
-            - name: Fix Linter bugs for Typescript
-              run: npm run lint:ts:fix
-
             - name: See bugs on solidity
               run: npm run lint:sol
 
             - name: Check Codestyles errors
               run: npm run prettier
-
-            - name: Fix Codestyles bugs
-              run: npm run prettier:fix
