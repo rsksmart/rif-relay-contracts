@@ -675,21 +675,25 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -1753,21 +1757,25 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -2255,21 +2263,25 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -3105,21 +3117,25 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -4047,21 +4063,25 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -4711,21 +4731,25 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -5252,21 +5276,25 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
   directExecute: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
