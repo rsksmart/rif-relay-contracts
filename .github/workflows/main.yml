@@ -24,22 +24,15 @@ jobs:
 
     test:
         runs-on: ubuntu-latest
-        services:
-            # Label used to access the service container
-            rskj:
-                # Docker Hub image
-                image: antonioiovlabs/rskj:latest
-                # Set option for image to run with
-                options: >-
-                    --regtest
-                ports:
-                    # Maps tcp port 5432 on service container to the host
-                    - 4444:4444
+        needs: [lint]
 
         steps:
             # Downloads a copy of the code in your repository before running CI tests
             - name: Check out repository code
               uses: actions/checkout@v3
+
+            - name: Run docker image
+              run: docker run -p 127.0.0.1:4444:4444 --name enveloping-rskj antonioiovlabs/rskj:latest --regtest
 
             # Performs a clean installation of all dependencies in the `package.json` file
             # For more information, see https://docs.npmjs.com/cli/ci.html
