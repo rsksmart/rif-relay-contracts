@@ -34,6 +34,9 @@ jobs:
             - name: Run docker image
               run: docker run -d -p 127.0.0.1:4444:4444 --name enveloping-rskj antonioiovlabs/rskj:latest --regtest
 
+            - name: Install dependencies
+              run: npm install
+
             # Performs a clean installation of all dependencies in the `package.json` file
             # For more information, see https://docs.npmjs.com/cli/ci.html
             - name: Run contract test
