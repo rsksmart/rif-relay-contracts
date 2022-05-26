@@ -42,6 +42,7 @@
     "@types/web3": "1.2.2",
     "@typescript-eslint/eslint-plugin": "~4.28.3",
     "@typescript-eslint/parser": "~4.28.3",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "eslint": "~7.30.0",
     "eth-gas-reporter": "^0.2.25",
     "husky": "~6.0.0",
