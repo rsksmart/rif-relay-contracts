@@ -1,5 +1,5 @@
 {
-  "name": "@rsksmart/rif-relay-contracts",
+  "name": "@antomor_iovlabs/rif-relay-contracts",
   "version": "0.0.1",
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
