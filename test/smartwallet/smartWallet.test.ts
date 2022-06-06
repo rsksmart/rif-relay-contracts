@@ -1,9 +1,4 @@
-import { TestTokenInstance } from '../../types/truffle-contracts';
-import chai from 'chai';                                                   
-import chaiAsPromised from 'chai-as-promised'; 
-                                                                               
-chai.use(chaiAsPromised);                                                           
-const assert = chai.assert; 
+import { SmartWalletInstance, TestTokenInstance } from '../../types/truffle-contracts';
 
 const SmartWallet = artifacts.require('SmartWallet');
 const TestToken = artifacts.require('TestToken');
@@ -13,17 +8,19 @@ const  constants = {
 };
 
 
-contract('Testing SmartWallet contract', async () => {
-    const contract = await SmartWallet.deployed();
+contract.skip('Testing SmartWallet contract', async () => {
+    let contract: SmartWalletInstance;
     let token: TestTokenInstance;
     let senderAddress: string;
     describe('Testing ', () => {
         before('Setting senderAccount and Test Token', async () => {
             //Creating a single sender account
+            //contract = await SmartWallet.deployed();
             const senderAccount = web3.eth.accounts.create();
             senderAddress = senderAccount.address;
             token = await TestToken.new();
         });
+        
 
         it('Should verify method initialize reverts with a null sender address parameter', async () =>{
             //Making sure the contract has not been initialized yet
