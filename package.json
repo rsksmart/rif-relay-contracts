@@ -41,8 +41,7 @@
     "@truffle/hdwallet-provider": "1.6.0",
     "npmignore": "^0.3.0",
     "patch-package": "~6.4.6",
-    "truffle-hdwallet-provider": "~1.0.17",
-    "ethereumjs-tx": "^2.1.2"
+    "truffle-hdwallet-provider": "~1.0.17"
   },
   "devDependencies": {
     "@openeth/truffle-typings": "0.0.6",
