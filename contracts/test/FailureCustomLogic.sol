@@ -23,7 +23,7 @@ contract FailureCustomLogic is IWalletCustomLogic {
     }
 
     function execute(
-        bytes32 domainSeparator,
+        // bytes32 domainSeparator,
         bytes32 suffixData,
         IForwarder.ForwardRequest memory req,
         bytes calldata sig
