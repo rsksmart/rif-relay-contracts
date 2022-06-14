@@ -16,8 +16,6 @@ contract SmartWallet is IForwarder {
     bytes32 public constant DATA_VERSION_HASH = keccak256("2");
     bytes32 public domainSeparator;
 
-    event Debbug(string message, bytes32 value);
-
     function buildDomainSeparator() internal {
         domainSeparator = keccak256(
             abi.encode(
