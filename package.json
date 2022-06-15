@@ -36,6 +36,7 @@
     "ethereumjs-tx": "~2.1.2",
     "ethereumjs-util": "~6.2.1",
     "@openzeppelin/contracts": "~3.2.0",
+    "@rsksmart/rif-relay-common": "github:rsksmart/rif-relay-common",
     "@truffle/contract": "4.2.23",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.6.0",
