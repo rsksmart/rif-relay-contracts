@@ -29,12 +29,11 @@ contract CustomSmartWallet is IForwarder {
     }  
 
     function verify(
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest memory req,
         bytes calldata sig
     ) external override view {
-        _verifySig(/*domainSeparator, */suffixData, req, sig);
+        _verifySig(suffixData, req, sig);
     }
 
     function getOwner() private view returns (bytes32 owner){
@@ -113,7 +112,6 @@ contract CustomSmartWallet is IForwarder {
     }
     
     function execute(
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest memory req,
         bytes calldata sig
@@ -130,7 +128,7 @@ contract CustomSmartWallet is IForwarder {
         (sig);
         require(msg.sender == req.relayHub, "Invalid caller");
 
-        _verifySig(/*domainSeparator, */suffixData, req, sig);
+        _verifySig(suffixData, req, sig);
         nonce++;
 
         if(req.tokenAmount > 0){
@@ -191,7 +189,6 @@ contract CustomSmartWallet is IForwarder {
     }
 
     function _verifySig(
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest memory req,
         bytes memory sig
@@ -205,16 +202,6 @@ contract CustomSmartWallet is IForwarder {
 
         //Verify nonce
         require(nonce == req.nonce, "nonce mismatch");
-
-        // require(
-        //     keccak256(abi.encode(
-        //         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-        //         keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME
-        //         DATA_VERSION_HASH,
-        //         getChainID(),
-        //         address(this))) == domainSeparator,
-        //     "Invalid domain separator"
-        // );
         
         require(
             RSKAddrValidator.safeEquals(

@@ -43,7 +43,6 @@ interface IForwarder {
      * revert if either signature or nonce are incorrect.
      */
     function verify(
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest calldata forwardRequest,
         bytes calldata signature
@@ -61,7 +60,6 @@ interface IForwarder {
      * are reported using the returned "success" and ret string
      */
     function execute(
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest calldata forwardRequest,
         bytes calldata signature

@@ -19,7 +19,7 @@ library Eip712Library {
             /* solhint-disable-next-line avoid-low-level-calls */
             (deploySuccess, ret) = relayRequest.relayData.callForwarder.call(
                 abi.encodeWithSelector(IWalletFactory.relayedUserSmartWalletCreation.selector,
-                relayRequest.request, /*relayRequest.relayData.domainSeparator,*/ 
+                relayRequest.request, 
                 hashRelayData(relayRequest.relayData), signature
             ));
  
@@ -32,7 +32,7 @@ library Eip712Library {
     function execute(EnvelopingTypes.RelayRequest calldata relayRequest, bytes calldata signature) internal returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret) {
             /* solhint-disable-next-line avoid-low-level-calls */
             (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
-                abi.encodeWithSelector(IForwarder.execute.selector, /*relayRequest.relayData.domainSeparator,*/
+                abi.encodeWithSelector(IForwarder.execute.selector,
                 hashRelayData(relayRequest.relayData), relayRequest.request, signature
                 ));
             
@@ -47,7 +47,6 @@ library Eip712Library {
         return keccak256(abi.encode(
                 keccak256("RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"), // RELAYDATA_TYPEHASH
                 req.gasPrice,
-                // req.domainSeparator,
                 req.relayWorker,
                 req.callForwarder,
                 req.callVerifier

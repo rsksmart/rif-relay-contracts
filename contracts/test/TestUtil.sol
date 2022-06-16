@@ -21,7 +21,6 @@ contract TestUtil {
            relayRequest.relayData.callForwarder.staticcall(
             abi.encodeWithSelector(
                 IForwarder.verify.selector,
-                // relayRequest.relayData.domainSeparator,
                 Eip712Library.hashRelayData(relayRequest.relayData),
                 relayRequest.request,
                 signature

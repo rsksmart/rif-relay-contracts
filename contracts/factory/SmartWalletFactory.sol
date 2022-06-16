@@ -151,13 +151,12 @@ contract SmartWalletFactory is ISmartWalletFactory {
 
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         bytes calldata sig
     ) external override {
 
         require(msg.sender == req.relayHub, "Invalid caller");
-        _verifySig(req, /*domainSeparator,*/ suffixData, sig);
+        _verifySig(req, suffixData, sig);
         nonces[req.from]++;
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)  
@@ -280,27 +279,12 @@ contract SmartWalletFactory is ISmartWalletFactory {
 
     function _verifySig(
         IForwarder.DeployRequest memory req,
-        // bytes32 domainSeparator,
         bytes32 suffixData,
         bytes memory sig
     ) internal view {
 
         //Verify nonce
         require(nonces[req.from] == req.nonce, "nonce mismatch");
-
-        //Verify Domain separator
-        // require(
-        //     keccak256(
-        //         abi.encode(
-        //             keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),//EIP712DOMAIN_TYPEHASH
-        //             keccak256("RSK Enveloping Transaction"),// DOMAIN_NAME
-        //             DATA_VERSION_HASH,
-        //             getChainID(),
-        //             address(this)
-        //         )
-        //     ) == domainSeparator,
-        //     "Invalid domain separator"
-        // );
 
         require(
             RSKAddrValidator.safeEquals(
@@ -311,5 +295,4 @@ contract SmartWalletFactory is ISmartWalletFactory {
                 ).recover(sig), req.from),"signature mismatch"
         );
     }
-
 }
