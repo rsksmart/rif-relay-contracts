@@ -31,8 +31,13 @@ jobs:
             - name: Check out repository code
               uses: actions/checkout@v3
 
+            - name: Download rif-relay node configuration
+              run: |
+                  wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/node.conf
+                  wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/logback.xml
+
             - name: Run docker image
-              run: docker run -d -p 127.0.0.1:4444:4444 --name enveloping-rskj antonioiovlabs/rskj:latest --regtest
+              run: docker run -d -p 127.0.0.1:4444:4444 --name enveloping-rskj -it -v $PWD/logback.xml:/home/rsk/logback.xml -v $PWD/node.conf:/home/rsk/node.conf --entrypoint "" rsksmart/rskj:latest java -Drsk.conf.file=./node.conf -Dlogback.configurationFile=./logback.xml -cp ./rsk.jar co.rsk.Start
 
             - name: Install dependencies
               run: npm install
