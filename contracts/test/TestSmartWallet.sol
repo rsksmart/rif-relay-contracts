@@ -7,8 +7,8 @@ import "../interfaces/IForwarder.sol";
 // helper class for testing the forwarder.
 contract TestSmartWallet {
     function callExecute(IForwarder sw, IForwarder.ForwardRequest memory req,
-        bytes32 domainSeparator, bytes32 suffixData, bytes memory sig) public payable {
-         (bool relaySuccess, bytes memory ret) = sw.execute{value:msg.value}(domainSeparator, suffixData, req, sig);
+        bytes32 suffixData, bytes memory sig) public payable {
+         (bool relaySuccess, bytes memory ret) = sw.execute{value:msg.value}(suffixData, req, sig);
        
         emit Result(relaySuccess, relaySuccess ? "" : this.decodeErrorMessage(ret));
     }

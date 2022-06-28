@@ -20,7 +20,6 @@ interface IWalletCustomLogic {
      * Lets a relayer execute the custom logic
      */
     function execute(
-        bytes32 domainSeparator,
         bytes32 suffixData,
         IForwarder.ForwardRequest calldata forwardRequest,
         bytes calldata signature
