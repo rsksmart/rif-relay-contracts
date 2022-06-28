@@ -604,10 +604,11 @@ export interface BlackListInstance extends Truffle.ContractInstance {
 export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
+  domainSeparator(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
   nonce(txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
   verify(
-    domainSeparator: string | BN,
     suffixData: string | BN,
     req: {
       relayHub: string | BN;
@@ -697,7 +698,6 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -715,7 +715,6 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -733,7 +732,6 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -751,7 +749,6 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -877,7 +874,6 @@ export interface CustomSmartWalletDeployVerifierInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -903,7 +899,6 @@ export interface CustomSmartWalletDeployVerifierInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -929,7 +924,6 @@ export interface CustomSmartWalletDeployVerifierInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -955,7 +949,6 @@ export interface CustomSmartWalletDeployVerifierInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -995,6 +988,8 @@ export interface CustomSmartWalletDeployVerifierInstance
 export interface CustomSmartWalletFactoryInstance
   extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
+  domainSeparator(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
   masterCopy(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
@@ -1056,7 +1051,6 @@ export interface CustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1075,7 +1069,6 @@ export interface CustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1094,7 +1087,6 @@ export interface CustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1113,7 +1105,6 @@ export interface CustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1210,7 +1201,6 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -1236,7 +1226,6 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -1262,7 +1251,6 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -1288,7 +1276,6 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -1677,7 +1664,6 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -1695,7 +1681,6 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -1713,7 +1698,6 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -1731,7 +1715,6 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -1841,7 +1824,6 @@ export interface ICustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1860,7 +1842,6 @@ export interface ICustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1879,7 +1860,6 @@ export interface ICustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1898,7 +1878,6 @@ export interface ICustomSmartWalletFactoryInstance
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -1977,7 +1956,6 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2003,7 +1981,6 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2029,7 +2006,6 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2055,7 +2031,6 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2159,7 +2134,6 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
   nonce(txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
   verify(
-    domainSeparator: string | BN,
     suffixData: string | BN,
     forwardRequest: {
       relayHub: string | BN;
@@ -2179,7 +2153,6 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -2197,7 +2170,6 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -2215,7 +2187,6 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -2233,7 +2204,6 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -2386,7 +2356,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2411,7 +2380,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2436,7 +2404,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2461,7 +2428,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2490,7 +2456,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2516,7 +2481,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2542,7 +2506,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2568,7 +2531,6 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2731,7 +2693,6 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2756,7 +2717,6 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2781,7 +2741,6 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2806,7 +2765,6 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -2838,7 +2796,6 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -2857,7 +2814,6 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -2876,7 +2832,6 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -2895,7 +2850,6 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -3029,7 +2983,6 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -3047,7 +3000,6 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -3065,7 +3017,6 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -3083,7 +3034,6 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       forwardRequest: {
         relayHub: string | BN;
@@ -3146,7 +3096,6 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -3165,7 +3114,6 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -3184,7 +3132,6 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -3203,7 +3150,6 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -3971,7 +3917,6 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -3989,7 +3934,6 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4007,7 +3951,6 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4025,7 +3968,6 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4172,7 +4114,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4198,7 +4139,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4224,7 +4164,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4250,7 +4189,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4278,7 +4216,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4303,7 +4240,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4328,7 +4264,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4353,7 +4288,6 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4533,7 +4467,6 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4558,7 +4491,6 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4583,7 +4515,6 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4608,7 +4539,6 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -4648,10 +4578,11 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
 export interface SmartWalletInstance extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
+  domainSeparator(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
   nonce(txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
   verify(
-    domainSeparator: string | BN,
     suffixData: string | BN,
     req: {
       relayHub: string | BN;
@@ -4733,7 +4664,6 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4751,7 +4681,6 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4769,7 +4698,6 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4787,7 +4715,6 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -4847,6 +4774,8 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
 export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
+  domainSeparator(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
   masterCopy(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
   runtimeCodeHash(txDetails?: Truffle.TransactionDetails): Promise<string>;
@@ -4899,7 +4828,6 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -4918,7 +4846,6 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -4937,7 +4864,6 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -4956,7 +4882,6 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         index: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -5176,7 +5101,6 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
 
   execute: {
     (
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -5194,7 +5118,6 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -5212,7 +5135,6 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     sendTransaction(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -5230,7 +5152,6 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      domainSeparator: string | BN,
       suffixData: string | BN,
       req: {
         relayHub: string | BN;
@@ -5294,7 +5215,6 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5320,7 +5240,6 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5346,7 +5265,6 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5372,7 +5290,6 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5588,7 +5505,6 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5614,7 +5530,6 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5640,7 +5555,6 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5666,7 +5580,6 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5710,7 +5623,6 @@ export interface TestDeployVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5736,7 +5648,6 @@ export interface TestDeployVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5762,7 +5673,6 @@ export interface TestDeployVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -5788,7 +5698,6 @@ export interface TestDeployVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6049,7 +5958,6 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6074,7 +5982,6 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6099,7 +6006,6 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6124,7 +6030,6 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6174,7 +6079,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6200,7 +6104,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6226,7 +6129,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6252,7 +6154,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6282,7 +6183,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6309,7 +6209,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6336,7 +6235,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6363,7 +6261,6 @@ export interface TestRelayWorkerContractInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6413,7 +6310,6 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -6432,7 +6328,6 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -6451,7 +6346,6 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -6470,7 +6364,6 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
-      domainSeparator: string | BN,
       suffixData: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
@@ -6669,7 +6562,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
       };
       relayData: {
         gasPrice: number | BN | string;
-        domainSeparator: string | BN;
         relayWorker: string | BN;
         callForwarder: string | BN;
         callVerifier: string | BN;
@@ -6696,7 +6588,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6721,7 +6612,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6746,7 +6636,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6771,7 +6660,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -6798,7 +6686,6 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
       };
       relayData: {
         gasPrice: number | BN | string;
-        domainSeparator: string | BN;
         relayWorker: string | BN;
         callForwarder: string | BN;
         callVerifier: string | BN;
@@ -7031,7 +6918,6 @@ export interface TestVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7056,7 +6942,6 @@ export interface TestVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7081,7 +6966,6 @@ export interface TestVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7106,7 +6990,6 @@ export interface TestVerifierConfigurableMisbehaviorInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7149,7 +7032,6 @@ export interface TestVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7174,7 +7056,6 @@ export interface TestVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7199,7 +7080,6 @@ export interface TestVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7224,7 +7104,6 @@ export interface TestVerifierEverythingAcceptedInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7317,7 +7196,6 @@ export interface TestVerifierVariableGasLimitsInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7342,7 +7220,6 @@ export interface TestVerifierVariableGasLimitsInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7367,7 +7244,6 @@ export interface TestVerifierVariableGasLimitsInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
@@ -7392,7 +7268,6 @@ export interface TestVerifierVariableGasLimitsInstance
         };
         relayData: {
           gasPrice: number | BN | string;
-          domainSeparator: string | BN;
           relayWorker: string | BN;
           callForwarder: string | BN;
           callVerifier: string | BN;
