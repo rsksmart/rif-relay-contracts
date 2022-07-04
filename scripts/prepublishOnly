@@ -1,4 +1,3 @@
 #!/bin/bash
 
-pinst --disable
 npm run dist
