@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rif-relay-contracts",
-  "version": "0.0.2-alpha.2",
+  "version": "0.0.2-alpha.4",
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
   "private": false,
@@ -8,6 +8,7 @@
     "dist": "scripts/dist",
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
+    "prepack": "npmignore --auto",
     "prepare": "scripts/prepare",
     "prepublishOnly": "scripts/prepublishOnly",
     "lint:ts": "eslint . --ext .ts",
@@ -21,12 +22,22 @@
   },
   "author": "Relaying Services Team",
   "license": "MIT",
+  "publishConfig": {
+    "ignore": [
+      "!dist",
+      "!build",
+      "src",
+      "test",
+      ".github"
+    ]
+  },
   "dependencies": {
     "@openeth/truffle-typings": "0.0.6",
     "@openzeppelin/contracts": "~3.2.0",
     "@truffle/contract": "4.2.23",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.6.0",
+    "npmignore": "^0.3.0",
     "@types/node": "~13.13.4",
     "patch-package": "~6.4.6",
     "truffle-hdwallet-provider": "~1.0.17"
