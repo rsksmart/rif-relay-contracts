@@ -7,18 +7,17 @@ export function bytes32(n: number): string {
 export type IntString = string;
 
 export interface Environment {
-    readonly chainId: number
-    readonly mintxgascost: number
-    readonly relayHubConfiguration: RelayHubConfiguration
+    readonly chainId: number;
+    readonly mintxgascost: number;
+    readonly relayHubConfiguration: RelayHubConfiguration;
 }
 
 const defaultRelayHubConfiguration: RelayHubConfiguration = {
     maxWorkerCount: 10,
-    minimumStake: 1e18.toString(),
+    minimumStake: (1e18).toString(),
     minimumUnstakeDelay: 1000,
-    minimumEntryDepositValue: 1e18.toString()
+    minimumEntryDepositValue: (1e18).toString()
 };
-
 
 export const environments: { [key: string]: Environment } = {
     istanbul: {
@@ -46,26 +45,32 @@ export async function getTestingEnvironment(): Promise<Environment> {
 }
 
 /**
-* Get a Map from topics to their corresponding event's ABI
-*/
+ * Get a Map from topics to their corresponding event's ABI
+ */
 function getEventsAbiByTopic(abi: any): Map<string, any> {
     const eventsAbiByTopic = new Map<string, any>();
     // @ts-ignore
-    const logicEvents = abi.filter(elem => elem.type === 'event');
+    const logicEvents = abi.filter((elem) => elem.type === 'event');
     // @ts-ignore
-    logicEvents.forEach(abi => {
+    logicEvents.forEach((abi) => {
         eventsAbiByTopic.set(abi.signature, abi);
     });
     return eventsAbiByTopic;
 }
 
 /**
-* Decodes events which satisfies an ABI specification
-*/
-export function containsEvent(abi: any, rawLogs: any, eventName: string): boolean {
+ * Decodes events which satisfies an ABI specification
+ */
+export function containsEvent(
+    abi: any,
+    rawLogs: any,
+    eventName: string
+): boolean {
     const eventsAbiByTopic = getEventsAbiByTopic(abi);
     // @ts-ignore
-    return rawLogs.some(log => eventsAbiByTopic.has(log.topics[0]) &&
-        eventsAbiByTopic.get(log.topics[0]).name === eventName
+    return rawLogs.some(
+        (log) =>
+            eventsAbiByTopic.has(log.topics[0]) &&
+            eventsAbiByTopic.get(log.topics[0]).name === eventName
     );
 }

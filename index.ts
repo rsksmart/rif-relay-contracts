@@ -34,7 +34,6 @@ const VersionRegistry = require('./build/contracts/VersionRegistry.json');
 // deployed addresses
 const ContractAddresses = require('./contract-addresses.json');
 
-
 export * from './types/EIP712/RelayRequest';
 export * from './types/EIP712/TypedRequestData';
 export * from './types/Constants';
