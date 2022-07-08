@@ -1,9 +1,8 @@
-import { CustomSmartWalletDeployVerifierInstance, TestTokenInstance, CustomSmartWalletFactoryInstance, CustomSmartWalletInstance } from '../../types/truffle-contracts';
+import { DeployVerifierInstance, TestTokenInstance, SmartWalletFactoryInstance, SmartWalletInstance } from '../../types/truffle-contracts';
 import { constants, DeployRequest, getDomainSeparatorHash } from '@rsksmart/rif-relay-common';
 import { Address } from '@rsksmart/rif-relay-client';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { bytes32, createCustomSmartWalletFactory, getTestingEnvironment} from '../utils/TestUtils';
-import { soliditySha3Raw } from 'web3-utils';
+import { bytes32, createSmartWalletFactory, getTestingEnvironment} from '../utils/TestUtils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -12,25 +11,25 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 //Constants and general values
-const CustomSmartWalletDeployVerifier = artifacts.require('CustomSmartWalletDeployVerifier');
 const TestToken = artifacts.require('TestToken');
-const CustomSmartWallet = artifacts.require('CustomSmartWallet');
+const SmartWallet = artifacts.require('SmartWallet');
+const DeployVerifier = artifacts.require('DeployVerifier');
 
 const gasPrice = '10';
 const senderNonce = '0';
 const tokensPaid = 1;
 
-contract('Testing Tokens - CustomSmartWalletDeployVerifier contract', ()=>{
+contract('Testing Tokens - DeployVerifier contract', ()=>{
         let token: TestTokenInstance;
-        let smarWallet: CustomSmartWalletInstance;
-        let factory: CustomSmartWalletFactoryInstance;
-        let contractVerifier: CustomSmartWalletDeployVerifierInstance;
+        let smarWallet: SmartWalletInstance;
+        let factory: SmartWalletFactoryInstance;
+        let contractVerifier: DeployVerifierInstance;
     describe('Testing tokens acceptance', () =>{
         beforeEach('', async ()=>{
             token = await TestToken.new();
-            smarWallet = await CustomSmartWallet.new();
-            factory = await createCustomSmartWalletFactory(smarWallet);
-            contractVerifier = await CustomSmartWalletDeployVerifier.new(factory.address);
+            smarWallet = await SmartWallet.new();
+            factory = await createSmartWalletFactory(smarWallet);
+            contractVerifier = await DeployVerifier.new(factory.address);
             
         });
             it('Should verify the contract accepts test tokens', async ()=>{
@@ -80,12 +79,12 @@ contract('Testing Tokens - CustomSmartWalletDeployVerifier contract', ()=>{
     });
 });
 
-contract('Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract', ([relayHub, relayWorker])=>{
+contract('Testing verifyRelayedCall - DeployVerifier contract', ([relayHub, relayWorker, verifierOwner])=>{
         let deployRequestData: DeployRequest;
         let token: TestTokenInstance;
-        let smarWallet: CustomSmartWalletInstance;
-        let factory: CustomSmartWalletFactoryInstance;
-        let contractVerifier: CustomSmartWalletDeployVerifierInstance;
+        let smarWallet:SmartWalletInstance;
+        let factory: SmartWalletFactoryInstance;
+        let contractVerifier: DeployVerifierInstance;
     
         let expectedAddress: Address;    
     describe('Testing call to verifyRelayedCall method', ()=>{
@@ -100,10 +99,10 @@ contract('Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract',
             ownerAddress = bufferToHex(privateToAddress(ownerPrivateKey)).toLowerCase();
             
             token = await TestToken.new();
-            smarWallet = await CustomSmartWallet.new();
-            factory = await createCustomSmartWalletFactory(smarWallet);
+            smarWallet = await SmartWallet.new();
+            factory = await createSmartWalletFactory(smarWallet);
 
-            contractVerifier = await CustomSmartWalletDeployVerifier.new(factory.address);
+            contractVerifier = await DeployVerifier.new(factory.address, { from: verifierOwner });
             
             const env = await getTestingEnvironment();
             const chainId = env.chainId;
@@ -133,7 +132,7 @@ contract('Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract',
         };
         
             // Minting tokens to the smartwallet
-            expectedAddress = await factory.getSmartWalletAddress(ownerAddress, recoverer, constants.ZERO_ADDRESS, soliditySha3Raw({ t: 'bytes', v: '0x' }), index);
+            expectedAddress = await factory.getSmartWalletAddress(ownerAddress, recoverer, index);
             await token.mint(tokensPaid + 5, expectedAddress);
         });
 
@@ -146,13 +145,13 @@ contract('Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract',
             deployRequestData.request.data = '0x01';
             deployRequestData.request.tokenAmount = (tokensPaid + 100).toString();
             
-            await contractVerifier.acceptToken(token.address);
+            await contractVerifier.acceptToken(token.address, { from: verifierOwner });
             
         await assert.isRejected(contractVerifier.verifyRelayedCall(deployRequestData, '0x00', { from: relayHub }), 'balance too low', 'Failed assert');
         });
 
         it('Should not fail on checks of preRelayCall', async () => {
-            await contractVerifier.acceptToken(token.address);
+            await contractVerifier.acceptToken(token.address, { from: verifierOwner });
             
             const rspSuccess = await contractVerifier.verifyRelayedCall(deployRequestData, '0x', { from: relayHub });
             assert.isEmpty(rspSuccess.logs, 'Call was NOT successfull');
