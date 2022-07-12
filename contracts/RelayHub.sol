@@ -195,7 +195,8 @@ contract RelayHub is IRelayHub {
 
     function relayCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
-        bytes calldata signature
+        bytes calldata signature,
+        address collectorContract
     ) external override returns (bool destinationCallSuccess){
         (signature);
 
@@ -224,9 +225,16 @@ contract RelayHub is IRelayHub {
 
         bool forwarderSuccess;
         bytes memory relayedCallReturnValue;
-        //use succ as relay call success variable
-        (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
-            .execute(relayRequest, signature);
+        if(collectorContract == address(0)) {
+            //use succ as relay call success variable
+            (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
+                .execute(relayRequest, signature);
+        } else {
+            //use succ as relay call success variable
+            (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
+                .execute(relayRequest, signature, collectorContract);
+        }
+        
 
         if (!forwarderSuccess) {
             assembly {
@@ -252,6 +260,13 @@ contract RelayHub is IRelayHub {
                 relayedCallReturnValue
             );
         }
+    }
+
+    function relayCall(
+        EnvelopingTypes.RelayRequest calldata relayRequest,
+        bytes calldata signature
+    ) external override returns (bool destinationCallSuccess){
+        relayCall(relayRequest, signature, address(0));
     }
 
     modifier penalizerOnly() {

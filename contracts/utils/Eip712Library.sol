@@ -30,11 +30,23 @@ library Eip712Library {
     //ret = if !forwarderSuccess it is the revert reason of IForwarder, otherwise it is the destination-contract return data, wich might be
     // a revert reason if !relaySuccess
     function execute(EnvelopingTypes.RelayRequest calldata relayRequest, bytes calldata signature) internal returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret) {
+            execute(relayRequest, signature, address(0));
+    }
+    
+    function execute(EnvelopingTypes.RelayRequest calldata relayRequest, bytes calldata signature, address collectorContract) internal returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret) {
+            if(collectorContract == address(0)){
             /* solhint-disable-next-line avoid-low-level-calls */
-            (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
-                abi.encodeWithSelector(IForwarder.execute.selector, relayRequest.relayData.domainSeparator,
-                hashRelayData(relayRequest.relayData), relayRequest.request, signature
-                ));
+                (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
+                    abi.encodeWithSelector(IForwarder.execute.selector, relayRequest.relayData.domainSeparator,
+                    hashRelayData(relayRequest.relayData), relayRequest.request, signature
+                    ));
+            } else {
+                /* solhint-disable-next-line avoid-low-level-calls */
+                (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
+                    abi.encodeWithSelector(IForwarder.execute.selector, relayRequest.relayData.domainSeparator,
+                    hashRelayData(relayRequest.relayData), relayRequest.request, signature, collectorContract
+                    ));
+            }
             
             if ( forwarderSuccess ) {
                 (relaySuccess, ret) = abi.decode(ret, (bool, bytes)); // decode return value of execute:
