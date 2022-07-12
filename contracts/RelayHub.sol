@@ -226,11 +226,9 @@ contract RelayHub is IRelayHub {
         bool forwarderSuccess;
         bytes memory relayedCallReturnValue;
         if(collectorContract == address(0)) {
-            //use succ as relay call success variable
             (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
                 .execute(relayRequest, signature);
         } else {
-            //use succ as relay call success variable
             (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
                 .execute(relayRequest, signature, collectorContract);
         }
