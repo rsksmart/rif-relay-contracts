@@ -88,23 +88,6 @@ contract SmartWallet is IForwarder {
         }
    
     }
-
-    function execute(
-        bytes32 domainSeparator,
-        bytes32 suffixData,
-        ForwardRequest memory req,
-        bytes calldata sig
-    )
-        external
-        override
-        payable
-        returns (
-            bool success,
-            bytes memory ret  
-        )
-    {
-        execute(domainSeparator, suffixData, req, sig, address(0));
-    }
     
     function execute(
         bytes32 domainSeparator,
@@ -172,7 +155,22 @@ contract SmartWallet is IForwarder {
   
     }
 
-   
+   function execute(
+        bytes32 domainSeparator,
+        bytes32 suffixData,
+        ForwardRequest memory req,
+        bytes calldata sig
+    )
+        external
+        override
+        payable
+        returns (
+            bool success,
+            bytes memory ret  
+        )
+    {
+        execute(domainSeparator, suffixData, req, sig, address(0));
+    }
 
     function getChainID() private pure returns (uint256 id) {
         assembly {
