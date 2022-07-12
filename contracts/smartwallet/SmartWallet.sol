@@ -93,7 +93,8 @@ contract SmartWallet is IForwarder {
         bytes32 domainSeparator,
         bytes32 suffixData,
         ForwardRequest memory req,
-        bytes calldata sig
+        bytes calldata sig,
+        address collectorContract
     )
         external
         override
@@ -111,7 +112,7 @@ contract SmartWallet is IForwarder {
         nonce++;
 
         if(req.tokenAmount > 0){
-            address feesReceiver = req.collectorContract;
+            address feesReceiver = collectorContract;
             if(feesReceiver == address(0)){
                 // pay worker if no collector contract is specified
                 /* solhint-disable avoid-tx-origin */
@@ -154,7 +155,22 @@ contract SmartWallet is IForwarder {
   
     }
 
-   
+   function execute(
+        bytes32 domainSeparator,
+        bytes32 suffixData,
+        ForwardRequest memory req,
+        bytes calldata sig
+    )
+        external
+        override
+        payable
+        returns (
+            bool success,
+            bytes memory ret  
+        )
+    {
+        execute(domainSeparator, suffixData, req, sig, address(0));
+    }
 
     function getChainID() private pure returns (uint256 id) {
         assembly {
