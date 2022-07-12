@@ -26,6 +26,7 @@
     "ignore": [
       "!dist",
       "!build",
+      "!test",
       "src",
       ".github"
     ]
