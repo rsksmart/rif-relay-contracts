@@ -17,7 +17,7 @@ import TypedRequestData, {
 } from '../../types/EIP712/TypedRequestData';
 import { RelayRequest } from '../../types/EIP712/RelayRequest';
 import RelayData from '../../types/EIP712/RelayData';
-import { constants } from '../../types/Constants';
+import { constants } from '../Constants';
 import { ForwardRequest } from '../../types/EIP712/ForwardRequest';
 import { bytes32, getTestingEnvironment, containsEvent } from '../Utils';
 

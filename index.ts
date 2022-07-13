@@ -36,7 +36,6 @@ const ContractAddresses = require('./contract-addresses.json');
 
 export * from './types/EIP712/RelayRequest';
 export * from './types/EIP712/TypedRequestData';
-export * from './types/Constants';
 export * from './types/EIP712/ForwardRequest';
 
 export {
