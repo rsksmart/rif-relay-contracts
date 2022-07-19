@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rif-relay-contracts",
-  "version": "0.0.2-alpha.6",
+  "version": "0.0.2-alpha.7",
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
   "private": false,
