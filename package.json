@@ -32,7 +32,6 @@
     ]
   },
   "dependencies": {
-    "@openeth/truffle-typings": "0.0.6",
     "ethereumjs-tx": "~2.1.2",
     "ethereumjs-util": "~6.2.1",
     "@openzeppelin/contracts": "~3.2.0",
@@ -45,6 +44,7 @@
     "truffle-hdwallet-provider": "~1.0.17"
   },
   "devDependencies": {
+    "@openeth/truffle-typings": "0.0.6",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.2.4",
     "@trufflesuite/web3-provider-engine": "^15.0.13-1",
