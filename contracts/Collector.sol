@@ -3,17 +3,17 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ICollector.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector{
-    IERC20 public token;
+    ERC20Burnable public token;
     address public owner;
     RevenuePartner[] private partners;
 
     constructor(
         address _owner,
-        IERC20 _token,
+        ERC20Burnable _token,
         RevenuePartner[] memory _partners
     )
     public
@@ -56,6 +56,11 @@ contract Collector is ICollector{
 
         for(uint i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
+        
+        balance = token.balanceOf(address(this));
+        if(balance > 0) {
+            token.burn(balance);
+        }
     }
 
     function transferOwnership(address _owner)
