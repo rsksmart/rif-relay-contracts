@@ -45,23 +45,20 @@ describe('Collector', function () {
 
     describe('Deployment', function () {
         it('Should deploy with owner, token and revenue partners', async function () {
-            const { collector, owner } = await deployCollector();
-            const collectorBalance = await collector.getBalance().v;
-            console.log(collectorBalance);
-            expect(collectorBalance).to.equal(0);
-            expect(await collector.owner()).to.equal(await owner.getAddress());
+            const { collector } = await deployCollector();
+            expect(collector.address).to.be.properAddress;
         });
 
         it('Should not let deploy with invalid shares', async function () {
-            await expect(deployCollector(1, 2, 3, 4)).to.be.revertedWith(
+            await expect(deployCollector(25, 25, 25, 26)).to.be.revertedWith(
                 'total shares must add up to 100%'
             );
         });
     });
 
-    describe.skip('Withdraw', function () {
-        it.skip('Should Withdraw', async function () {
-            const { collector, owner, testToken, partners } =
+    describe('Withdraw', function () {
+        it('Should Withdraw', async function () {
+            const { collector, testToken, partners } =
                 await deployCollector();
             await testToken.mint(100, collector.address);
 
@@ -71,29 +68,25 @@ describe('Collector', function () {
             );
         });
 
-        it.skip('Should fail when no revenue to share', async function () {
-            const { collector, owner, testToken, partners } =
-                await deployCollector();
+        it('Should fail when no revenue to share', async function () {
+            const { collector } = await deployCollector();
             await expect(collector.withdraw()).to.be.revertedWith(
                 'no revenue to share'
             );
         });
     });
 
-    describe.skip('updateShares', function () {
-        it.skip('Should update shares and partners when token balance is zero', async function () {
-            const { collector, owner, testToken, partners } =
-                await deployCollector();
+    describe('updateShares', function () {
+        it('Should update shares and partners when token balance is zero', async function () {
+            const { collector, partners } = await deployCollector();
             await collector.updateShares(partners);
-            expect(partners[0].share).to.equal(
-                await testToken.balanceOf(partners[0].beneficiary)
-            );
+            expect('updateShares').to.be.calledOnContract(collector);
         });
 
-        it.skip('Should update shares and partners after withdraw', async function () {
-            const { collector, owner, testToken, partners } =
-                await deployCollector();
-            await testToken.mint(100, collector.address);
+        it('Should update shares and partners after withdrawing irregular amount', async function () {
+            //this is the important test. After modifying the contract, this should pass
+            const { collector, testToken, partners } = await deployCollector();
+            await testToken.mint(999, collector.address);
             await collector.withdraw();
             await collector.updateShares(partners);
             expect(partners[0].share).to.equal(
@@ -101,8 +94,8 @@ describe('Collector', function () {
             );
         });
 
-        it.skip('Should fail when token balance is higher than zero', async function () {
-            const { collector, owner, testToken, partners } =
+        it('Should fail when token balance is higher than zero', async function () {
+            const { collector, testToken, partners } =
                 await deployCollector();
             await testToken.mint(100, collector.address);
             await expect(collector.updateShares(partners)).to.be.revertedWith(
