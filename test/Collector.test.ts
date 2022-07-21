@@ -46,7 +46,7 @@ describe('Collector', function () {
     describe('Deployment', function () {
         it('Should deploy with owner, token and revenue partners', async function () {
             const { collector, owner } = await deployCollector();
-            const collectorBalance = await collector.getBalance();
+            const collectorBalance = await collector.getBalance().v;
             console.log(collectorBalance);
             expect(collectorBalance).to.equal(0);
             expect(await collector.owner()).to.equal(await owner.getAddress());
