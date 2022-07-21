@@ -19,8 +19,8 @@
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
     "prettier": "npx prettier --check .",
-    "_test": "truffle test --network regtest",
-    "test": "NODE_ENV=test mocha"
+    "test": "truffle test --network regtest",
+    "test-waffle": "NODE_ENV=test mocha"
   },
   "author": "Relaying Services Team",
   "license": "MIT",
