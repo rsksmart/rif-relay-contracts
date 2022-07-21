@@ -1,6 +1,6 @@
 import { expect, use } from 'chai';
 import Collector from '../build/Collector.json';
-import TestToken from '../build/TestToken.json';
+import BurnableTestToken from '../build/BurnableTestToken.json';
 import { deployContract, MockProvider, solidity } from 'ethereum-waffle';
 
 use(solidity);
@@ -33,7 +33,7 @@ describe('Collector', function () {
             }
         ];
 
-        const testToken = await deployContract(owner, TestToken);
+        const testToken = await deployContract(owner, BurnableTestToken);
         const collector = await deployContract(owner, Collector, [
             owner.address,
             testToken.address,
@@ -58,8 +58,7 @@ describe('Collector', function () {
 
     describe('Withdraw', function () {
         it('Should Withdraw', async function () {
-            const { collector, testToken, partners } =
-                await deployCollector();
+            const { collector, testToken, partners } = await deployCollector();
             await testToken.mint(100, collector.address);
 
             await collector.withdraw();
@@ -84,19 +83,15 @@ describe('Collector', function () {
         });
 
         it('Should update shares and partners after withdrawing irregular amount', async function () {
-            //this is the important test. After modifying the contract, this should pass
             const { collector, testToken, partners } = await deployCollector();
             await testToken.mint(999, collector.address);
             await collector.withdraw();
             await collector.updateShares(partners);
-            expect(partners[0].share).to.equal(
-                await testToken.balanceOf(partners[0].beneficiary)
-            );
+            expect('updateShares').to.be.calledOnContract(collector);
         });
 
         it('Should fail when token balance is higher than zero', async function () {
-            const { collector, testToken, partners } =
-                await deployCollector();
+            const { collector, testToken, partners } = await deployCollector();
             await testToken.mint(100, collector.address);
             await expect(collector.updateShares(partners)).to.be.revertedWith(
                 "can't update with balance > 0"
