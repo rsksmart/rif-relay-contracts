@@ -23,7 +23,7 @@ module.exports = {
         },
         regtest: {
             verbose: process.env.VERBOSE,
-            host: 'enveloping-rskj',
+            host: '127.0.0.1',
             port: 4444,
             network_id: 33,
             gas: 6300000,
