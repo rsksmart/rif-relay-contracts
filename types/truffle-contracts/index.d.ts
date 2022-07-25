@@ -13,6 +13,15 @@ export interface BlackListContract extends Truffle.Contract<BlackListInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<BlackListInstance>;
 }
 
+export interface CollectorContract extends Truffle.Contract<CollectorInstance> {
+  "new"(
+    _owner: string | BN,
+    _token: string | BN,
+    _partners: { beneficiary: string | BN; share: number | BN | string }[],
+    meta?: Truffle.TransactionDetails
+  ): Promise<CollectorInstance>;
+}
+
 export interface CustomSmartWalletContract
   extends Truffle.Contract<CustomSmartWalletInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<CustomSmartWalletInstance>;
@@ -70,6 +79,11 @@ export interface FailureCustomLogicContract
 
 export interface HeavyTaskContract extends Truffle.Contract<HeavyTaskInstance> {
   "new"(meta?: Truffle.TransactionDetails): Promise<HeavyTaskInstance>;
+}
+
+export interface ICollectorContract
+  extends Truffle.Contract<ICollectorInstance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<ICollectorInstance>;
 }
 
 export interface ICustomSmartWalletFactoryContract
@@ -601,6 +615,67 @@ export interface BlackListInstance extends Truffle.ContractInstance {
   };
 }
 
+export interface CollectorInstance extends Truffle.ContractInstance {
+  owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
+  token(txDetails?: Truffle.TransactionDetails): Promise<string>;
+
+  updateShares: {
+    (
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _partners: { beneficiary: string | BN; share: number | BN | string }[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  getBalance: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<BN>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
+
+  withdraw: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
+
+  transferOwnership: {
+    (_owner: string | BN, txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(
+      _owner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _owner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _owner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+}
+
 export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
@@ -615,6 +690,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
       from: string | BN;
       to: string | BN;
       tokenContract: string | BN;
+      collectorContract: string | BN;
       value: number | BN | string;
       gas: number | BN | string;
       nonce: number | BN | string;
@@ -704,6 +780,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -721,6 +798,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -738,6 +816,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -755,6 +834,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -1670,6 +1750,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -1687,6 +1768,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -1704,6 +1786,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -1721,6 +1804,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -1798,6 +1882,35 @@ export interface HeavyTaskInstance extends Truffle.ContractInstance {
       infoA: string | BN,
       infoB: number | BN | string,
       infoC: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+}
+
+export interface ICollectorInstance extends Truffle.ContractInstance {
+  withdraw: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
+
+  transferOwnership: {
+    (_owner: string | BN, txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(
+      _owner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _owner: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _owner: string | BN,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -2140,6 +2253,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
       from: string | BN;
       to: string | BN;
       tokenContract: string | BN;
+      collectorContract: string | BN;
       value: number | BN | string;
       gas: number | BN | string;
       nonce: number | BN | string;
@@ -2159,6 +2273,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -2176,6 +2291,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -2193,6 +2309,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -2210,6 +2327,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -2347,6 +2465,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2371,6 +2490,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2395,6 +2515,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2419,6 +2540,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2684,6 +2806,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2708,6 +2831,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2732,6 +2856,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2756,6 +2881,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -2989,6 +3115,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3006,6 +3133,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3023,6 +3151,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3040,6 +3169,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3923,6 +4053,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3940,6 +4071,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3957,6 +4089,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -3974,6 +4107,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -4207,6 +4341,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4231,6 +4366,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4255,6 +4391,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4279,6 +4416,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4458,6 +4596,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4482,6 +4621,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4506,6 +4646,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4530,6 +4671,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -4589,6 +4731,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
       from: string | BN;
       to: string | BN;
       tokenContract: string | BN;
+      collectorContract: string | BN;
       value: number | BN | string;
       gas: number | BN | string;
       nonce: number | BN | string;
@@ -4670,6 +4813,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -4687,6 +4831,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -4704,6 +4849,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -4721,6 +4867,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -5107,6 +5254,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -5124,6 +5272,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -5141,6 +5290,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -5158,6 +5308,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -5949,6 +6100,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -5973,6 +6125,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -5997,6 +6150,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6021,6 +6175,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6070,6 +6225,7 @@ export interface TestRelayWorkerContractInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6095,6 +6251,7 @@ export interface TestRelayWorkerContractInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6120,6 +6277,7 @@ export interface TestRelayWorkerContractInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6145,6 +6303,7 @@ export interface TestRelayWorkerContractInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6303,6 +6462,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6321,6 +6481,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6339,6 +6500,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6357,6 +6519,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6553,6 +6716,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6579,6 +6743,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6603,6 +6768,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6627,6 +6793,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6651,6 +6818,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6677,6 +6845,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         from: string | BN;
         to: string | BN;
         tokenContract: string | BN;
+        collectorContract: string | BN;
         value: number | BN | string;
         gas: number | BN | string;
         nonce: number | BN | string;
@@ -6699,6 +6868,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         from: string;
         to: string;
         tokenContract: string;
+        collectorContract: string;
         value: string;
         gas: string;
         nonce: string;
@@ -6909,6 +7079,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6933,6 +7104,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6957,6 +7129,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -6981,6 +7154,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7023,6 +7197,7 @@ export interface TestVerifierEverythingAcceptedInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7047,6 +7222,7 @@ export interface TestVerifierEverythingAcceptedInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7071,6 +7247,7 @@ export interface TestVerifierEverythingAcceptedInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7095,6 +7272,7 @@ export interface TestVerifierEverythingAcceptedInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7187,6 +7365,7 @@ export interface TestVerifierVariableGasLimitsInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7211,6 +7390,7 @@ export interface TestVerifierVariableGasLimitsInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7235,6 +7415,7 @@ export interface TestVerifierVariableGasLimitsInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;
@@ -7259,6 +7440,7 @@ export interface TestVerifierVariableGasLimitsInstance
           from: string | BN;
           to: string | BN;
           tokenContract: string | BN;
+          collectorContract: string | BN;
           value: number | BN | string;
           gas: number | BN | string;
           nonce: number | BN | string;

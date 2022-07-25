@@ -9,6 +9,7 @@ interface IForwarder {
         address from;
         address to;
         address tokenContract;
+        address collectorContract;
         uint256 value;
         uint256 gas;
         uint256 nonce;

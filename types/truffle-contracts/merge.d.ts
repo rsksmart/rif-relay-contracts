@@ -10,6 +10,7 @@ declare global {
     interface Artifacts {
       require(name: "BasicToken"): TruffleContracts.BasicTokenContract;
       require(name: "BlackList"): TruffleContracts.BlackListContract;
+      require(name: "Collector"): TruffleContracts.CollectorContract;
       require(
         name: "CustomSmartWallet"
       ): TruffleContracts.CustomSmartWalletContract;
@@ -27,6 +28,7 @@ declare global {
         name: "FailureCustomLogic"
       ): TruffleContracts.FailureCustomLogicContract;
       require(name: "HeavyTask"): TruffleContracts.HeavyTaskContract;
+      require(name: "ICollector"): TruffleContracts.ICollectorContract;
       require(
         name: "ICustomSmartWalletFactory"
       ): TruffleContracts.ICustomSmartWalletFactoryContract;

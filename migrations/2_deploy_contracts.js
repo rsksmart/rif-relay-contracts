@@ -127,5 +127,5 @@ module.exports = async function (deployer, network) {
         testToken: TestToken.address
     };
 
-    fs.writeFileSync('contract-addresses.json', JSON.stringify(jsonConfig));
+    fs.writeFileSync(configFileName, JSON.stringify(jsonConfig));
 };
