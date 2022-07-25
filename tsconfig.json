@@ -23,11 +23,12 @@
     ],
     "types": [
       "node",
-      "truffle-contracts"
+      "truffle-contracts",
+      "mocha",
+      "chai"
     ],
     "lib": [
       "es2018",
-      "dom",
       "esnext"
     ],
     "sourceMap": true
