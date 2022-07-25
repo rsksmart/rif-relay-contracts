@@ -40,7 +40,7 @@ contract Collector is ICollector{
     }
 
     function getBalance()
-    external
+    external view
     returns (uint)
     {
         return token.balanceOf(address(this));

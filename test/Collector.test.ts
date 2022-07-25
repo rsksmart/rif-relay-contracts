@@ -43,11 +43,11 @@ describe('Collector', function () {
         return { collector, testToken, partners, owner };
     }
 
-    describe('Deployment', function () {
-        it('Should deploy with owner, token and revenue partners', async function () {
+    describe('Deployment', () => {
+        it('Should deploy with owner, token and revenue partners', async ()=> {
             const { collector } = await deployCollector();
             expect(collector.address).to.be.properAddress;
-        });
+        }).timeout(4000);
 
         it('Should not let deploy with invalid shares', async function () {
             await expect(deployCollector(25, 25, 25, 26)).to.be.revertedWith(
@@ -57,7 +57,7 @@ describe('Collector', function () {
     });
 
     describe('Withdraw', function () {
-        it('Should Withdraw', async function () {
+        it('Should Withdraw', async() => {
             const { collector, testToken, partners } = await deployCollector();
             await testToken.mint(100, collector.address);
 
@@ -67,7 +67,7 @@ describe('Collector', function () {
             );
         });
 
-        it('Should fail when no revenue to share', async function () {
+        it('Should fail when no revenue to share', async() => {
             const { collector } = await deployCollector();
             await expect(collector.withdraw()).to.be.revertedWith(
                 'no revenue to share'
@@ -98,4 +98,26 @@ describe('Collector', function () {
             );
         });
     });
+
+    describe('getBalance', function () {
+        this.timeout(10000);   
+
+        it.only('Should return 0 if the contract has been just deployed', async ()=> {
+            const { collector } = await deployCollector();
+            const balance = await collector.getBalance();
+            await expect(balance.value.toString()).to.be.equal('0');
+        });
+
+        it.only('Should return 100 after that value has been minted', async ()=> {
+            const { collector, testToken } = await deployCollector();
+            await testToken.mint(100, collector.address);
+            const balance = await collector.getBalance();
+
+            await expect(balance.toString()).to.be.equal('100');
+        });
+    });
+
+    // describe('transferOwnership', function () {
+    //     it('Should transfer ownership' );
+    // });
 });
