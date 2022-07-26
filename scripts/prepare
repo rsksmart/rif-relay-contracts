@@ -3,5 +3,6 @@
 patch-package
 
 npm run dist
+npm run build
 
 husky install
