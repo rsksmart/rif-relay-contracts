@@ -33,7 +33,7 @@ module.exports = async (callback) => {
         collectorOwner,
         partners: revenueSharingPartners,
         tokenAddress,
-        remainderAddress,
+        remainderAddress
     } = inputConfig;
     const collectorInstance = await Collector.new(
         collectorOwner,
@@ -100,7 +100,7 @@ module.exports = async (callback) => {
         collectorContract: collectorInstance.address,
         collectorOwner: await collectorInstance.owner.call(),
         collectorToken: await collectorInstance.token.call(),
-        remainderAddress: await collectorInstance.remainderAddress.call(),
+        remainderAddress: await collectorInstance.remainderAddress.call()
     };
 
     revenueSharingPartners.forEach(function (partner, i) {

@@ -1,7 +1,12 @@
 import { expect, use } from 'chai';
 import Collector from '../build/contracts/Collector.json';
 import TestToken from '../build/contracts/TestToken.json';
-import { deployContract, loadFixture, MockProvider, solidity } from 'ethereum-waffle';
+import {
+    deployContract,
+    loadFixture,
+    MockProvider,
+    solidity
+} from 'ethereum-waffle';
 import { BaseContract } from '@ethersproject/contracts';
 import { Wallet } from '@ethersproject/wallet';
 
@@ -118,9 +123,7 @@ describe('Collector', function () {
 
     describe('updateShares', function () {
         it('Should update shares and partners when token balance is zero', async function () {
-            const { collector } = await loadFixture(
-                deployCollectorFixture
-            );
+            const { collector } = await loadFixture(deployCollectorFixture);
 
             const newWallets = new MockProvider().getWallets();
             const newPartners = buildPartners(newWallets, 20, 30, 10, 40);
@@ -152,19 +155,17 @@ describe('Collector', function () {
             const newWallets = new MockProvider().getWallets();
             const newPartners = buildPartners(newWallets);
 
-            await expect(collector.updateShares(newPartners)).to.be.revertedWith(
-                'balance is not a remainder'
-            );
+            await expect(
+                collector.updateShares(newPartners)
+            ).to.be.revertedWith('balance is not a remainder');
         });
     });
 
     describe('updateRemainderAddress', function () {
         it('Should update remainder address when token balance is zero or remainder', async function () {
-            const { collector } = await loadFixture(
-                deployCollectorFixture
-            );
+            const { collector } = await loadFixture(deployCollectorFixture);
 
-            const [ newRemainderWallet ] = new MockProvider().getWallets();
+            const [newRemainderWallet] = new MockProvider().getWallets();
 
             await collector.updateRemainderAddress(newRemainderWallet.address);
             expect('updateRemainderAddress').to.be.calledOnContract(collector);
@@ -175,11 +176,11 @@ describe('Collector', function () {
                 deployCollectorFixture
             );
             await testToken.mint(100, collector.address);
-            const [ newRemainderWallet ] = new MockProvider().getWallets();
+            const [newRemainderWallet] = new MockProvider().getWallets();
 
-            await expect(collector.updateRemainderAddress(newRemainderWallet.address)).to.be.revertedWith(
-                'balance is not a remainder'
-            );
+            await expect(
+                collector.updateRemainderAddress(newRemainderWallet.address)
+            ).to.be.revertedWith('balance is not a remainder');
         });
     });
 });
