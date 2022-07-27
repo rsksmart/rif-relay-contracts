@@ -3,24 +3,27 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ICollector.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector{
-    ERC20Burnable public token;
+    IERC20 public token;
     address public owner;
+    address private remainderAddress;
     RevenuePartner[] private partners;
 
     constructor(
         address _owner,
-        ERC20Burnable _token,
-        RevenuePartner[] memory _partners
+        IERC20 _token,
+        RevenuePartner[] memory _partners,
+        address _remainderAddress
     )
     public
     validShares(_partners)
     {   
         owner = _owner;
         token = _token;
+        remainderAddress = _remainderAddress;
         for (uint i = 0; i < _partners.length; i++)
             partners.push(_partners[i]);
     }
@@ -29,14 +32,21 @@ contract Collector is ICollector{
     external
     validShares(_partners)
     onlyOwner()
+    noRemainders()
     {
-        uint balance = token.balanceOf(address(this));
-        require(balance == 0, "can't update with balance > 0");
     
         delete partners;
         
         for (uint i = 0; i < _partners.length; i++)
             partners.push(_partners[i]);
+    }
+
+    function updateRemainderAddress(address _remainderAddress) 
+    external
+    onlyOwner()
+    noRemainders()
+    {
+        remainderAddress = _remainderAddress;
     }
 
     function getBalance()
@@ -56,11 +66,6 @@ contract Collector is ICollector{
 
         for(uint i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
-        
-        balance = token.balanceOf(address(this));
-        if(balance > 0) {
-            token.burn(balance);
-        }
     }
 
     function transferOwnership(address _owner)
@@ -78,12 +83,23 @@ contract Collector is ICollector{
             totalShares = totalShares + _partners[i].share;
 
         require(totalShares == 100, "total shares must add up to 100%");
-
         _;
     }
 
     modifier onlyOwner(){
         require(msg.sender == owner, "can only call from owner");
+        _;
+    }
+
+    modifier noRemainders(){
+        uint balance = token.balanceOf(address(this));
+        require(balance < partners.length, "balance is not a remainder");
+        if(balance == 0) {
+            return;
+        }
+        
+        token.transfer(remainderAddress, balance);
+            balance = token.balanceOf(address(this));
         _;
     }
 }

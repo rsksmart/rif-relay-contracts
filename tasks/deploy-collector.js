@@ -32,12 +32,14 @@ module.exports = async (callback) => {
     const {
         collectorOwner,
         partners: revenueSharingPartners,
-        tokenAddress
+        tokenAddress,
+        remainderAddress,
     } = inputConfig;
     const collectorInstance = await Collector.new(
         collectorOwner,
         tokenAddress,
-        revenueSharingPartners
+        revenueSharingPartners,
+        remainderAddress
     );
     const deploymentReceipt = await web3.eth.getTransactionReceipt(
         collectorInstance.transactionHash
@@ -74,6 +76,9 @@ module.exports = async (callback) => {
         `| Collector Token                             | ${await collectorInstance.token.call()}       |`
     );
     console.log(
+        `| Collector Remainder                         | ${await collectorInstance.token.call()}       |`
+    );
+    console.log(
         '|=============================================|==================================================|\n'
     );
 
@@ -94,7 +99,8 @@ module.exports = async (callback) => {
     jsonConfig[networkId] = {
         collectorContract: collectorInstance.address,
         collectorOwner: await collectorInstance.owner.call(),
-        collectorToken: await collectorInstance.token.call()
+        collectorToken: await collectorInstance.token.call(),
+        remainderAddress: await collectorInstance.remainderAddress.call(),
     };
 
     revenueSharingPartners.forEach(function (partner, i) {

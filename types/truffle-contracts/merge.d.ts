@@ -10,6 +10,9 @@ declare global {
     interface Artifacts {
       require(name: "BasicToken"): TruffleContracts.BasicTokenContract;
       require(name: "BlackList"): TruffleContracts.BlackListContract;
+      require(
+        name: "BurnableTestToken"
+      ): TruffleContracts.BurnableTestTokenContract;
       require(name: "Collector"): TruffleContracts.CollectorContract;
       require(
         name: "CustomSmartWallet"
@@ -23,6 +26,7 @@ declare global {
       require(name: "DeployVerifier"): TruffleContracts.DeployVerifierContract;
       require(name: "ERC20"): TruffleContracts.ERC20Contract;
       require(name: "ERC20Basic"): TruffleContracts.ERC20BasicContract;
+      require(name: "ERC20Burnable"): TruffleContracts.ERC20BurnableContract;
       require(name: "ERC20Mod"): TruffleContracts.ERC20ModContract;
       require(
         name: "FailureCustomLogic"
