@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "private": false,
   "scripts": {
-    "build": "waffle",
+    "dist": "scripts/dist",
     "deploy": "scripts/deploy",
     "compile": "scripts/compile",
     "prepack": "npmignore --auto",
@@ -18,7 +18,7 @@
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
     "prettier": "npx prettier --check .",
-    "test:truffle": "truffle test --network regtest",
+    "test:tru": "truffle test --network regtest",
     "test": "NODE_ENV=test mocha"
   },
   "author": "Relaying Services Team",
