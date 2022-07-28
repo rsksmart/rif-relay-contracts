@@ -59,11 +59,13 @@ describe('Collector', function () {
             const [owner] = new MockProvider().getWallets();
             const partners = [];
             const testToken = await deployContract(owner, BurnableTestToken);
-            await expect(deployContract(owner, Collector, [
-                owner.address,
-                testToken.address,
-                partners
-            ])).to.be.revertedWith('total shares must add up to 100%');
+            await expect(
+                deployContract(owner, Collector, [
+                    owner.address,
+                    testToken.address,
+                    partners
+                ])
+            ).to.be.revertedWith('total shares must add up to 100%');
         });
     });
 
@@ -90,12 +92,15 @@ describe('Collector', function () {
             );
         });
 
-        it('Should fail if not called by the owner', async()=>{
-            const { collector, partners, dummyWallet} = await deployCollector();
-            const externallyLinkedCollector = collector.connect(dummyWallet.address);
-            await expect(externallyLinkedCollector.updateShares(partners)).to.be.revertedWith(
-                'can only call from owner'
+        it('Should fail if not called by the owner', async () => {
+            const { collector, partners, dummyWallet } =
+                await deployCollector();
+            const externallyLinkedCollector = collector.connect(
+                dummyWallet.address
             );
+            await expect(
+                externallyLinkedCollector.updateShares(partners)
+            ).to.be.revertedWith('can only call from owner');
         });
     });
 
@@ -117,12 +122,14 @@ describe('Collector', function () {
             );
         });
 
-        it('Should fail if not called by the owner', async()=>{
-            const { collector, dummyWallet} = await deployCollector();
-            const externallyLinkedCollector = collector.connect(dummyWallet.address);
-            await expect(externallyLinkedCollector.withdraw()).to.be.revertedWith(
-                'can only call from owner'
+        it('Should fail if not called by the owner', async () => {
+            const { collector, dummyWallet } = await deployCollector();
+            const externallyLinkedCollector = collector.connect(
+                dummyWallet.address
             );
+            await expect(
+                externallyLinkedCollector.withdraw()
+            ).to.be.revertedWith('can only call from owner');
         });
     });
 
@@ -148,12 +155,15 @@ describe('Collector', function () {
             expect(currentOwner).to.be.equal(newOwner.address);
         });
 
-        it('Should fail if not called by the owner', async()=>{
-            const { collector, dummyWallet} = await deployCollector();
-            const externallyLinkedCollector = collector.connect(dummyWallet.address);
+        it('Should fail if not called by the owner', async () => {
+            const { collector, dummyWallet } = await deployCollector();
+            const externallyLinkedCollector = collector.connect(
+                dummyWallet.address
+            );
             const newOwner = new MockProvider().createEmptyWallet();
-            await expect(externallyLinkedCollector.transferOwnership(newOwner.address))
-                .to.be.revertedWith('can only call from owner');
+            await expect(
+                externallyLinkedCollector.transferOwnership(newOwner.address)
+            ).to.be.revertedWith('can only call from owner');
         });
     });
 });
