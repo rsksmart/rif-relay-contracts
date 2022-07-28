@@ -76,7 +76,6 @@ describe('Collector', function () {
 
     describe('deployment', function () {
         it('Should deploy with owner, token and revenue partners', async function () {
-            this.timeout(10000);
             const { testToken, wallets } = await loadFixture(
                 deployTokenFixture
             );
@@ -101,7 +100,6 @@ describe('Collector', function () {
     });
 
     describe('withdraw', function () {
-        this.timeout(5000);
         it('Should Withdraw', async function () {
             const { collector, testToken, partners } = await loadFixture(
                 deployCollectorFixture
