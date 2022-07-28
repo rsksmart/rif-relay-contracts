@@ -18,7 +18,7 @@
     "allowedTokens": "./scripts/allowedTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
     "prettier": "npx prettier --check .",
-    "test:tru": "truffle test --network regtest",
+    "test:truffle": "truffle test --network regtest",
     "test": "NODE_ENV=test mocha --timeout 10000"
   },
   "author": "Relaying Services Team",
