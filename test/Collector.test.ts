@@ -101,6 +101,7 @@ describe('Collector', function () {
     });
 
     describe('withdraw', function () {
+        this.timeout(5000);
         it('Should Withdraw', async function () {
             const { collector, testToken, partners } = await loadFixture(
                 deployCollectorFixture
