@@ -1,4 +1,7 @@
-import { RelayManagerData } from './types/RelayManagerData';
+import RelayManagerData from './types/RelayManagerData';
+import RelayData from './types/EIP712/RelayData';
+import TypedRequestData from './types/EIP712/TypedRequestData';
+import RelayHubConfiguration from './types/RelayHubConfiguration';
 
 // interfaces
 const EnvelopingTypes = require('./build/contracts/EnvelopingTypes.json');
@@ -31,6 +34,10 @@ const VersionRegistry = require('./build/contracts/VersionRegistry.json');
 // deployed addresses
 const ContractAddresses = require('./contract-addresses.json');
 
+export * from './types/EIP712/RelayRequest';
+export * from './types/EIP712/TypedRequestData';
+export * from './types/EIP712/ForwardRequest';
+
 export {
     // interfaces
     EnvelopingTypes,
@@ -61,5 +68,8 @@ export {
     // deployed addresses
     ContractAddresses,
     // types
-    RelayManagerData
+    RelayManagerData,
+    RelayData,
+    TypedRequestData,
+    RelayHubConfiguration
 };

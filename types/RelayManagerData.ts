@@ -1,4 +1,4 @@
-export interface RelayManagerData {
+export default interface RelayManagerData {
     manager: string;
     url: string;
     currentlyStaked: boolean;
