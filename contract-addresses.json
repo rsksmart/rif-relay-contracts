@@ -14,17 +14,17 @@
         "testToken": "0xF5859303f76596dD558B438b18d0Ce0e1660F3ea"
     },
     "33": {
-        "penalizer": "0x8921BF2f074b5470c02Cc7473F17282576111591",
-        "relayHub": "0xC9dB73F54D43479b1a67DB2284bCFed17b0A13c2",
-        "smartWallet": "0xc53A82b9B7c9af4801c7d8EA531719E7657aFF3C",
-        "smartWalletFactory": "0x55c46eBC90C903Ff830b203Da1e7CA7CD2f0C3aa",
-        "smartWalletDeployVerifier": "0x23EF9610F53092A66bf224862BfD45216d9f3ea2",
-        "smartWalletRelayVerifier": "0xEB71c55A85016d201718b7B08701b495548fe6aD",
-        "customSmartWallet": "0xbAFEd90451970adF0B511a1E9BCd1396a0Fe7f10",
-        "customSmartWalletFactory": "0x6f217dEd6c86A57f1211F464302e6fA544045B4f",
-        "customSmartWalletDeployVerifier": "0x9f84F92d952f90027618089F6F2a3481f1a3fa0F",
-        "customSmartWalletRelayVerifier": "0xEdCefe78d60b56F617063736a51861daCE1a29b0",
-        "sampleRecipient": "0x9957A338858bc941dA9D0ED2ACBCa4F16116B836",
-        "testToken": "0xbD2781B7A474bab3C56615A1EF3B36cA12C69299"
+        "penalizer": "0x8099928ffb3C5F1F829635f18B5fE1Af6d1F138e",
+        "relayHub": "0xC392AFC6846fFd366993757602E5F85dDC976DC9",
+        "smartWallet": "0x18EdFC6327a232EF84B5da3F6C0b5986a0DbD189",
+        "smartWalletFactory": "0x445579b6ED1dBEa42D3411d9121A65fB15Ed6f0E",
+        "smartWalletDeployVerifier": "0xdf34A1b51c7a7995C7D250200CC1C28950BA2DE5",
+        "smartWalletRelayVerifier": "0x08e875030F63696cE6FE910BD32454Dc4d6c4272",
+        "customSmartWallet": "0x6899EE9c84A55feA32Ea3773932da4519c7Db0E6",
+        "customSmartWalletFactory": "0x8272042D164a66eA3D25105EeBAF7E0A895fDC15",
+        "customSmartWalletDeployVerifier": "0x6D170a1c312821f373C565F8b03B62CEaaBD6dbf",
+        "customSmartWalletRelayVerifier": "0x99adFbD576483a08b8Ce8956343b88fa6DD8497e",
+        "sampleRecipient": "0x224877a9b2B47B17157A41901704d4Dc74eb5ad7",
+        "testToken": "0xF49bBBF7Dad8DC5c0d31038689a647d88ef01fA8"
     }
 }
