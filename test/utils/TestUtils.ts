@@ -11,10 +11,10 @@ import {
     TypedDeployRequestData
 } from '../../';
 import { constants } from '../Constants';
-import { TypedDataUtils } from 'eth-sig-util';
+import sigUtil, { EIP712TypedData, TypedDataUtils } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
-import { getLocalEip712Signature } from '@rsksmart/rif-relay-common';
 import { soliditySha3Raw } from 'web3-utils';
+import { PrefixedHexString } from 'ethereumjs-tx';
 
 export function bytes32(n: number): string {
     return '0x' + n.toString().repeat(64).slice(0, 64);
@@ -65,6 +65,14 @@ export const defaultEnvironment = environments.rsk;
 export async function getTestingEnvironment(): Promise<Environment> {
     const networkId = await web3.eth.net.getId();
     return networkId === 33 ? environments.rsk : defaultEnvironment;
+}
+
+export function getLocalEip712Signature(
+  typedRequestData: EIP712TypedData,
+  privateKey: Buffer
+): PrefixedHexString {
+  // @ts-ignore
+  return sigUtil.signTypedData_v4(privateKey, { data: typedRequestData });
 }
 
 /**
