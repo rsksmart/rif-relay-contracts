@@ -19,7 +19,7 @@ const buildPartners = (
     share3?: number,
     share4?: number
 ) => {
-    const [owner, remainder, partner1, partner2, partner3, partner4] = wallets;
+    const [, , partner1, partner2, partner3, partner4] = wallets;
 
     return [
         {
@@ -58,14 +58,16 @@ async function deployCollector(
     return { collector };
 }
 describe('Collector', function () {
-    async function deployTokenFixture(wallets) {
-        const testToken = await deployContract(wallets[0], TestToken);
+    async function deployTokenFixture(wallets: Wallet[]) {
+        const [ ownerWallet ] = wallets;
+        const testToken = await deployContract(ownerWallet, TestToken);
         return { testToken, wallets };
     }
 
     async function deployCollectorFixture(wallets: Wallet[]) {
+        const [ ownerWallet ] = wallets;
         const partners = buildPartners(wallets);
-        const testToken = await deployContract(wallets[0], TestToken);
+        const testToken = await deployContract(ownerWallet, TestToken);
         const { collector } = await deployCollector(
             wallets,
             testToken,
@@ -145,7 +147,7 @@ describe('Collector', function () {
             expect('updateShares').to.be.calledOnContract(collector);
         });
 
-        it('Should fail when token balance is not a remainder', async function () {
+        it('Should fail when token balance > remainder', async function () {
             const { collector, testToken } = await loadFixture(
                 deployCollectorFixture
             );
@@ -156,7 +158,7 @@ describe('Collector', function () {
 
             await expect(
                 collector.updateShares(newPartners)
-            ).to.be.revertedWith('balance is not a remainder');
+            ).to.be.revertedWith('balance > remainder');
         });
     });
 
@@ -170,7 +172,7 @@ describe('Collector', function () {
             expect('updateRemainderAddress').to.be.calledOnContract(collector);
         });
 
-        it('Should fail when token balance is not a remainder', async function () {
+        it('Should fail when token balance > remainder', async function () {
             const { collector, testToken } = await loadFixture(
                 deployCollectorFixture
             );
@@ -179,7 +181,7 @@ describe('Collector', function () {
 
             await expect(
                 collector.updateRemainderAddress(newRemainderWallet.address)
-            ).to.be.revertedWith('balance is not a remainder');
+            ).to.be.revertedWith('balance > remainder');
         });
     });
 });

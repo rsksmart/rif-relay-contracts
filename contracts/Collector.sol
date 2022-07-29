@@ -32,7 +32,7 @@ contract Collector is ICollector{
     external
     validShares(_partners)
     onlyOwner()
-    noRemainders()
+    clearRemainder()
     {
     
         delete partners;
@@ -44,7 +44,7 @@ contract Collector is ICollector{
     function updateRemainderAddress(address _remainderAddress) 
     external
     onlyOwner()
-    noRemainders()
+    clearRemainder()
     {
         remainderAddress = _remainderAddress;
     }
@@ -62,7 +62,7 @@ contract Collector is ICollector{
     onlyOwner()
     {
         uint balance = token.balanceOf(address(this));
-        require(balance > 0, "no revenue to share");
+        require(balance > partners.length, "no revenue to share");
 
         for(uint i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
@@ -91,9 +91,9 @@ contract Collector is ICollector{
         _;
     }
 
-    modifier noRemainders(){
+    modifier clearRemainder(){
         uint balance = token.balanceOf(address(this));
-        require(balance < partners.length, "balance is not a remainder");
+        require(balance < partners.length, "balance > remainder");
         if(balance == 0) {
             return;
         }
