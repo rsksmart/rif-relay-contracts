@@ -59,13 +59,13 @@ async function deployCollector(
 }
 describe('Collector', function () {
     async function deployTokenFixture(wallets: Wallet[]) {
-        const [ ownerWallet ] = wallets;
+        const [ownerWallet] = wallets;
         const testToken = await deployContract(ownerWallet, TestToken);
         return { testToken, wallets };
     }
 
     async function deployCollectorFixture(wallets: Wallet[]) {
-        const [ ownerWallet ] = wallets;
+        const [ownerWallet] = wallets;
         const partners = buildPartners(wallets);
         const testToken = await deployContract(ownerWallet, TestToken);
         const { collector } = await deployCollector(

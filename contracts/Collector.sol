@@ -99,7 +99,6 @@ contract Collector is ICollector{
         }
         
         token.transfer(remainderAddress, balance);
-            balance = token.balanceOf(address(this));
         _;
     }
 }
