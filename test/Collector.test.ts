@@ -16,10 +16,7 @@ const SECOND_PARTNER_SHARE = 30;
 const THIRD_PARTNER_SHARE = 40;
 const FOURTH_PARTNER_SHARE = 10;
 
-const buildPartners = (
-    partners: Wallet[],
-    shares?: number[] 
-) => {
+const buildPartners = (partners: Wallet[], shares?: number[]) => {
     return [
         {
             beneficiary: partners[0].getAddress(),
@@ -40,14 +37,19 @@ const buildPartners = (
     ];
 };
 
-async function prepareAll(wallets:Wallet[]){
-    const [owner, remainder, partner1, partner2, partner3, partner4, utilWallet] = 
-        wallets;
+async function prepareAll(wallets: Wallet[]) {
+    const [
+        owner,
+        remainder,
+        partner1,
+        partner2,
+        partner3,
+        partner4,
+        utilWallet
+    ] = wallets;
 
     const testToken = await deployContract(owner, TestToken);
-    const partners = buildPartners(
-        [partner1, partner2, partner3, partner4]
-    );
+    const partners = buildPartners([partner1, partner2, partner3, partner4]);
 
     const collector = await deployContract(owner, Collector, [
         owner.address,
@@ -56,28 +58,28 @@ async function prepareAll(wallets:Wallet[]){
         remainder.address
     ]);
 
-    return {collector, testToken, partners, remainder, utilWallet};
+    return { collector, testToken, partners, remainder, utilWallet };
 }
 
 describe('Collector', () => {
-    async function prepareAllFixture(wallets: Wallet[]){
+    async function prepareAllFixture(wallets: Wallet[]) {
         return prepareAll(wallets);
     }
 
     describe('deployment', () => {
         it('Should deploy with owner, token and revenue partners', async () => {
-            const {collector} = await loadFixture(prepareAllFixture);
+            const { collector } = await loadFixture(prepareAllFixture);
             expect(collector);
         });
 
         it('Should not let deploy with invalid shares', async () => {
-            const [owner, remainder, partner1, partner2, partner3, partner4] = 
+            const [owner, remainder, partner1, partner2, partner3, partner4] =
                 new MockProvider().getWallets();
-            
+
             const testToken = await deployContract(owner, TestToken);
-            
+
             const partners = buildPartners(
-                [partner1, partner2, partner3, partner4], 
+                [partner1, partner2, partner3, partner4],
                 [25, 25, 25, 26]
             );
 
@@ -87,14 +89,15 @@ describe('Collector', () => {
                     testToken.address,
                     partners,
                     remainder.address
-                ])).to.be.revertedWith('total shares must add up to 100%');
+                ])
+            ).to.be.revertedWith('total shares must add up to 100%');
         });
 
         it('Should not let deploy if the array of partners is empty', async () => {
             const [owner, remainder] = new MockProvider().getWallets();
-            
+
             const testToken = await deployContract(owner, TestToken);
-            
+
             const partners = [];
 
             await expect(
@@ -108,13 +111,13 @@ describe('Collector', () => {
         });
 
         it('Should not let deploy if a share is 0', async () => {
-            const [owner, remainder, partner1, partner2, partner3, partner4] = 
+            const [owner, remainder, partner1, partner2, partner3, partner4] =
                 new MockProvider().getWallets();
-            
+
             const testToken = await deployContract(owner, TestToken);
-            
+
             const partners = buildPartners(
-                [partner1, partner2, partner3, partner4], 
+                [partner1, partner2, partner3, partner4],
                 [30, 30, 0, 40]
             );
 
@@ -140,7 +143,9 @@ describe('Collector', () => {
         });
 
         it('Should update shares and partners when token balance is a remainder amount', async () => {
-            const { collector, testToken } = await loadFixture(prepareAllFixture);
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
 
             await testToken.mint(3, collector.address);
 
@@ -151,16 +156,20 @@ describe('Collector', () => {
         });
 
         it('Should fail when token balance is grater than a remainder', async () => {
-            const { collector, testToken } = await loadFixture(prepareAllFixture);
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
             await testToken.mint(100, collector.address);
             const newPartners = buildPartners(new MockProvider().getWallets());
-            await expect(collector.updateShares(newPartners)).to.be.revertedWith(
-                'there is balance to share'
-            );
+            await expect(
+                collector.updateShares(newPartners)
+            ).to.be.revertedWith('there is balance to share');
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
@@ -170,24 +179,24 @@ describe('Collector', () => {
             ).to.be.revertedWith('only owner can call this');
         });
 
-        it('Should fail if the shares does not sum up to 100',async () => {
-            const {collector} = await loadFixture(prepareAllFixture);
+        it('Should fail if the shares does not sum up to 100', async () => {
+            const { collector } = await loadFixture(prepareAllFixture);
 
             const newPartners = buildPartners(
                 new MockProvider().getWallets(),
-                [25,25,24,25]
+                [25, 25, 24, 25]
             );
             await expect(
                 collector.updateShares(newPartners)
             ).to.be.revertedWith('total shares must add up to 100%');
         });
 
-        it('Should fail if a share is 0', async ()=> {
-            const {collector} = await loadFixture(prepareAllFixture);
+        it('Should fail if a share is 0', async () => {
+            const { collector } = await loadFixture(prepareAllFixture);
 
             const newPartners = buildPartners(
                 new MockProvider().getWallets(),
-                [50,25,25,0]
+                [50, 25, 25, 0]
             );
             await expect(
                 collector.updateShares(newPartners)
@@ -197,14 +206,17 @@ describe('Collector', () => {
 
     describe('updateRemainderAddress', () => {
         it('Should update remainder address when token balance is zero', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
 
             await collector.updateRemainderAddress(utilWallet.address);
             expect('updateRemainderAddress').to.be.calledOnContract(collector);
         });
 
         it('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
-            const { collector, testToken, remainder, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, testToken, remainder, utilWallet } =
+                await loadFixture(prepareAllFixture);
             await testToken.mint(2, collector.address);
 
             await collector.updateRemainderAddress(utilWallet.address);
@@ -214,7 +226,9 @@ describe('Collector', () => {
         });
 
         it('Should withdraw when the remainders address sent is the same as the current one', async () => {
-            const { collector, testToken, remainder } = await loadFixture(prepareAllFixture);
+            const { collector, testToken, remainder } = await loadFixture(
+                prepareAllFixture
+            );
             await testToken.mint(3, collector.address);
 
             await collector.updateRemainderAddress(remainder.address);
@@ -235,12 +249,16 @@ describe('Collector', () => {
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
             await expect(
-                externallyLinkedCollector.updateRemainderAddress(utilWallet.address)
+                externallyLinkedCollector.updateRemainderAddress(
+                    utilWallet.address
+                )
             ).to.be.revertedWith('only owner can call this');
         });
     });
@@ -252,7 +270,9 @@ describe('Collector', () => {
         });
 
         it('Should return 100 after that value has been minted', async () => {
-            const { collector, testToken } = await loadFixture(prepareAllFixture);
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
             await testToken.mint(100, collector.address);
             await expect(await collector.getBalance()).to.equal(100);
         });
@@ -260,24 +280,32 @@ describe('Collector', () => {
 
     describe('withdraw', () => {
         it('Should withdraw', async () => {
-            const { collector, testToken, partners } = await loadFixture(prepareAllFixture);
+            const { collector, testToken, partners } = await loadFixture(
+                prepareAllFixture
+            );
 
             await testToken.mint(100, collector.address);
             await collector.withdraw();
 
-            expect(await testToken.balanceOf(partners[0].beneficiary))
-                .to.equal(FIRST_PARTNER_SHARE);
-            expect(await testToken.balanceOf(partners[1].beneficiary))
-                .to.equal(SECOND_PARTNER_SHARE);
-            expect(await testToken.balanceOf(partners[2].beneficiary))
-                .to.equal(THIRD_PARTNER_SHARE);
-            expect(await testToken.balanceOf(partners[3].beneficiary))
-                .to.equal(FOURTH_PARTNER_SHARE);
+            expect(await testToken.balanceOf(partners[0].beneficiary)).to.equal(
+                FIRST_PARTNER_SHARE
+            );
+            expect(await testToken.balanceOf(partners[1].beneficiary)).to.equal(
+                SECOND_PARTNER_SHARE
+            );
+            expect(await testToken.balanceOf(partners[2].beneficiary)).to.equal(
+                THIRD_PARTNER_SHARE
+            );
+            expect(await testToken.balanceOf(partners[3].beneficiary)).to.equal(
+                FOURTH_PARTNER_SHARE
+            );
             expect(await testToken.balanceOf(collector.address)).to.equal(0);
         });
 
         it('Should fail when no revenue to share', async () => {
-            const { collector, testToken } = await loadFixture(prepareAllFixture);
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
             await testToken.mint(1, collector.address);
             await expect(collector.withdraw()).to.be.revertedWith(
                 'no revenue to share'
@@ -285,7 +313,9 @@ describe('Collector', () => {
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
@@ -293,11 +323,13 @@ describe('Collector', () => {
                 externallyLinkedCollector.withdraw()
             ).to.be.revertedWith('only owner can call this');
         });
-    });    
-    
+    });
+
     describe('transferOwnership', () => {
         it('Should transfer ownership', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
 
             await collector.transferOwnership(utilWallet.address);
 
@@ -305,7 +337,9 @@ describe('Collector', () => {
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(prepareAllFixture);
+            const { collector, utilWallet } = await loadFixture(
+                prepareAllFixture
+            );
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
