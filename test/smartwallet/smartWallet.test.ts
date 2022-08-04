@@ -1,7 +1,6 @@
 import {
     TestTokenInstance,
-    CustomSmartWalletInstance,
-    SuccessCustomLogicInstance,
+    SmartWalletInstance,
     TestForwarderTargetInstance
 } from '../../types/truffle-contracts';
 import chai from 'chai';
@@ -20,15 +19,14 @@ import {
     RelayRequest,
     ForwardRequest,
     RelayData
-} from '../../';
-import { constants } from '../Constants';
-import { bytes32, getTestingEnvironment, containsEvent } from '../Utils';
+} from '../../dist';
+import { constants } from '../constants';
+import { bytes32, getTestingEnvironment } from '../utils';
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-const CustomSmartWallet = artifacts.require('CustomSmartWallet');
-const SuccessCustomLogic = artifacts.require('SuccessCustomLogic');
+const SmartWallet = artifacts.require('SmartWallet');
 const TestToken = artifacts.require('TestToken');
 const TestForwarderTarget = artifacts.require('TestForwarderTarget');
 
@@ -130,12 +128,11 @@ function createRequest(
 }
 
 contract(
-    'Custom SmartWallet contract - Unit testing on methods isInitialize and initialize',
+    'SmartWallet contract - Unit testing on methods isInitialize and initialize',
     ([worker]) => {
         let token: TestTokenInstance;
         let senderAddress: string;
-        let customLogic: SuccessCustomLogicInstance;
-        let smartWallet: CustomSmartWalletInstance;
+        let smartWallet: SmartWalletInstance;
         const senderPrivateKey = toBuffer(bytes32(1));
 
         describe('Testing initialize and isInitialize methods and values for parameters', () => {
@@ -143,8 +140,7 @@ contract(
                 'Setting senderAccount, Contract instance and Test Token',
                 async () => {
                     // Initializing all the variables and instances for each test
-                    smartWallet = await CustomSmartWallet.new();
-                    customLogic = await SuccessCustomLogic.new();
+                    smartWallet = await SmartWallet.new();
                     token = await TestToken.new();
                     senderAddress = bufferToHex(
                         privateToAddress(senderPrivateKey)
@@ -159,12 +155,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         null,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -178,12 +172,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         constants.ZERO_ADDRESS,
-                        customLogic.address,
                         token.address,
                         worker,
                         '10',
-                        '400000',
-                        '0x'
+                        '400000'
                     ),
                     'Unable to pay for deployment',
                     'Error while validating data'
@@ -199,12 +191,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         null,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -218,12 +208,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '100',
-                        '-400000',
-                        '0x'
+                        '-400000'
                     )
                 );
 
@@ -237,12 +225,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '-2',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -256,12 +242,10 @@ contract(
                 await assert.isFulfilled(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         constants.ZERO_ADDRESS,
                         worker,
                         '10',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -275,12 +259,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         null,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -294,12 +276,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        null,
-                        '0x'
+                        null
                     )
                 );
 
@@ -314,11 +294,9 @@ contract(
                     smartWallet.initialize(
                         constants.ZERO_ADDRESS,
                         constants.ZERO_ADDRESS,
-                        constants.ZERO_ADDRESS,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -332,12 +310,10 @@ contract(
                 await assert.isFulfilled(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -353,12 +329,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '10',
-                        '-10',
-                        '0x'
+                        '-10'
                     )
                 );
 
@@ -374,12 +348,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '-400000',
-                        '0x'
+                        '-400000'
                     )
                 );
 
@@ -394,12 +366,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         constants.ZERO_ADDRESS,
                         worker,
                         '10',
-                        '-400000',
-                        '0x'
+                        '-400000'
                     )
                 );
 
@@ -415,12 +385,10 @@ contract(
                 await assert.isFulfilled(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
@@ -430,12 +398,10 @@ contract(
                 await assert.isRejected(
                     smartWallet.initialize(
                         senderAddress,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     ),
                     'already initialized',
                     'Error while validating data'
@@ -446,272 +412,240 @@ contract(
     }
 );
 
-contract(
-    'Custom SmartWallet contract - Unit testing on method verify',
-    ([worker]) => {
-        describe('Testing verify method for values and parameters', () => {
-            let token: TestTokenInstance;
-            let senderAddress: string;
-            let customLogic: SuccessCustomLogicInstance;
-            let smartWallet: CustomSmartWalletInstance;
-            let chainId: number;
-            const senderPrivateKey = toBuffer(bytes32(1));
-            let recipientFunction: any;
-            let recipient: TestForwarderTargetInstance;
-            let relayData: Partial<RelayData>;
+contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
+    describe('Testing verify method for values and parameters', () => {
+        let token: TestTokenInstance;
+        let senderAddress: string;
+        let smartWallet: SmartWalletInstance;
+        let chainId: number;
+        const senderPrivateKey = toBuffer(bytes32(1));
+        let recipientFunction: any;
+        let recipient: TestForwarderTargetInstance;
+        let relayData: Partial<RelayData>;
 
-            beforeEach('Setting senderAccount and Test Token', async () => {
-                senderAddress = bufferToHex(
-                    privateToAddress(senderPrivateKey)
-                ).toLowerCase();
-                smartWallet = await CustomSmartWallet.new();
-                customLogic = await SuccessCustomLogic.new();
-                token = await TestToken.new();
-                recipient = await TestForwarderTarget.new();
-                recipientFunction = recipient.contract.methods
-                    .emitMessage('hello')
-                    .encodeABI();
-            });
-
-            it('Should verify method verify reverts when all parameters are null', async () => {
-                await assert.isRejected(
-                    smartWallet.verify(null, null, null, '')
-                );
-            });
-
-            it('Should verify method verify reverts when all parameters are empty but the request', async () => {
-                const initialNonce = await smartWallet.nonce();
-
-                const relayRequest = await createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress
-                    },
-                    relayData
-                );
-                await assert.isRejected(
-                    smartWallet.verify('', relayRequest.request, '')
-                );
-            });
-
-            it('Should verify method verify revert because owner is not the owner of the smart wallet', async () => {
-                assert.isFalse(await smartWallet.isInitialized());
-                //Initializing the contract
-                const senderAccount = web3.eth.accounts.create();
-                await assert.isFulfilled(
-                    smartWallet.initialize(
-                        senderAccount.address,
-                        customLogic.address,
-                        token.address,
-                        worker,
-                        '0',
-                        '400000',
-                        '0x'
-                    )
-                );
-
-                assert.isTrue(await smartWallet.isInitialized());
-
-                chainId = (await getTestingEnvironment()).chainId;
-
-                const initialNonce = await smartWallet.nonce();
-
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress
-                    },
-                    relayData
-                );
-
-                relayRequest.request.from = smartWallet.address;
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-
-                await assert.isRejected(
-                    smartWallet.verify(
-                        suffixData,
-                        relayRequest.request,
-                        signature
-                    ),
-                    'Not the owner of the SmartWallet',
-                    'Error while validating the owner'
-                );
-            });
-
-            it('Should verify method verify revert because nonce mismatch', async () => {
-                assert.isFalse(await smartWallet.isInitialized());
-                chainId = (await getTestingEnvironment()).chainId;
-
-                //Initializing the contract
-                await assert.isFulfilled(
-                    smartWallet.initialize(
-                        senderAddress,
-                        customLogic.address,
-                        token.address,
-                        worker,
-                        '0',
-                        '400000',
-                        '0x'
-                    )
-                );
-
-                assert.isTrue(await smartWallet.isInitialized());
-                chainId = (await getTestingEnvironment()).chainId;
-
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: '100',
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress
-                    },
-                    relayData
-                );
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-
-                await assert.isRejected(
-                    smartWallet.verify(
-                        suffixData,
-                        relayRequest.request,
-                        signature
-                    ),
-                    'nonce mismatch',
-                    'Error while validating data'
-                );
-            });
-
-            it('Should verify method verify and revert because of signature mismatch', async () => {
-                assert.isFalse(await smartWallet.isInitialized());
-
-                //Initializing the contract
-                await assert.isFulfilled(
-                    smartWallet.initialize(
-                        senderAddress,
-                        customLogic.address,
-                        token.address,
-                        worker,
-                        '0',
-                        '400000',
-                        '0x'
-                    )
-                );
-
-                assert.isTrue(await smartWallet.isInitialized());
-                chainId = (await getTestingEnvironment()).chainId;
-
-                const initialNonce = await smartWallet.nonce();
-
-                const relayRequest = await createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress
-                    },
-                    relayData
-                );
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-
-                await expectRevert(
-                    smartWallet.verify(
-                        suffixData,
-                        relayRequest.request,
-                        signature
-                    ),
-                    'Signature mismatch',
-                    'Error while validating data'
-                );
-            });
-
-            it('Should verify method successfully sign a txn', async () => {
-                assert.isFalse(await smartWallet.isInitialized());
-
-                //Initializing the contract
-                await assert.isFulfilled(
-                    smartWallet.initialize(
-                        senderAddress,
-                        customLogic.address,
-                        token.address,
-                        worker,
-                        '0',
-                        '400000',
-                        '0x'
-                    )
-                );
-
-                assert.isTrue(await smartWallet.isInitialized());
-
-                chainId = (await getTestingEnvironment()).chainId;
-
-                const initialNonce = await smartWallet.nonce();
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        value: '0',
-                        gas: '400000',
-                        tokenAmount: '0',
-                        tokenGas: '400000'
-                    },
-                    relayData
-                );
-                relayRequest.relayData.callForwarder = smartWallet.address;
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-                await assert.isFulfilled(
-                    smartWallet.verify(
-                        suffixData,
-                        relayRequest.request,
-                        signature
-                    )
-                );
-            });
+        beforeEach('Setting senderAccount and Test Token', async () => {
+            senderAddress = bufferToHex(
+                privateToAddress(senderPrivateKey)
+            ).toLowerCase();
+            smartWallet = await SmartWallet.new();
+            token = await TestToken.new();
+            recipient = await TestForwarderTarget.new();
+            recipientFunction = recipient.contract.methods
+                .emitMessage('hello')
+                .encodeABI();
         });
-    }
-);
+
+        it('Should verify method verify reverts when all parameters are null', async () => {
+            await assert.isRejected(smartWallet.verify(null, null, ''));
+        });
+
+        it('Should verify method verify reverts when all parameters are empty but the request', async () => {
+            const initialNonce = await smartWallet.nonce();
+
+            const relayRequest = await createRequest(
+                {
+                    data: recipientFunction,
+                    to: recipient.address,
+                    nonce: initialNonce.toString(),
+                    relayHub: worker,
+                    tokenContract: token.address,
+                    from: senderAddress
+                },
+                relayData
+            );
+            await assert.isRejected(
+                smartWallet.verify('', relayRequest.request, '')
+            );
+        });
+
+        it('Should verify method verify revert because owner is not the owner of the smart wallet', async () => {
+            assert.isFalse(await smartWallet.isInitialized());
+            //Initializing the contract
+            const senderAccount = web3.eth.accounts.create();
+            await assert.isFulfilled(
+                smartWallet.initialize(
+                    senderAccount.address,
+                    token.address,
+                    worker,
+                    '0',
+                    '400000'
+                )
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+
+            chainId = (await getTestingEnvironment()).chainId;
+
+            const initialNonce = await smartWallet.nonce();
+
+            const relayRequest = createRequest(
+                {
+                    data: recipientFunction,
+                    to: recipient.address,
+                    nonce: initialNonce.toString(),
+                    relayHub: worker,
+                    tokenContract: token.address,
+                    from: senderAddress
+                },
+                relayData
+            );
+
+            relayRequest.request.from = smartWallet.address;
+
+            const { signature, suffixData } = signRequest(
+                senderPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            await assert.isRejected(
+                smartWallet.verify(suffixData, relayRequest.request, signature),
+                'Not the owner of the SmartWallet',
+                'Error while validating the owner'
+            );
+        });
+
+        it('Should verify method verify revert because nonce mismatch', async () => {
+            assert.isFalse(await smartWallet.isInitialized());
+            chainId = (await getTestingEnvironment()).chainId;
+
+            //Initializing the contract
+            await assert.isFulfilled(
+                smartWallet.initialize(
+                    senderAddress,
+                    token.address,
+                    worker,
+                    '0',
+                    '400000'
+                )
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+            chainId = (await getTestingEnvironment()).chainId;
+
+            const relayRequest = createRequest(
+                {
+                    data: recipientFunction,
+                    to: recipient.address,
+                    nonce: '100',
+                    relayHub: worker,
+                    tokenContract: token.address,
+                    from: senderAddress
+                },
+                relayData
+            );
+
+            const { signature, suffixData } = signRequest(
+                senderPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            await assert.isRejected(
+                smartWallet.verify(suffixData, relayRequest.request, signature),
+                'nonce mismatch',
+                'Error while validating data'
+            );
+        });
+
+        it('Should verify method verify and revert because of signature mismatch', async () => {
+            assert.isFalse(await smartWallet.isInitialized());
+
+            //Initializing the contract
+            await assert.isFulfilled(
+                smartWallet.initialize(
+                    senderAddress,
+                    token.address,
+                    worker,
+                    '0',
+                    '400000'
+                )
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+            chainId = (await getTestingEnvironment()).chainId;
+
+            const initialNonce = await smartWallet.nonce();
+
+            const relayRequest = await createRequest(
+                {
+                    data: recipientFunction,
+                    to: recipient.address,
+                    nonce: initialNonce.toString(),
+                    relayHub: worker,
+                    tokenContract: token.address,
+                    from: senderAddress
+                },
+                relayData
+            );
+
+            const { signature, suffixData } = signRequest(
+                senderPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            await expectRevert(
+                smartWallet.verify(suffixData, relayRequest.request, signature),
+                'Signature mismatch',
+                'Error while validating data'
+            );
+        });
+
+        it('Should verify method successfully sign a txn', async () => {
+            assert.isFalse(await smartWallet.isInitialized());
+
+            //Initializing the contract
+            await assert.isFulfilled(
+                smartWallet.initialize(
+                    senderAddress,
+                    token.address,
+                    worker,
+                    '0',
+                    '400000'
+                )
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+
+            chainId = (await getTestingEnvironment()).chainId;
+
+            const initialNonce = await smartWallet.nonce();
+            const relayRequest = createRequest(
+                {
+                    data: recipientFunction,
+                    to: recipient.address,
+                    nonce: initialNonce.toString(),
+                    relayHub: worker,
+                    tokenContract: token.address,
+                    from: senderAddress,
+                    value: '0',
+                    gas: '400000',
+                    tokenAmount: '0',
+                    tokenGas: '400000'
+                },
+                relayData
+            );
+            relayRequest.relayData.callForwarder = smartWallet.address;
+            const { signature, suffixData } = signRequest(
+                senderPrivateKey,
+                relayRequest,
+                chainId
+            );
+            await assert.isFulfilled(
+                smartWallet.verify(suffixData, relayRequest.request, signature)
+            );
+        });
+    });
+});
 
 contract(
-    'Custom SmartWallet contract - Unit testing on execute method',
+    'SmartWallet contract - Unit testing on execute method',
     ([worker]) => {
         describe('Testing execute method for values and parameters', () => {
             let token: TestTokenInstance;
             let senderAddress: string;
-            let customLogic: SuccessCustomLogicInstance;
-            let smartWallet: CustomSmartWalletInstance;
+            let smartWallet: SmartWalletInstance;
             let chainId: number;
             const senderPrivateKey = toBuffer(bytes32(1));
             let recipientFunction: any;
@@ -722,8 +656,7 @@ contract(
                 senderAddress = bufferToHex(
                     privateToAddress(senderPrivateKey)
                 ).toLowerCase();
-                smartWallet = await CustomSmartWallet.new();
-                customLogic = await SuccessCustomLogic.new();
+                smartWallet = await SmartWallet.new();
                 token = await TestToken.new();
                 recipient = await TestForwarderTarget.new();
                 chainId = (await getTestingEnvironment()).chainId;
@@ -742,18 +675,17 @@ contract(
                 await assert.isFulfilled(
                     smartWallet.initialize(
                         senderAccount.address,
-                        customLogic.address,
                         token.address,
                         worker,
                         '0',
-                        '400000',
-                        '0x'
+                        '400000'
                     )
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
 
                 chainId = (await getTestingEnvironment()).chainId;
+
                 const initialNonce = await smartWallet.nonce();
 
                 const relayRequest = await createRequest(
@@ -798,12 +730,10 @@ contract(
 
                 await smartWallet.initialize(
                     senderAddress,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
@@ -844,12 +774,10 @@ contract(
 
                 await smartWallet.initialize(
                     senderAddress,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
@@ -886,17 +814,15 @@ contract(
                 );
             });
 
-            it('Should verify the method executed success for transfer with 0 tokenAmount', async () => {
+            it('Should verify the method executed success', async () => {
                 assert.isFalse(await smartWallet.isInitialized());
 
                 await smartWallet.initialize(
                     senderAddress,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
@@ -942,18 +868,17 @@ contract(
 
                 await smartWallet.initialize(
                     senderAddress,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
 
                 const initialNonce = await smartWallet.nonce();
                 const initialBalance = getTokenBalance(token, senderAddress);
+
                 const relayRequest = createRequest(
                     {
                         data: recipientFunction,
@@ -1004,12 +929,10 @@ contract(
 
                 await smartWallet.initialize(
                     senderAddress,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
@@ -1023,6 +946,7 @@ contract(
                     token,
                     smartWallet.address
                 );
+
                 const relayRequest = createRequest(
                     {
                         data: recipientFunction,
@@ -1094,18 +1018,16 @@ contract(
 );
 
 contract(
-    'Custom SmartWallet contract - Unit testing on directExecute method',
+    'SmartWallet contract - Unit testing on directExecute method',
     ([worker, fundedAccount]) => {
         describe('Testing directExecute method for values and parameters', () => {
             let token: TestTokenInstance;
-            let customLogic: SuccessCustomLogicInstance;
-            let smartWallet: CustomSmartWalletInstance;
+            let smartWallet: SmartWalletInstance;
             let recipientFunction: any;
             let recipient: TestForwarderTargetInstance;
 
             beforeEach('Setting values', async () => {
-                smartWallet = await CustomSmartWallet.new();
-                customLogic = await SuccessCustomLogic.new();
+                smartWallet = await SmartWallet.new();
                 token = await TestToken.new();
                 recipient = await TestForwarderTarget.new();
                 recipientFunction = recipient.contract.methods
@@ -1150,40 +1072,31 @@ contract(
                 );
             });
 
-            it('Should call successfully the method directExecute through node funded account', async () => {
+            it('Should call successfully to method directExecute through node funded account', async () => {
                 assert.isFalse(await smartWallet.isInitialized());
 
                 await smartWallet.initialize(
                     fundedAccount,
-                    customLogic.address,
                     token.address,
                     worker,
                     '0',
-                    '400000',
-                    '0x'
+                    '400000'
                 );
 
                 assert.isTrue(await smartWallet.isInitialized());
                 const initialNonce = await smartWallet.nonce();
 
-                const result = await smartWallet.directExecute(
-                    recipient.address,
-                    recipientFunction,
-                    { from: fundedAccount }
+                await assert.isFulfilled(
+                    smartWallet.directExecute(
+                        recipient.address,
+                        recipientFunction,
+                        { from: fundedAccount }
+                    )
                 );
                 assert.equal(
                     (await smartWallet.nonce()).toString(),
                     initialNonce.toString(),
                     'Call to direct execute should NOT increment nonce'
-                );
-                // @ts-ignore
-                assert(
-                    containsEvent(
-                        customLogic.abi,
-                        result.receipt.rawLogs,
-                        'LogicCalled'
-                    ),
-                    'Should call custom logic'
                 );
             });
         });
