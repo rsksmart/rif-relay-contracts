@@ -21,7 +21,7 @@ import {
     RelayData
 } from '../..';
 import { constants } from '../Constants';
-import { bytes32, getTestingEnvironment } from '../utils/TestUtils';
+import { bytes32, getTestingEnvironment } from '../Utils';
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;

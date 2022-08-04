@@ -22,11 +22,7 @@ import {
     RelayData
 } from '../../';
 import { constants } from '../Constants';
-import {
-    bytes32,
-    getTestingEnvironment,
-    containsEvent
-} from '../utils/TestUtils';
+import { bytes32, getTestingEnvironment, containsEvent } from '../Utils';
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;
