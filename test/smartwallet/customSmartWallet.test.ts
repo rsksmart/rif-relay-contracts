@@ -272,7 +272,7 @@ contract(
                 assert.isTrue(await smartWallet.isInitialized());
             });
 
-            it('Should verify method initialize successfully with worker address as null parameter', async () => {
+            it('Should fail to initialize the smart wallet if the worker address is null', async () => {
                 //Making sure the contract has not been initialized yet
                 assert.isFalse(await smartWallet.isInitialized());
                 //Initializing the contract
