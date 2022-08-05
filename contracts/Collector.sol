@@ -9,18 +9,21 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract Collector is ICollector{
     IERC20 public token;
     address public owner;
+    address private remainderAddress;
     RevenuePartner[] private partners;
 
     constructor(
         address _owner,
         IERC20 _token,
-        RevenuePartner[] memory _partners
+        RevenuePartner[] memory _partners,
+        address _remainderAddress
     )
     public
     validShares(_partners)
     {   
         owner = _owner;
         token = _token;
+        remainderAddress = _remainderAddress;
         for (uint i = 0; i < _partners.length; i++)
             partners.push(_partners[i]);
     }
@@ -29,18 +32,33 @@ contract Collector is ICollector{
     external
     validShares(_partners)
     onlyOwner()
-    {
-        uint balance = token.balanceOf(address(this));
-        require(balance == 0, "can't update with balance > 0");
-    
+    noBalanceToShare()
+    {    
         delete partners;
-        
+
         for (uint i = 0; i < _partners.length; i++)
             partners.push(_partners[i]);
     }
 
-    function getBalance()
+    //@notice Withdraw the actual remainder and then update the remainder's address
+    //for a new one. This function is the only way to withdraw the remainder.
+    function updateRemainderAddress(address _remainderAddress) 
     external
+    onlyOwner()
+    noBalanceToShare()
+    {
+        address oldRemainderAddress = remainderAddress;
+        remainderAddress = _remainderAddress;
+
+        uint balance = token.balanceOf(address(this));
+
+        if(balance != 0) {
+            token.transfer(oldRemainderAddress, balance);
+        }
+    }
+
+    function getBalance()
+    external view
     returns (uint)
     {
         return token.balanceOf(address(this));
@@ -52,7 +70,7 @@ contract Collector is ICollector{
     onlyOwner()
     {
         uint balance = token.balanceOf(address(this));
-        require(balance > 0, "no revenue to share");
+        require(balance > partners.length, "no revenue to share");
 
         for(uint i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
@@ -68,17 +86,27 @@ contract Collector is ICollector{
     }
 
     modifier validShares(RevenuePartner[] memory _partners){
-        uint totalShares = 0;            
-        for(uint i = 0; i < _partners.length; i++)
+        uint totalShares = 0;
+
+        for(uint i = 0; i < _partners.length; i++){
             totalShares = totalShares + _partners[i].share;
+            require(_partners[i].share > 0, "0 is not a valid share");
+        }
 
         require(totalShares == 100, "total shares must add up to 100%");
-
         _;
     }
 
     modifier onlyOwner(){
-        require(msg.sender == owner, "can only call from owner");
+        require(msg.sender == owner, "only owner can call this");
+        _;
+    }
+
+    modifier noBalanceToShare(){
+        uint balance = token.balanceOf(address(this));
+
+        require(balance < partners.length, "there is balance to share");
+
         _;
     }
 }
