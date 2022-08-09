@@ -251,11 +251,10 @@ export async function createCustomSmartWallet(
     return sw;
 }
 
-
 export function getLocalEip712Signature(
     typedRequestData: EIP712TypedData,
     privateKey: Buffer
-  ): PrefixedHexString {
+): PrefixedHexString {
     // @ts-ignore
     return sigUtil.signTypedData_v4(privateKey, { data: typedRequestData });
-  }
+}
