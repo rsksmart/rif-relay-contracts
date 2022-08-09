@@ -7,7 +7,7 @@ import {
 import { DeployRequest } from '../../';
 import { constants } from '../Constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { bytes32, createSmartWalletFactory } from '../utils/TestUtils';
+import { generateBytes32, createSmartWalletFactory } from '../utils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -124,7 +124,7 @@ contract(
 
         let expectedAddress: string;
         describe('Testing call to verifyRelayedCall method', () => {
-            const ownerPrivateKey = toBuffer(bytes32(1));
+            const ownerPrivateKey = toBuffer(generateBytes32(1));
             let ownerAddress: string;
 
             const recoverer = constants.ZERO_ADDRESS;

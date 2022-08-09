@@ -8,11 +8,11 @@ import { RelayRequest } from '../../';
 import { constants } from '../Constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import {
-    bytes32,
+    generateBytes32,
     createSmartWalletFactory,
     createSmartWallet,
     getTestingEnvironment
-} from '../utils/TestUtils';
+} from '../utils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -130,11 +130,11 @@ contract(
         let contractVerifier: RelayVerifierInstance;
         let expectedAddress: string;
 
-        const senderPrivateKey = toBuffer(bytes32(1));
+        const senderPrivateKey = toBuffer(generateBytes32(1));
         let senderAddress: string;
 
         describe('Testing call to verifyRelayedCall method', () => {
-            const ownerPrivateKey = toBuffer(bytes32(1));
+            const ownerPrivateKey = toBuffer(generateBytes32(1));
             let ownerAddress: string;
 
             const recoverer = constants.ZERO_ADDRESS;
