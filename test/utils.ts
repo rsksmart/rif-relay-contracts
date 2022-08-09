@@ -1,10 +1,8 @@
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 
-export function bytes32(n: number): string {
-    return '0x' + n.toString().repeat(64).slice(0, 64);
+export function generateBytes32(seed: number): string {
+    return '0x' + seed.toString().repeat(64).slice(0, 64);
 }
-
-export type IntString = string;
 
 export interface Environment {
     readonly chainId: number;

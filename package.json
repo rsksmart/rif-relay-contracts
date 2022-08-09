@@ -32,19 +32,20 @@
     ]
   },
   "dependencies": {
-    "eth-sig-util": "2.5.2",
-    "ethereumjs-tx": "~2.1.2",
-    "ethereumjs-util": "~6.2.1",
     "@openzeppelin/contracts": "~3.2.0",
     "@truffle/contract": "4.2.23",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.6.0",
+    "eth-sig-util": "2.5.2",
+    "ethereumjs-tx": "~2.1.2",
+    "ethereumjs-util": "~6.2.1",
     "npmignore": "^0.3.0",
     "patch-package": "~6.4.6",
     "truffle-hdwallet-provider": "~1.0.17"
   },
   "devDependencies": {
     "@openeth/truffle-typings": "0.0.6",
+    "@openzeppelin/test-helpers": "^0.5.15",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.2.4",
     "@trufflesuite/web3-provider-engine": "^15.0.13-1",
