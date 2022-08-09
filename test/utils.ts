@@ -1,7 +1,7 @@
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 
-export function createBytes32FromNumber(n: number): string {
-    return '0x' + n.toString().repeat(64).slice(0, 64);
+export function generateBytes32(seed: number): string {
+    return '0x' + seed.toString().repeat(64).slice(0, 64);
 }
 
 export interface Environment {
