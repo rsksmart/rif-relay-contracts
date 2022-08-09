@@ -23,7 +23,7 @@ import {
 } from '../../dist';
 import { constants } from '../constants';
 import {
-    createBytes32FromNumber,
+    generateBytes32,
     getTestingEnvironment,
     containsEvent
 } from '../utils';
@@ -140,7 +140,7 @@ contract(
         let senderAddress: string;
         let customLogic: SuccessCustomLogicInstance;
         let smartWallet: CustomSmartWalletInstance;
-        const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+        const senderPrivateKey = toBuffer(generateBytes32(1));
 
         describe('Testing initialize and isInitialize methods and values for parameters', () => {
             beforeEach(
@@ -459,7 +459,7 @@ contract(
             let customLogic: SuccessCustomLogicInstance;
             let smartWallet: CustomSmartWalletInstance;
             let chainId: number;
-            const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+            const senderPrivateKey = toBuffer(generateBytes32(1));
             let recipientFunction: any;
             let recipient: TestForwarderTargetInstance;
             let relayData: Partial<RelayData>;
@@ -717,7 +717,7 @@ contract(
             let customLogic: SuccessCustomLogicInstance;
             let smartWallet: CustomSmartWalletInstance;
             let chainId: number;
-            const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+            const senderPrivateKey = toBuffer(generateBytes32(1));
             let recipientFunction: any;
             let recipient: TestForwarderTargetInstance;
             let relayData: Partial<RelayData>;
@@ -772,7 +772,7 @@ contract(
                     relayData
                 );
 
-                const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+                const senderPrivateKey = toBuffer(generateBytes32(1));
 
                 recipient = await TestForwarderTarget.new();
                 recipientFunction = recipient.contract.methods

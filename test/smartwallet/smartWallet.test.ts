@@ -21,7 +21,7 @@ import {
     RelayData
 } from '../../dist';
 import { constants } from '../constants';
-import { createBytes32FromNumber, getTestingEnvironment } from '../utils';
+import { generateBytes32, getTestingEnvironment } from '../utils';
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;
@@ -133,7 +133,7 @@ contract(
         let token: TestTokenInstance;
         let senderAddress: string;
         let smartWallet: SmartWalletInstance;
-        const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+        const senderPrivateKey = toBuffer(generateBytes32(1));
 
         describe('Testing initialize and isInitialize methods and values for parameters', () => {
             beforeEach(
@@ -418,7 +418,7 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
         let senderAddress: string;
         let smartWallet: SmartWalletInstance;
         let chainId: number;
-        const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+        const senderPrivateKey = toBuffer(generateBytes32(1));
         let recipientFunction: any;
         let recipient: TestForwarderTargetInstance;
         let relayData: Partial<RelayData>;
@@ -647,7 +647,7 @@ contract(
             let senderAddress: string;
             let smartWallet: SmartWalletInstance;
             let chainId: number;
-            const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+            const senderPrivateKey = toBuffer(generateBytes32(1));
             let recipientFunction: any;
             let recipient: TestForwarderTargetInstance;
             let relayData: Partial<RelayData>;
@@ -700,7 +700,7 @@ contract(
                     relayData
                 );
 
-                const senderPrivateKey = toBuffer(createBytes32FromNumber(1));
+                const senderPrivateKey = toBuffer(generateBytes32(1));
 
                 recipient = await TestForwarderTarget.new();
                 recipientFunction = recipient.contract.methods
