@@ -1,13 +1,18 @@
 import {
-    DeployVerifierInstance,
+    RelayVerifierInstance,
     TestTokenInstance,
     SmartWalletFactoryInstance,
     SmartWalletInstance
 } from '../../types/truffle-contracts';
-import { DeployRequest } from '../../';
-import { constants } from '../Constants';
+import { RelayRequest } from '../../';
+import { constants } from '../constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { generateBytes32, createSmartWalletFactory } from '../utils';
+import {
+    generateBytes32,
+    createSmartWalletFactory,
+    createSmartWallet,
+    getTestingEnvironment
+} from '../utils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -15,26 +20,26 @@ import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-//Constants and general values
 const TestToken = artifacts.require('TestToken');
 const SmartWallet = artifacts.require('SmartWallet');
-const DeployVerifier = artifacts.require('DeployVerifier');
+const RelayVerifier = artifacts.require('RelayVerifier');
+const TestRecipient = artifacts.require('TestRecipient');
 
 const gasPrice = '10';
 const senderNonce = '0';
 const tokensPaid = 1;
 
-contract('Testing Tokens - DeployVerifier contract', () => {
+contract('Testing Tokens - RelayVerifier contract', () => {
     let token: TestTokenInstance;
     let smartWallet: SmartWalletInstance;
     let factory: SmartWalletFactoryInstance;
-    let contractVerifier: DeployVerifierInstance;
+    let contractVerifier: RelayVerifierInstance;
     describe('Testing tokens acceptance', () => {
         beforeEach('', async () => {
             token = await TestToken.new();
             smartWallet = await SmartWallet.new();
             factory = await createSmartWalletFactory(smartWallet);
-            contractVerifier = await DeployVerifier.new(factory.address);
+            contractVerifier = await RelayVerifier.new(factory.address);
         });
         it('Should verify the contract accepts test tokens', async () => {
             await contractVerifier.acceptToken(token.address);
@@ -114,21 +119,26 @@ contract('Testing Tokens - DeployVerifier contract', () => {
 });
 
 contract(
-    'Testing verifyRelayedCall - DeployVerifier contract',
-    ([relayHub, relayWorker, verifierOwner]) => {
-        let deployRequestData: DeployRequest;
+    'Testing verifyRelayedCall - RelayVerifier contract',
+    ([relayHub, relayWorker]) => {
+        let relayRequestData: RelayRequest;
         let token: TestTokenInstance;
         let smartWallet: SmartWalletInstance;
+        let sw: SmartWalletInstance;
         let factory: SmartWalletFactoryInstance;
-        let contractVerifier: DeployVerifierInstance;
-
+        let contractVerifier: RelayVerifierInstance;
         let expectedAddress: string;
+
+        const senderPrivateKey = toBuffer(generateBytes32(1));
+        let senderAddress: string;
+
         describe('Testing call to verifyRelayedCall method', () => {
             const ownerPrivateKey = toBuffer(generateBytes32(1));
             let ownerAddress: string;
 
             const recoverer = constants.ZERO_ADDRESS;
             const index = '0';
+            const gasLimit = '1000000';
 
             beforeEach(
                 'Creating instances to be used by every test',
@@ -136,27 +146,36 @@ contract(
                     ownerAddress = bufferToHex(
                         privateToAddress(ownerPrivateKey)
                     ).toLowerCase();
+                    senderAddress = bufferToHex(
+                        privateToAddress(senderPrivateKey)
+                    ).toLowerCase();
+
+                    const env = await getTestingEnvironment();
+                    const chainId = env.chainId;
 
                     token = await TestToken.new();
                     smartWallet = await SmartWallet.new();
                     factory = await createSmartWalletFactory(smartWallet);
 
-                    contractVerifier = await DeployVerifier.new(
-                        factory.address,
-                        { from: verifierOwner }
+                    contractVerifier = await RelayVerifier.new(factory.address);
+                    sw = await createSmartWallet(
+                        relayHub,
+                        senderAddress,
+                        factory,
+                        senderPrivateKey,
+                        chainId
                     );
+                    const recipientContract = await TestRecipient.new();
 
-                    //Request Data
-                    deployRequestData = {
+                    relayRequestData = {
                         request: {
                             relayHub: relayHub,
-                            to: constants.ZERO_ADDRESS,
-                            data: '0x',
-                            from: ownerAddress,
+                            to: recipientContract.address,
+                            data: '0x00',
+                            from: senderAddress,
                             nonce: senderNonce,
                             value: '0',
-                            recoverer: recoverer,
-                            index: index,
+                            gas: gasLimit,
                             tokenContract: token.address,
                             tokenAmount: tokensPaid.toString(),
                             tokenGas: '50000'
@@ -164,12 +183,12 @@ contract(
                         relayData: {
                             gasPrice,
                             relayWorker,
-                            callForwarder: factory.address,
+                            callForwarder: sw.address,
                             callVerifier: contractVerifier.address
                         }
                     };
 
-                    // Minting tokens to the smart Wallet
+                    // Minting tokens to the smart wallet
                     expectedAddress = await factory.getSmartWalletAddress(
                         ownerAddress,
                         recoverer,
@@ -182,7 +201,7 @@ contract(
             it('Should fail on Token contract not allowed of preRelayCall', async () => {
                 await assert.isRejected(
                     contractVerifier.verifyRelayedCall(
-                        deployRequestData,
+                        relayRequestData,
                         '0x00',
                         { from: relayHub }
                     ),
@@ -192,18 +211,16 @@ contract(
 
             it('Should fail on Balance too low of preRelayCall', async () => {
                 //Changing the initial params so the smart wallet address will be different to force NO balance
-                deployRequestData.request.data = '0x01';
-                deployRequestData.request.tokenAmount = (
+                relayRequestData.request.data = '0x01';
+                relayRequestData.request.tokenAmount = (
                     tokensPaid + 100
                 ).toString();
 
-                await contractVerifier.acceptToken(token.address, {
-                    from: verifierOwner
-                });
+                await contractVerifier.acceptToken(token.address);
 
                 await assert.isRejected(
                     contractVerifier.verifyRelayedCall(
-                        deployRequestData,
+                        relayRequestData,
                         '0x00',
                         { from: relayHub }
                     ),
@@ -213,20 +230,14 @@ contract(
             });
 
             it('Should not fail on checks of preRelayCall', async () => {
-                await contractVerifier.acceptToken(token.address, {
-                    from: verifierOwner
-                });
+                await contractVerifier.acceptToken(token.address);
 
                 const rspSuccess = await contractVerifier.verifyRelayedCall(
-                    deployRequestData,
+                    relayRequestData,
                     '0x',
                     { from: relayHub }
                 );
                 assert.isEmpty(rspSuccess.logs, 'Call was NOT successful');
-                assert.isNotEmpty(
-                    rspSuccess.receipt,
-                    'Call was NOT successful'
-                );
             });
         });
     }

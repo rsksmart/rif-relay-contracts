@@ -1,14 +1,13 @@
 import {
-    CustomSmartWalletDeployVerifierInstance,
+    DeployVerifierInstance,
     TestTokenInstance,
-    CustomSmartWalletFactoryInstance,
-    CustomSmartWalletInstance
+    SmartWalletFactoryInstance,
+    SmartWalletInstance
 } from '../../types/truffle-contracts';
 import { DeployRequest } from '../../';
-import { constants } from '../Constants';
+import { constants } from '../constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { generateBytes32, createCustomSmartWalletFactory } from '../utils';
-import { soliditySha3Raw } from 'web3-utils';
+import { generateBytes32, createSmartWalletFactory } from '../utils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -16,30 +15,25 @@ import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-//Constants and general values
-const CustomSmartWalletDeployVerifier = artifacts.require(
-    'CustomSmartWalletDeployVerifier'
-);
 const TestToken = artifacts.require('TestToken');
-const CustomSmartWallet = artifacts.require('CustomSmartWallet');
+const SmartWallet = artifacts.require('SmartWallet');
+const DeployVerifier = artifacts.require('DeployVerifier');
 
 const gasPrice = '10';
 const senderNonce = '0';
 const tokensPaid = 1;
 
-contract('Testing Tokens - CustomSmartWalletDeployVerifier contract', () => {
+contract('Testing Tokens - DeployVerifier contract', () => {
     let token: TestTokenInstance;
-    let smarWallet: CustomSmartWalletInstance;
-    let factory: CustomSmartWalletFactoryInstance;
-    let contractVerifier: CustomSmartWalletDeployVerifierInstance;
+    let smartWallet: SmartWalletInstance;
+    let factory: SmartWalletFactoryInstance;
+    let contractVerifier: DeployVerifierInstance;
     describe('Testing tokens acceptance', () => {
         beforeEach('', async () => {
             token = await TestToken.new();
-            smarWallet = await CustomSmartWallet.new();
-            factory = await createCustomSmartWalletFactory(smarWallet);
-            contractVerifier = await CustomSmartWalletDeployVerifier.new(
-                factory.address
-            );
+            smartWallet = await SmartWallet.new();
+            factory = await createSmartWalletFactory(smartWallet);
+            contractVerifier = await DeployVerifier.new(factory.address);
         });
         it('Should verify the contract accepts test tokens', async () => {
             await contractVerifier.acceptToken(token.address);
@@ -119,13 +113,13 @@ contract('Testing Tokens - CustomSmartWalletDeployVerifier contract', () => {
 });
 
 contract(
-    'Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract',
-    ([relayHub, relayWorker]) => {
+    'Testing verifyRelayedCall - DeployVerifier contract',
+    ([relayHub, relayWorker, verifierOwner]) => {
         let deployRequestData: DeployRequest;
         let token: TestTokenInstance;
-        let smartWallet: CustomSmartWalletInstance;
-        let factory: CustomSmartWalletFactoryInstance;
-        let contractVerifier: CustomSmartWalletDeployVerifierInstance;
+        let smartWallet: SmartWalletInstance;
+        let factory: SmartWalletFactoryInstance;
+        let contractVerifier: DeployVerifierInstance;
 
         let expectedAddress: string;
         describe('Testing call to verifyRelayedCall method', () => {
@@ -143,13 +137,13 @@ contract(
                     ).toLowerCase();
 
                     token = await TestToken.new();
-                    smartWallet = await CustomSmartWallet.new();
-                    factory = await createCustomSmartWalletFactory(smartWallet);
+                    smartWallet = await SmartWallet.new();
+                    factory = await createSmartWalletFactory(smartWallet);
 
-                    contractVerifier =
-                        await CustomSmartWalletDeployVerifier.new(
-                            factory.address
-                        );
+                    contractVerifier = await DeployVerifier.new(
+                        factory.address,
+                        { from: verifierOwner }
+                    );
 
                     //Request Data
                     deployRequestData = {
@@ -174,12 +168,10 @@ contract(
                         }
                     };
 
-                    // Minting tokens to the smartWallet
+                    // Minting tokens to the smart Wallet
                     expectedAddress = await factory.getSmartWalletAddress(
                         ownerAddress,
                         recoverer,
-                        constants.ZERO_ADDRESS,
-                        soliditySha3Raw({ t: 'bytes', v: '0x' }),
                         index
                     );
                     await token.mint(tokensPaid + 5, expectedAddress);
@@ -204,7 +196,9 @@ contract(
                     tokensPaid + 100
                 ).toString();
 
-                await contractVerifier.acceptToken(token.address);
+                await contractVerifier.acceptToken(token.address, {
+                    from: verifierOwner
+                });
 
                 await assert.isRejected(
                     contractVerifier.verifyRelayedCall(
@@ -218,7 +212,9 @@ contract(
             });
 
             it('Should not fail on checks of preRelayCall', async () => {
-                await contractVerifier.acceptToken(token.address);
+                await contractVerifier.acceptToken(token.address, {
+                    from: verifierOwner
+                });
 
                 const rspSuccess = await contractVerifier.verifyRelayedCall(
                     deployRequestData,
