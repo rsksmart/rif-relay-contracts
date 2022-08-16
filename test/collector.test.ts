@@ -49,7 +49,12 @@ async function prepareAll(wallets: Wallet[]) {
     ] = wallets;
 
     const testToken = await deployContract(owner, TestToken);
-    const partners = await buildPartners([partner1, partner2, partner3, partner4]);
+    const partners = await buildPartners([
+        partner1,
+        partner2,
+        partner3,
+        partner4
+    ]);
 
     const collector = await deployContract(owner, Collector, [
         owner.address,
@@ -136,7 +141,9 @@ describe('Collector', () => {
         it('Should update shares and partners when token balance is zero', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
-            const newPartners = await buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(
+                new MockProvider().getWallets()
+            );
 
             await collector.updateShares(newPartners);
             expect('updateShares').to.be.calledOnContract(collector);
@@ -149,7 +156,9 @@ describe('Collector', () => {
 
             await testToken.mint(3, collector.address);
 
-            const newPartners = await buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(
+                new MockProvider().getWallets()
+            );
 
             await collector.updateShares(newPartners);
             expect('updateShares').to.be.calledOnContract(collector);
@@ -161,7 +170,9 @@ describe('Collector', () => {
             );
 
             await testToken.mint(100, collector.address);
-            const newPartners = await buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(
+                new MockProvider().getWallets()
+            );
 
             await expect(
                 collector.updateShares(newPartners)
@@ -175,8 +186,10 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
-            const newPartners = await buildPartners(new MockProvider().getWallets());
-            
+            const newPartners = await buildPartners(
+                new MockProvider().getWallets()
+            );
+
             await expect(
                 externallyLinkedCollector.updateShares(newPartners)
             ).to.be.revertedWith('Only owner can call this');
@@ -355,7 +368,7 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
-            
+
             await expect(
                 externallyLinkedCollector.transferOwnership(utilWallet.address)
             ).to.be.revertedWith('Only owner can call this');
