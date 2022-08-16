@@ -49,7 +49,7 @@ async function prepareAll(wallets: Wallet[]) {
     ] = wallets;
 
     const testToken = await deployContract(owner, TestToken);
-    const partners = buildPartners([partner1, partner2, partner3, partner4]);
+    const partners = await buildPartners([partner1, partner2, partner3, partner4]);
 
     const collector = await deployContract(owner, Collector, [
         owner.address,
@@ -78,7 +78,7 @@ describe('Collector', () => {
 
             const testToken = await deployContract(owner, TestToken);
 
-            const partners = buildPartners(
+            const partners = await buildPartners(
                 [partner1, partner2, partner3, partner4],
                 [25, 25, 25, 26]
             );
@@ -90,7 +90,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('total shares must add up to 100%');
+            ).to.be.revertedWith('Total shares must add up to 100%');
         });
 
         it('Should not let deploy if the array of partners is empty', async () => {
@@ -107,7 +107,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('total shares must add up to 100%');
+            ).to.be.revertedWith('Total shares must add up to 100%');
         });
 
         it('Should not let deploy if a share is 0', async () => {
@@ -116,7 +116,7 @@ describe('Collector', () => {
 
             const testToken = await deployContract(owner, TestToken);
 
-            const partners = buildPartners(
+            const partners = await buildPartners(
                 [partner1, partner2, partner3, partner4],
                 [30, 30, 0, 40]
             );
@@ -136,7 +136,7 @@ describe('Collector', () => {
         it('Should update shares and partners when token balance is zero', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
-            const newPartners = buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(new MockProvider().getWallets());
 
             await collector.updateShares(newPartners);
             expect('updateShares').to.be.calledOnContract(collector);
@@ -149,7 +149,7 @@ describe('Collector', () => {
 
             await testToken.mint(3, collector.address);
 
-            const newPartners = buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(new MockProvider().getWallets());
 
             await collector.updateShares(newPartners);
             expect('updateShares').to.be.calledOnContract(collector);
@@ -159,11 +159,13 @@ describe('Collector', () => {
             const { collector, testToken } = await loadFixture(
                 prepareAllFixture
             );
+
             await testToken.mint(100, collector.address);
-            const newPartners = buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(new MockProvider().getWallets());
+
             await expect(
                 collector.updateShares(newPartners)
-            ).to.be.revertedWith('there is balance to share');
+            ).to.be.revertedWith('There is balance to share');
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
@@ -173,31 +175,34 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
-            const newPartners = buildPartners(new MockProvider().getWallets());
+            const newPartners = await buildPartners(new MockProvider().getWallets());
+            
             await expect(
                 externallyLinkedCollector.updateShares(newPartners)
-            ).to.be.revertedWith('only owner can call this');
+            ).to.be.revertedWith('Only owner can call this');
         });
 
         it('Should fail if the shares does not sum up to 100', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
-            const newPartners = buildPartners(
+            const newPartners = await buildPartners(
                 new MockProvider().getWallets(),
                 [25, 25, 24, 25]
             );
+
             await expect(
                 collector.updateShares(newPartners)
-            ).to.be.revertedWith('total shares must add up to 100%');
+            ).to.be.revertedWith('Total shares must add up to 100%');
         });
 
         it('Should fail if a share is 0', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
-            const newPartners = buildPartners(
+            const newPartners = await buildPartners(
                 new MockProvider().getWallets(),
                 [50, 25, 25, 0]
             );
+
             await expect(
                 collector.updateShares(newPartners)
             ).to.be.revertedWith('0 is not a valid share');
@@ -229,6 +234,7 @@ describe('Collector', () => {
             const { collector, testToken, remainder } = await loadFixture(
                 prepareAllFixture
             );
+
             await testToken.mint(3, collector.address);
 
             await collector.updateRemainderAddress(remainder.address);
@@ -241,11 +247,12 @@ describe('Collector', () => {
             const { collector, testToken, utilWallet } = await loadFixture(
                 prepareAllFixture
             );
+
             await testToken.mint(4, collector.address);
 
             await expect(
                 collector.updateRemainderAddress(utilWallet.address)
-            ).to.be.revertedWith('there is balance to share');
+            ).to.be.revertedWith('There is balance to share');
         });
 
         it('Should fail when is called by an address that is not the owner', async () => {
@@ -255,17 +262,19 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
+
             await expect(
                 externallyLinkedCollector.updateRemainderAddress(
                     utilWallet.address
                 )
-            ).to.be.revertedWith('only owner can call this');
+            ).to.be.revertedWith('Only owner can call this');
         });
     });
 
     describe('getBalance', () => {
         it('Should return 0 if the contract has been just deployed', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
+
             await expect(await collector.getBalance()).to.equal(0);
         });
 
@@ -273,6 +282,7 @@ describe('Collector', () => {
             const { collector, testToken } = await loadFixture(
                 prepareAllFixture
             );
+
             await testToken.mint(100, collector.address);
             await expect(await collector.getBalance()).to.equal(100);
         });
@@ -306,9 +316,10 @@ describe('Collector', () => {
             const { collector, testToken } = await loadFixture(
                 prepareAllFixture
             );
+
             await testToken.mint(1, collector.address);
             await expect(collector.withdraw()).to.be.revertedWith(
-                'no revenue to share'
+                'Not enough balance to split'
             );
         });
 
@@ -319,9 +330,10 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
+
             await expect(
                 externallyLinkedCollector.withdraw()
-            ).to.be.revertedWith('only owner can call this');
+            ).to.be.revertedWith('Only owner can call this');
         });
     });
 
@@ -343,9 +355,10 @@ describe('Collector', () => {
             const externallyLinkedCollector = collector.connect(
                 utilWallet.address
             );
+            
             await expect(
                 externallyLinkedCollector.transferOwnership(utilWallet.address)
-            ).to.be.revertedWith('only owner can call this');
+            ).to.be.revertedWith('Only owner can call this');
         });
     });
 });
