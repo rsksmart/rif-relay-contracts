@@ -33,7 +33,7 @@ library Eip712Library {
             /* solhint-disable-next-line avoid-low-level-calls */
             (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
                 abi.encodeWithSelector(IForwarder.execute.selector,
-                hashRelayData(relayRequest.relayData), relayRequest.request, signature
+                hashRelayData(relayRequest.relayData), relayRequest.request, relayRequest.relayData.feesReceiver, signature
                 ));
             
             if ( forwarderSuccess ) {
@@ -45,9 +45,9 @@ library Eip712Library {
 
     function hashRelayData(EnvelopingTypes.RelayData calldata req) internal pure returns (bytes32) {
         return keccak256(abi.encode(
-                keccak256("RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"), // RELAYDATA_TYPEHASH
+                keccak256("RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"), // RELAYDATA_TYPEHASH
                 req.gasPrice,
-                req.relayWorker,
+                req.feesReceiver,
                 req.callForwarder,
                 req.callVerifier
             ));

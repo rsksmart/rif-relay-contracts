@@ -72,7 +72,6 @@ contract TestUtil {
             req.request.from,
             req.request.to,
             req.request.tokenContract,
-            req.request.collectorContract,
             req.request.value,
             req.request.gas,
             req.request.nonce,

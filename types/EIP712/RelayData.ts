@@ -1,6 +1,6 @@
 export default interface RelayData {
     gasPrice: string;
-    relayWorker: string;
+    feesReceiver: string;
     callForwarder: string;
     callVerifier: string;
 }

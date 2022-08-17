@@ -167,11 +167,6 @@ contract RelayHub is IRelayHub {
         address manager = address(uint160(uint256(managerEntry >> 4)));
 
         require(msg.sender == tx.origin, "RelayWorker cannot be a contract");
-        require(
-            msg.sender == deployRequest.relayData.relayWorker,
-            "Not a right worker"
-        );
-
         requireManagerStaked(manager);
 
         require(
@@ -200,10 +195,6 @@ contract RelayHub is IRelayHub {
         (signature);
 
         require(msg.sender == tx.origin, "RelayWorker cannot be a contract");
-        require(
-            msg.sender == relayRequest.relayData.relayWorker,
-            "Not a right worker"
-        );
         require(
             relayRequest.relayData.gasPrice <= tx.gasprice,
             "Invalid gas price"
