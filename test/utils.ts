@@ -291,7 +291,9 @@ export async function getGaslessAccount(): Promise<AccountKeypair> {
     const randomWallet = ethWallet.generate();
     const gaslessAccount = {
         privateKey: randomWallet.getPrivateKey(),
-        address: bufferToHex(privateToAddress(randomWallet.getPrivateKey())).toLowerCase()
+        address: bufferToHex(
+            privateToAddress(randomWallet.getPrivateKey())
+        ).toLowerCase()
     };
 
     return gaslessAccount;
