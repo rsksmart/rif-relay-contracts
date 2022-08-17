@@ -823,7 +823,7 @@ contract(
                 );
             });
 
-            it('Should fail a relayResquest if the manager is unstaked', async () => {
+            it('Should fail a relayRequest if the manager is unstaked', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -916,7 +916,7 @@ contract(
                 );
             });
 
-            it('Should fail a relayResquest if the manager is in the last block of delay blocks', async () => {
+            it('Should fail a relayRequest if the manager is in the last block of delay blocks', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner

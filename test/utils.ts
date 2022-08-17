@@ -19,6 +19,7 @@ import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
 import ethWallet from 'ethereumjs-wallet';
 import { AccountKeypair } from '@rsksmart/rif-relay-client';
+import { HttpProvider } from 'web3-core';
 
 const RelayHub = artifacts.require('RelayHub');
 
@@ -268,25 +269,29 @@ export async function deployHub(
     penalizer: string = constants.ZERO_ADDRESS,
     configOverride: Partial<RelayHubConfiguration> = {}
 ): Promise<RelayHubInstance> {
-    const relayHubConfiguration: RelayHubConfiguration = {
+    const {
+        maxWorkerCount,
+        minimumEntryDepositValue,
+        minimumUnstakeDelay,
+        minimumStake
+    } = {
         ...defaultEnvironment.relayHubConfiguration,
         ...configOverride
     };
     return await RelayHub.new(
         penalizer,
-        relayHubConfiguration.maxWorkerCount,
-        relayHubConfiguration.minimumEntryDepositValue,
-        relayHubConfiguration.minimumUnstakeDelay,
-        relayHubConfiguration.minimumStake
+        maxWorkerCount,
+        minimumEntryDepositValue,
+        minimumUnstakeDelay,
+        minimumStake
     );
 }
 
 export async function getGaslessAccount(): Promise<AccountKeypair> {
-    const a = ethWallet.generate();
+    const randomWallet = ethWallet.generate();
     const gaslessAccount = {
-        privateKey: a.getPrivateKey(),
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        address: bufferToHex(privateToAddress(a.getPrivateKey())).toLowerCase()
+        privateKey: randomWallet.getPrivateKey(),
+        address: bufferToHex(privateToAddress(randomWallet.getPrivateKey())).toLowerCase()
     };
 
     return gaslessAccount;
@@ -300,8 +305,7 @@ export async function evmMineMany(count: number): Promise<void> {
 
 export async function evmMine(): Promise<any> {
     return await new Promise((resolve, reject) => {
-        // @ts-ignore
-        web3.currentProvider.send(
+        (web3.currentProvider as HttpProvider).send(
             {
                 jsonrpc: '2.0',
                 method: 'evm_mine',
@@ -317,19 +321,6 @@ export async function evmMine(): Promise<any> {
             }
         );
     });
-}
-
-// encode revert reason string as a byte error returned by revert(stirng)
-export function encodeRevertReason(reason: string): PrefixedHexString {
-    return web3.eth.abi.encodeFunctionCall(
-        {
-            name: 'Error',
-            type: 'function',
-            inputs: [{ name: 'error', type: 'string' }]
-        },
-        [reason]
-    );
-    // return '0x08c379a0' + removeHexPrefix(web3.eth.abi.encodeParameter('string', reason))
 }
 
 export function stripHex(s: string): string {
