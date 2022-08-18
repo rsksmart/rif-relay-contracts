@@ -223,21 +223,20 @@ describe('Collector', () => {
             expect('updateRemainderAddress').to.be.calledOnContract(collector);
         });
 
-        it('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
+        it.only('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
             const { collector, testToken, remainder, utilWallet } =
                 await loadFixture(prepareAllFixture);
             await testToken.mint(2, collector.address);
 
             await collector.updateRemainderAddress(utilWallet.address);
+
             expect(
                 'updateRemainderAddress',
                 'updateRemainderAddress() was never called'
             ).to.be.calledOnContract(collector);
             expect(
-                await testToken.balanceOf(
-                    collector.address,
-                    'The balance of the collector is wrong'
-                )
+                await testToken.balanceOf(collector.address),
+                'The balance of the collector is wrong'
             ).to.equal(0);
             expect(
                 await testToken.balanceOf(remainder.address),
