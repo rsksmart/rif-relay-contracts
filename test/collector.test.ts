@@ -12,24 +12,23 @@ import { Wallet } from '@ethersproject/wallet';
 use(solidity);
 
 const PARTNER_SHARES = [20, 30, 40, 10];
-const NUMBER_OF_PARTNERS = 4;
+const NUMBER_OF_PARTNERS = PARTNER_SHARES.length;
 
 type Partner = {
     beneficiary: string;
     share: number;
 };
 
-async function buildPartners(parternWallets: Wallet[], shares?: number[]) {
-    const partners: Partner[] = [];
-
-    for (let i = 0; i < NUMBER_OF_PARTNERS; i++) {
-        partners.push({
-            beneficiary: await parternWallets[i].getAddress(),
-            share: shares?.[i] ?? PARTNER_SHARES[i]
-        });
-    }
-
-    return partners;
+async function buildPartners(partnerWallets: Wallet[], shares: number[]) {
+    return await Promise.all(
+        partnerWallets.map(async (wallet, index) => {
+            const partner: Partner = {
+                beneficiary: await wallet.getAddress(),
+                share: shares[index]
+            };
+            return partner;
+        })
+    );
 }
 
 async function prepareAllFixture(wallets: Wallet[]) {
@@ -44,12 +43,10 @@ async function prepareAllFixture(wallets: Wallet[]) {
     ] = wallets;
 
     const testToken = await deployContract(owner, TestToken);
-    const partners = await buildPartners([
-        partner1,
-        partner2,
-        partner3,
-        partner4
-    ]);
+    const partners = await buildPartners(
+        [partner1, partner2, partner3, partner4],
+        PARTNER_SHARES
+    );
 
     const collector = await deployContract(owner, Collector, [
         owner.address,
@@ -131,9 +128,9 @@ describe('Collector', () => {
     describe('updateShares', () => {
         it('Should update shares and partners when token balance is zero', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
-
             const newPartners = await buildPartners(
-                new MockProvider().getWallets()
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
+                PARTNER_SHARES
             );
 
             await collector.updateShares(newPartners);
@@ -148,7 +145,8 @@ describe('Collector', () => {
             await testToken.mint(3, collector.address);
 
             const newPartners = await buildPartners(
-                new MockProvider().getWallets()
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
+                PARTNER_SHARES
             );
 
             await collector.updateShares(newPartners);
@@ -162,7 +160,8 @@ describe('Collector', () => {
 
             await testToken.mint(100, collector.address);
             const newPartners = await buildPartners(
-                new MockProvider().getWallets()
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
+                PARTNER_SHARES
             );
 
             await expect(
@@ -178,7 +177,8 @@ describe('Collector', () => {
                 utilWallet.address
             );
             const newPartners = await buildPartners(
-                new MockProvider().getWallets()
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
+                PARTNER_SHARES
             );
 
             await expect(
@@ -190,7 +190,7 @@ describe('Collector', () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
             const newPartners = await buildPartners(
-                new MockProvider().getWallets(),
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
                 [25, 25, 24, 25]
             );
 
@@ -203,7 +203,7 @@ describe('Collector', () => {
             const { collector } = await loadFixture(prepareAllFixture);
 
             const newPartners = await buildPartners(
-                new MockProvider().getWallets(),
+                new MockProvider().getWallets().slice(0, NUMBER_OF_PARTNERS),
                 [50, 25, 25, 0]
             );
 
@@ -223,7 +223,7 @@ describe('Collector', () => {
             expect('updateRemainderAddress').to.be.calledOnContract(collector);
         });
 
-        it.only('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
+        it('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
             const { collector, testToken, remainder, utilWallet } =
                 await loadFixture(prepareAllFixture);
             await testToken.mint(2, collector.address);
@@ -231,16 +231,12 @@ describe('Collector', () => {
             await collector.updateRemainderAddress(utilWallet.address);
 
             expect(
-                'updateRemainderAddress',
-                'updateRemainderAddress() was never called'
-            ).to.be.calledOnContract(collector);
-            expect(
                 await testToken.balanceOf(collector.address),
-                'The balance of the collector is wrong'
+                'The balance of collector'
             ).to.equal(0);
             expect(
                 await testToken.balanceOf(remainder.address),
-                'The remainder balance is wrong'
+                'The balance of remainder'
             ).to.equal(2);
         });
 
@@ -252,17 +248,14 @@ describe('Collector', () => {
             await testToken.mint(3, collector.address);
 
             await collector.updateRemainderAddress(remainder.address);
-            expect(
-                'updateRemainderAddress',
-                'updateRemainder() was never called'
-            ).to.be.calledOnContract(collector);
+
             expect(
                 await testToken.balanceOf(collector.address),
-                'The balance of the collector is wrong'
+                'The balance of collector'
             ).to.equal(0);
             expect(
                 await testToken.balanceOf(remainder.address),
-                'The balance of the remainder is wrong'
+                'The balance of remainder'
             ).to.equal(3);
         });
 
@@ -322,27 +315,27 @@ describe('Collector', () => {
             await collector.withdraw();
             expect(
                 await testToken.balanceOf(partners[0].beneficiary),
-                'The balance for the first partner is wrong'
+                'Partner[0] balance'
             ).to.equal(PARTNER_SHARES[0]);
 
             expect(
                 await testToken.balanceOf(partners[1].beneficiary),
-                'The balance for the second partner is wrong'
+                'Partner[1] balance'
             ).to.equal(PARTNER_SHARES[1]);
 
             expect(
                 await testToken.balanceOf(partners[2].beneficiary),
-                'The balance for the third partner is wrong'
+                'Partner[2] balance'
             ).to.equal(PARTNER_SHARES[2]);
 
             expect(
                 await testToken.balanceOf(partners[3].beneficiary),
-                'The balance for the fourth partner is wrong'
+                'Partner[3] balance'
             ).to.equal(PARTNER_SHARES[3]);
 
             expect(
                 await testToken.balanceOf(collector.address),
-                'The balance for the collector was not updated'
+                'Balance of the collector'
             ).to.equal(0);
         });
 
