@@ -11,33 +11,28 @@ import { Wallet } from '@ethersproject/wallet';
 
 use(solidity);
 
-const FIRST_PARTNER_SHARE = 20;
-const SECOND_PARTNER_SHARE = 30;
-const THIRD_PARTNER_SHARE = 40;
-const FOURTH_PARTNER_SHARE = 10;
+const PARTNER_SHARES = [20, 30, 40, 10];
+const NUMBER_OF_PARTNERS = 4;
 
-const buildPartners = (partners: Wallet[], shares?: number[]) => {
-    return [
-        {
-            beneficiary: partners[0].getAddress(),
-            share: shares?.[0] ?? FIRST_PARTNER_SHARE
-        },
-        {
-            beneficiary: partners[1].getAddress(),
-            share: shares?.[1] ?? SECOND_PARTNER_SHARE
-        },
-        {
-            beneficiary: partners[2].getAddress(),
-            share: shares?.[2] ?? THIRD_PARTNER_SHARE
-        },
-        {
-            beneficiary: partners[3].getAddress(),
-            share: shares?.[3] ?? FOURTH_PARTNER_SHARE
-        }
-    ];
+type Partner = {
+    beneficiary: string;
+    share: number;
 };
 
-async function prepareAll(wallets: Wallet[]) {
+async function buildPartners(parternWallets: Wallet[], shares?: number[]) {
+    const partners: Partner[] = [];
+
+    for (let i = 0; i < NUMBER_OF_PARTNERS; i++) {
+        partners.push({
+            beneficiary: await parternWallets[i].getAddress(),
+            share: shares?.[i] ?? PARTNER_SHARES[i]
+        });
+    }
+
+    return partners;
+}
+
+async function prepareAllFixture(wallets: Wallet[]) {
     const [
         owner,
         remainder,
@@ -67,10 +62,6 @@ async function prepareAll(wallets: Wallet[]) {
 }
 
 describe('Collector', () => {
-    async function prepareAllFixture(wallets: Wallet[]) {
-        return prepareAll(wallets);
-    }
-
     describe('deployment', () => {
         it('Should deploy with owner, token and revenue partners', async () => {
             const { collector } = await loadFixture(prepareAllFixture);
@@ -238,9 +229,20 @@ describe('Collector', () => {
             await testToken.mint(2, collector.address);
 
             await collector.updateRemainderAddress(utilWallet.address);
-            expect('updateRemainderAddress').to.be.calledOnContract(collector);
-            expect(await testToken.balanceOf(collector.address)).to.equal(0);
-            expect(await testToken.balanceOf(remainder.address)).to.equal(2);
+            expect(
+                'updateRemainderAddress',
+                'updateRemainderAddress() was never called'
+            ).to.be.calledOnContract(collector);
+            expect(
+                await testToken.balanceOf(
+                    collector.address,
+                    'The balance of the collector is wrong'
+                )
+            ).to.equal(0);
+            expect(
+                await testToken.balanceOf(remainder.address),
+                'The remainder balance is wrong'
+            ).to.equal(2);
         });
 
         it('Should withdraw when the remainders address sent is the same as the current one', async () => {
@@ -251,9 +253,18 @@ describe('Collector', () => {
             await testToken.mint(3, collector.address);
 
             await collector.updateRemainderAddress(remainder.address);
-            expect('updateRemainderAddress').to.be.calledOnContract(collector);
-            expect(await testToken.balanceOf(collector.address)).to.equal(0);
-            expect(await testToken.balanceOf(remainder.address)).to.equal(3);
+            expect(
+                'updateRemainderAddress',
+                'updateRemainder() was never called'
+            ).to.be.calledOnContract(collector);
+            expect(
+                await testToken.balanceOf(collector.address),
+                'The balance of the collector is wrong'
+            ).to.equal(0);
+            expect(
+                await testToken.balanceOf(remainder.address),
+                'The balance of the remainder is wrong'
+            ).to.equal(3);
         });
 
         it('Should fail when token balance > = remainder', async () => {
@@ -297,6 +308,7 @@ describe('Collector', () => {
             );
 
             await testToken.mint(100, collector.address);
+
             await expect(await collector.getBalance()).to.equal(100);
         });
     });
@@ -309,20 +321,30 @@ describe('Collector', () => {
 
             await testToken.mint(100, collector.address);
             await collector.withdraw();
+            expect(
+                await testToken.balanceOf(partners[0].beneficiary),
+                'The balance for the first partner is wrong'
+            ).to.equal(PARTNER_SHARES[0]);
 
-            expect(await testToken.balanceOf(partners[0].beneficiary)).to.equal(
-                FIRST_PARTNER_SHARE
-            );
-            expect(await testToken.balanceOf(partners[1].beneficiary)).to.equal(
-                SECOND_PARTNER_SHARE
-            );
-            expect(await testToken.balanceOf(partners[2].beneficiary)).to.equal(
-                THIRD_PARTNER_SHARE
-            );
-            expect(await testToken.balanceOf(partners[3].beneficiary)).to.equal(
-                FOURTH_PARTNER_SHARE
-            );
-            expect(await testToken.balanceOf(collector.address)).to.equal(0);
+            expect(
+                await testToken.balanceOf(partners[1].beneficiary),
+                'The balance for the second partner is wrong'
+            ).to.equal(PARTNER_SHARES[1]);
+
+            expect(
+                await testToken.balanceOf(partners[2].beneficiary),
+                'The balance for the third partner is wrong'
+            ).to.equal(PARTNER_SHARES[2]);
+
+            expect(
+                await testToken.balanceOf(partners[3].beneficiary),
+                'The balance for the fourth partner is wrong'
+            ).to.equal(PARTNER_SHARES[3]);
+
+            expect(
+                await testToken.balanceOf(collector.address),
+                'The balance for the collector was not updated'
+            ).to.equal(0);
         });
 
         it('Should fail when no revenue to share', async () => {
