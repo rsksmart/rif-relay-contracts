@@ -1,0 +1,7 @@
+"use strict";
+exports.__esModule = true;
+exports.constants = void 0;
+exports.constants = {
+    ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
+    ZERO_BYTES32: '0x0000000000000000000000000000000000000000000000000000000000000000'
+};

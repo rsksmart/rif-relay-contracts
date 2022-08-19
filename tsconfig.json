@@ -3,7 +3,8 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "target": "es2017",
+    "importHelpers": true,
+    "target": "ESNext",
     "module": "commonjs",
     "strict": true,
     "strictNullChecks": false,
@@ -16,11 +17,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "typeRoots": [
-      "./node_modules/@rsksmart/rif-relay-contracts/types",
-      "./node_modules/@types",
-      "./types"
-    ],
     "types": [
       "node",
       "truffle-contracts",
@@ -34,13 +30,13 @@
     "sourceMap": true
   },
   "include": [
-    "**/*.ts",
-    "src/**/*"
+    "**/*.ts"
   ],
   "exclude": [
     "dist",
     "node_modules",
-    "build",
-    "test"
+    "cache",
+    "artifacts",
+    "build"
   ]
 }

@@ -10,7 +10,6 @@ tsconfig.json
 node_modules
 .solhint.json
 .solhintignore
-webpack.config.js
 build
 dist
 types/truffle-contracts
