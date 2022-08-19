@@ -4,7 +4,8 @@ import {
     IForwarderInstance,
     SmartWalletInstance,
     CustomSmartWalletFactoryInstance,
-    CustomSmartWalletInstance
+    CustomSmartWalletInstance,
+    RelayHubInstance
 } from '../types/truffle-contracts';
 import {
     DeployRequest,
@@ -13,9 +14,14 @@ import {
 } from '../';
 import { constants } from './constants';
 import sigUtil, { EIP712TypedData, TypedDataUtils } from 'eth-sig-util';
-import { bufferToHex } from 'ethereumjs-util';
+import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
+import ethWallet from 'ethereumjs-wallet';
+import { AccountKeypair } from '@rsksmart/rif-relay-client';
+import { HttpProvider } from 'web3-core';
+
+const RelayHub = artifacts.require('RelayHub');
 
 export function generateBytes32(seed: number): string {
     return '0x' + seed.toString().repeat(64).slice(0, 64);
@@ -257,4 +263,68 @@ export function getLocalEip712Signature(
 ): PrefixedHexString {
     // @ts-ignore
     return sigUtil.signTypedData_v4(privateKey, { data: typedRequestData });
+}
+
+export async function deployHub(
+    penalizer: string = constants.ZERO_ADDRESS,
+    configOverride: Partial<RelayHubConfiguration> = {}
+): Promise<RelayHubInstance> {
+    const {
+        maxWorkerCount,
+        minimumEntryDepositValue,
+        minimumUnstakeDelay,
+        minimumStake
+    } = {
+        ...defaultEnvironment.relayHubConfiguration,
+        ...configOverride
+    };
+    return await RelayHub.new(
+        penalizer,
+        maxWorkerCount,
+        minimumEntryDepositValue,
+        minimumUnstakeDelay,
+        minimumStake
+    );
+}
+
+export async function getGaslessAccount(): Promise<AccountKeypair> {
+    const randomWallet = ethWallet.generate();
+    const gaslessAccount = {
+        privateKey: randomWallet.getPrivateKey(),
+        address: bufferToHex(
+            privateToAddress(randomWallet.getPrivateKey())
+        ).toLowerCase()
+    };
+
+    return gaslessAccount;
+}
+
+export async function evmMineMany(count: number): Promise<void> {
+    for (let i = 0; i < count; i++) {
+        await evmMine();
+    }
+}
+
+export async function evmMine(): Promise<any> {
+    return await new Promise((resolve, reject) => {
+        (web3.currentProvider as HttpProvider).send(
+            {
+                jsonrpc: '2.0',
+                method: 'evm_mine',
+                params: [],
+                id: Date.now()
+            },
+            (e: Error | null, r: any) => {
+                if (e) {
+                    reject(e);
+                } else {
+                    resolve(r);
+                }
+            }
+        );
+    });
+}
+
+export function stripHex(s: string): string {
+    return s.slice(2, s.length);
 }
