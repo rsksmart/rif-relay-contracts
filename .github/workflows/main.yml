@@ -13,14 +13,11 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Check Linter bugs for Typescript
-              run: npm run lint:ts
-
-            - name: See bugs on solidity
-              run: npm run lint:sol
-
             - name: Check Codestyles errors
-              run: npm run prettier
+              run: npm run ci:format
+
+            - name: Check Linter bugs for Typescript
+              run: npm run ci:lint
 
     contract-test:
         runs-on: ubuntu-latest
@@ -42,7 +39,5 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            # Performs a clean installation of all dependencies in the `package.json` file
-            # For more information, see https://docs.npmjs.com/cli/ci.html
-            - name: Run contract test
-              run: npm run test
+            - name: Run tests
+              run: npm run ci:test

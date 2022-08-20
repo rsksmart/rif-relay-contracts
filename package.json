@@ -4,23 +4,49 @@
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
   "private": false,
-  "scripts": {
-    "dist": "scripts/dist",
-    "deploy": "scripts/deploy",
-    "compile": "scripts/compile",
-    "prepack": "npmignore --auto",
-    "prepare": "scripts/prepare",
-    "prepublishOnly": "scripts/prepublishOnly",
-    "lint:ts": "eslint . --ext .ts",
-    "lint:ts:fix": "eslint . --ext .ts --fix",
-    "lint:sol": "solhint -f unix \"contracts/**/*.sol\" --max-warnings 0",
-    "allowTokens": "./scripts/allowTokens",
-    "allowedTokens": "./scripts/allowedTokens",
-    "prettier:fix": "npx prettier --write --ignore-unknown .",
-    "prettier": "npx prettier --check .",
-    "test": "truffle test --network regtest"
-  },
-  "author": "Relaying Services Team",
+  "author": "RIF Payments Team",
+  "contributors": [
+    {
+      "name": "Raúl Laprida",
+      "url": "https://github.com/raullaprida"
+    },
+    {
+      "name": "Marcelo Ortelli",
+      "url": "https://github.com/mortelli"
+    },
+    {
+      "name": "Julian Len",
+      "url": "https://github.com/julianlen"
+    },
+    {
+      "name": "Wilson Hamilton",
+      "url": "https://github.com/wilsoniovlabs"
+    },
+    {
+      "name": "Antonio Morrone",
+      "url": "https://github.com/antomor"
+    },
+    {
+      "name": "Jose Jimenez",
+      "url": "https://github.com/jd-iov"
+    },
+    {
+      "name": "David Ugbero",
+      "url": "https://github.com/david-iov"
+    },
+    {
+      "name": "Juraj Piar",
+      "url": "https://github.com/jurajpiar"
+    },
+    {
+      "name": "Andrés Quijano",
+      "url": "https://github.com/AndresQuijano"
+    },
+    {
+      "name": "Francisco Tobar",
+      "url": "https://github.com/franciscotobar"
+    }
+  ],
   "license": "MIT",
   "publishConfig": {
     "ignore": [
@@ -31,57 +57,58 @@
       ".github"
     ]
   },
-  "dependencies": {
-    "@openzeppelin/contracts": "~3.2.0",
-    "@truffle/contract": "4.2.23",
-    "@truffle/contract-schema": "3.3.2",
-    "@truffle/hdwallet-provider": "1.6.0",
-    "eth-sig-util": "2.5.2",
-    "ethereumjs-tx": "~2.1.2",
-    "ethereumjs-util": "~6.2.1",
-    "npmignore": "^0.3.0",
-    "patch-package": "~6.4.6",
-    "truffle-hdwallet-provider": "~1.0.17"
-  },
   "devDependencies": {
-    "@openeth/truffle-typings": "0.0.6",
-    "@openzeppelin/test-helpers": "^0.5.15",
-    "@rsksmart/rif-relay-client": "^0.0.2-alpha.7",
-    "@truffle/contract-schema": "3.3.2",
-    "@truffle/hdwallet-provider": "1.2.4",
-    "@trufflesuite/web3-provider-engine": "^15.0.13-1",
-    "@types/chai": "^4.2.12",
-    "@types/chai-as-promised": "^7.1.3",
-    "@types/eth-sig-util": "2.1.0",
-    "@types/node": "~13.13.4",
-    "@typescript-eslint/eslint-plugin": "~4.28.3",
-    "@typescript-eslint/parser": "~4.28.3",
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "chai": "^4.3.6",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@defi-wonderland/smock": "^2.2.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
     "chai-as-promised": "^7.1.1",
-    "eslint": "~7.30.0",
-    "eth-gas-reporter": "^0.2.25",
-    "ethereumjs-wallet": "^1.0.2",
-    "husky": "~6.0.0",
-    "prettier": "^2.3.0",
-    "solhint": "3.0.0",
-    "truffle": "~5.1.52",
-    "truffle-assertions": "^0.9.2",
-    "ts-loader": "~9.2.3",
-    "ts-node": "8.6.2",
-    "typechain": "1.0.5",
-    "typechain-target-trufflehotfix": "0.0.4-alpha",
-    "typescript": "~4.3.5",
-    "web3": "1.2.6",
-    "web3-core": "1.2.6",
-    "web3-core-helpers": "1.2.6",
-    "web3-eth": "1.2.6",
-    "web3-eth-abi": "1.3.0",
-    "web3-eth-contract": "1.2.6",
-    "web3-utils": "1.2.6",
-    "webpack": "~5.43.0",
-    "webpack-cli": "~4.7.2",
-    "webpack-node-externals": "~3.0.0",
-    "yargs": "~17.1.1"
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-docgen": "^1.3.0",
+    "hardhat-watcher": "^2.5.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.24",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "test": "REPORT_GAS=true hardhat test",
+    "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed && hardhat clean",
+    "compile": "npm run clean && hardhat compile --force",
+    "tdd": "npm run compile && REPORT_GAS=true hardhat watch tdd",
+    "docs": "hardhat docgen",
+    "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
+    "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
+    "ci:test": "npm run compile && npm run test",
+    "lint:sol": "solhint --fix 'contracts/**/*.sol'",
+    "lint:ts": "eslint test --ext .ts --fix",
+    "lint": "npm run lint:sol && npm run lint:ts",
+    "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
+    "format:ts": "prettier -c -w --no-editorconfig **/*.ts",
+    "format": "npm run format:sol && npm run format:ts",
+    "postinstall": "npm run compile",
+    "deploy": "hardhat run scripts/deploy.ts --network",
+    "deploy-configure": "hardhat run scripts/deploy.ts --network"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.0",
+    "ethers": "^5.7.0",
+    "hardhat": "^2.10.2"
+  },
+  "peerDependencies": {
+    "ethers": "^5.7.0",
+    "hardhat": "^2.10.2"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache --fix"
   }
 }
