@@ -1,8 +1,32 @@
 {
-  "extends": "solhint:recommended",
-  "rules": {
-    "compiler-version": ["error","^0.6.12"],
-    "mark-callable-contracts": ["off"],
-    "reason-string": ["warn",{"maxLength":32}]
-  }
+    "extends": "solhint:recommended",
+    "plugins": [
+        "prettier"
+    ],
+    "rules": {
+        "prettier/prettier": "error",
+        "compiler-version": [
+            "error",
+            "^0.6.12"
+        ],
+        "avoid-suicide": "error",
+        "avoid-sha3": "warn",
+        "private-vars-leading-underscore": [
+            "error",
+            {
+                "strict": false
+            }
+        ],
+        "code-complexity": [
+            "error",
+            7
+        ],
+        "constructor-syntax": "error",
+        "func-visibility": [
+            "warn",
+            {
+                "ignoreConstructors": true
+            }
+        ]
+    }
 }

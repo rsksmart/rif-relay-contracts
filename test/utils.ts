@@ -1,330 +1,335 @@
-import RelayHubConfiguration from '../types/RelayHubConfiguration';
-import {
-    SmartWalletFactoryInstance,
-    IForwarderInstance,
-    SmartWalletInstance,
-    CustomSmartWalletFactoryInstance,
-    CustomSmartWalletInstance,
-    RelayHubInstance
-} from '../types/truffle-contracts';
-import {
-    DeployRequest,
-    DeployRequestDataType,
-    TypedDeployRequestData
-} from '../';
-import { constants } from './constants';
-import sigUtil, { EIP712TypedData, TypedDataUtils } from 'eth-sig-util';
-import { bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { soliditySha3Raw } from 'web3-utils';
-import { PrefixedHexString } from 'ethereumjs-tx';
-import ethWallet from 'ethereumjs-wallet';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
-import { HttpProvider } from 'web3-core';
+import { BigNumber } from 'ethers';
 
-const RelayHub = artifacts.require('RelayHub');
+export const RBTCDecimals = 18;
+export const oneRBTC = BigNumber.from(1).pow(RBTCDecimals);
 
-export function generateBytes32(seed: number): string {
-    return '0x' + seed.toString().repeat(64).slice(0, 64);
-}
+// import RelayHubConfiguration from '../types/RelayHubConfiguration';
+// import {
+//   SmartWalletFactoryInstance,
+//   IForwarderInstance,
+//   SmartWalletInstance,
+//   CustomSmartWalletFactoryInstance,
+//   CustomSmartWalletInstance,
+//   RelayHubInstance,
+// } from '../types/truffle-contracts';
+// import {
+//   DeployRequest,
+//   DeployRequestDataType,
+//   TypedDeployRequestData,
+// } from '../';
+// import { constants } from './constants';
+// import sigUtil, { EIP712TypedData, TypedDataUtils } from 'eth-sig-util';
+// import { bufferToHex, privateToAddress } from 'ethereumjs-util';
+// import { soliditySha3Raw } from 'web3-utils';
+// import { PrefixedHexString } from 'ethereumjs-tx';
+// import ethWallet from 'ethereumjs-wallet';
+// import { AccountKeypair } from '@rsksmart/rif-relay-client';
+// import { HttpProvider } from 'web3-core';
 
-export interface Environment {
-    readonly chainId: number;
-    readonly mintxgascost: number;
-    readonly relayHubConfiguration: RelayHubConfiguration;
-}
+// const RelayHub = artifacts.require('RelayHub');
 
-const defaultRelayHubConfiguration: RelayHubConfiguration = {
-    maxWorkerCount: 10,
-    minimumStake: (1e18).toString(),
-    minimumUnstakeDelay: 1000,
-    minimumEntryDepositValue: (1e18).toString()
-};
+// export function generateBytes32(seed: number): string {
+//   return '0x' + seed.toString().repeat(64).slice(0, 64);
+// }
 
-export const environments: { [key: string]: Environment } = {
-    istanbul: {
-        chainId: 1,
-        relayHubConfiguration: defaultRelayHubConfiguration,
-        mintxgascost: 21000
-    },
-    constantinople: {
-        chainId: 1,
-        relayHubConfiguration: defaultRelayHubConfiguration,
-        mintxgascost: 21000
-    },
-    rsk: {
-        chainId: 33,
-        relayHubConfiguration: defaultRelayHubConfiguration,
-        mintxgascost: 21000
-    }
-};
+// export interface Environment {
+//   readonly chainId: number;
+//   readonly mintxgascost: number;
+//   readonly relayHubConfiguration: RelayHubConfiguration;
+// }
 
-export const defaultEnvironment = environments.rsk;
+// const defaultRelayHubConfiguration: RelayHubConfiguration = {
+//   maxWorkerCount: 10,
+//   minimumStake: (1e18).toString(),
+//   minimumUnstakeDelay: 1000,
+//   minimumEntryDepositValue: (1e18).toString(),
+// };
 
-export async function getTestingEnvironment(): Promise<Environment> {
-    const networkId = await web3.eth.net.getId();
-    return networkId === 33 ? environments.rsk : defaultEnvironment;
-}
+// export const environments: { [key: string]: Environment } = {
+//   istanbul: {
+//     chainId: 1,
+//     relayHubConfiguration: defaultRelayHubConfiguration,
+//     mintxgascost: 21000,
+//   },
+//   constantinople: {
+//     chainId: 1,
+//     relayHubConfiguration: defaultRelayHubConfiguration,
+//     mintxgascost: 21000,
+//   },
+//   rsk: {
+//     chainId: 33,
+//     relayHubConfiguration: defaultRelayHubConfiguration,
+//     mintxgascost: 21000,
+//   },
+// };
 
-/**
- * Get a Map from topics to their corresponding event's ABI
- */
-function getEventsAbiByTopic(abi: any): Map<string, any> {
-    const eventsAbiByTopic = new Map<string, any>();
-    // @ts-ignore
-    const logicEvents = abi.filter((elem) => elem.type === 'event');
-    // @ts-ignore
-    logicEvents.forEach((abi) => {
-        eventsAbiByTopic.set(abi.signature, abi);
-    });
-    return eventsAbiByTopic;
-}
+// export const defaultEnvironment = environments.rsk;
 
-/**
- * Decodes events which satisfies an ABI specification
- */
-export function containsEvent(
-    abi: any,
-    rawLogs: any,
-    eventName: string
-): boolean {
-    const eventsAbiByTopic = getEventsAbiByTopic(abi);
-    // @ts-ignore
-    return rawLogs.some(
-        (log) =>
-            eventsAbiByTopic.has(log.topics[0]) &&
-            eventsAbiByTopic.get(log.topics[0]).name === eventName
-    );
-}
+// export async function getTestingEnvironment(): Promise<Environment> {
+//   const networkId = await web3.eth.net.getId();
+//   return networkId === 33 ? environments.rsk : defaultEnvironment;
+// }
 
-export async function createSmartWalletFactory(
-    template: IForwarderInstance
-): Promise<SmartWalletFactoryInstance> {
-    const SmartWalletFactory = artifacts.require('SmartWalletFactory');
-    return await SmartWalletFactory.new(template.address);
-}
+// /**
+//  * Get a Map from topics to their corresponding event's ABI
+//  */
+// function getEventsAbiByTopic(abi: any): Map<string, any> {
+//   const eventsAbiByTopic = new Map<string, any>();
+//   // @ts-ignore
+//   const logicEvents = abi.filter((elem) => elem.type === 'event');
+//   // @ts-ignore
+//   logicEvents.forEach((abi) => {
+//     eventsAbiByTopic.set(abi.signature, abi);
+//   });
+//   return eventsAbiByTopic;
+// }
 
-export async function createSmartWallet(
-    relayHub: string,
-    ownerEOA: string,
-    factory: SmartWalletFactoryInstance,
-    privKey: Buffer,
-    chainId = -1,
-    tokenContract: string = constants.ZERO_ADDRESS,
-    tokenAmount = '0',
-    tokenGas = '0',
-    recoverer: string = constants.ZERO_ADDRESS
-): Promise<SmartWalletInstance> {
-    chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
+// /**
+//  * Decodes events which satisfies an ABI specification
+//  */
+// export function containsEvent(
+//   abi: any,
+//   rawLogs: any,
+//   eventName: string
+// ): boolean {
+//   const eventsAbiByTopic = getEventsAbiByTopic(abi);
+//   // @ts-ignore
+//   return rawLogs.some(
+//     (log) =>
+//       eventsAbiByTopic.has(log.topics[0]) &&
+//       eventsAbiByTopic.get(log.topics[0]).name === eventName
+//   );
+// }
 
-    const rReq: DeployRequest = {
-        request: {
-            relayHub: relayHub,
-            from: ownerEOA,
-            to: constants.ZERO_ADDRESS,
-            value: '0',
-            nonce: '0',
-            data: '0x',
-            tokenContract: tokenContract,
-            tokenAmount: tokenAmount,
-            tokenGas: tokenGas,
-            recoverer: recoverer,
-            index: '0'
-        },
-        relayData: {
-            gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
-            callForwarder: constants.ZERO_ADDRESS,
-            callVerifier: constants.ZERO_ADDRESS
-        }
-    };
+// export async function createSmartWalletFactory(
+//   template: IForwarderInstance
+// ): Promise<SmartWalletFactoryInstance> {
+//   const SmartWalletFactory = artifacts.require('SmartWalletFactory');
+//   return await SmartWalletFactory.new(template.address);
+// }
 
-    const createdataToSign = new TypedDeployRequestData(
-        chainId,
-        factory.address,
-        rReq
-    );
+// export async function createSmartWallet(
+//   relayHub: string,
+//   ownerEOA: string,
+//   factory: SmartWalletFactoryInstance,
+//   privKey: Buffer,
+//   chainId = -1,
+//   tokenContract: string = constants.ZERO_ADDRESS,
+//   tokenAmount = '0',
+//   tokenGas = '0',
+//   recoverer: string = constants.ZERO_ADDRESS
+// ): Promise<SmartWalletInstance> {
+//   chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
 
-    const deploySignature = getLocalEip712Signature(createdataToSign, privKey);
-    const encoded = TypedDataUtils.encodeData(
-        createdataToSign.primaryType,
-        createdataToSign.message,
-        createdataToSign.types
-    );
-    const countParams = DeployRequestDataType.length;
-    const suffixData = bufferToHex(encoded.slice((1 + countParams) * 32)); // keccak256 of suffixData
-    const txResult = await factory.relayedUserSmartWalletCreation(
-        rReq.request,
-        suffixData,
-        deploySignature
-    );
+//   const rReq: DeployRequest = {
+//     request: {
+//       relayHub: relayHub,
+//       from: ownerEOA,
+//       to: constants.ZERO_ADDRESS,
+//       value: '0',
+//       nonce: '0',
+//       data: '0x',
+//       tokenContract: tokenContract,
+//       tokenAmount: tokenAmount,
+//       tokenGas: tokenGas,
+//       recoverer: recoverer,
+//       index: '0',
+//     },
+//     relayData: {
+//       gasPrice: '10',
+//       relayWorker: constants.ZERO_ADDRESS,
+//       callForwarder: constants.ZERO_ADDRESS,
+//       callVerifier: constants.ZERO_ADDRESS,
+//     },
+//   };
 
-    console.log(
-        'Cost of deploying SmartWallet: ',
-        txResult.receipt.cumulativeGasUsed
-    );
-    const swAddress = await factory.getSmartWalletAddress(
-        ownerEOA,
-        recoverer,
-        '0'
-    );
+//   const createdataToSign = new TypedDeployRequestData(
+//     chainId,
+//     factory.address,
+//     rReq
+//   );
 
-    const SmartWallet = artifacts.require('SmartWallet');
-    const sw: SmartWalletInstance = await SmartWallet.at(swAddress);
+//   const deploySignature = getLocalEip712Signature(createdataToSign, privKey);
+//   const encoded = TypedDataUtils.encodeData(
+//     createdataToSign.primaryType,
+//     createdataToSign.message,
+//     createdataToSign.types
+//   );
+//   const countParams = DeployRequestDataType.length;
+//   const suffixData = bufferToHex(encoded.slice((1 + countParams) * 32)); // keccak256 of suffixData
+//   const txResult = await factory.relayedUserSmartWalletCreation(
+//     rReq.request,
+//     suffixData,
+//     deploySignature
+//   );
 
-    return sw;
-}
+//   console.log(
+//     'Cost of deploying SmartWallet: ',
+//     txResult.receipt.cumulativeGasUsed
+//   );
+//   const swAddress = await factory.getSmartWalletAddress(
+//     ownerEOA,
+//     recoverer,
+//     '0'
+//   );
 
-export async function createCustomSmartWalletFactory(
-    template: IForwarderInstance
-): Promise<CustomSmartWalletFactoryInstance> {
-    const CustomSmartWalletFactory = artifacts.require(
-        'CustomSmartWalletFactory'
-    );
-    return await CustomSmartWalletFactory.new(template.address);
-}
+//   const SmartWallet = artifacts.require('SmartWallet');
+//   const sw: SmartWalletInstance = await SmartWallet.at(swAddress);
 
-export async function createCustomSmartWallet(
-    relayHub: string,
-    ownerEOA: string,
-    factory: CustomSmartWalletFactoryInstance,
-    privKey: Buffer,
-    chainId = -1,
-    logicAddr: string = constants.ZERO_ADDRESS,
-    initParams = '0x',
-    tokenContract: string = constants.ZERO_ADDRESS,
-    tokenAmount = '0',
-    tokenGas = '0',
-    recoverer: string = constants.ZERO_ADDRESS
-): Promise<CustomSmartWalletInstance> {
-    chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
-    const rReq: DeployRequest = {
-        request: {
-            relayHub: relayHub,
-            from: ownerEOA,
-            to: logicAddr,
-            value: '0',
-            nonce: '0',
-            data: initParams,
-            tokenContract: tokenContract,
-            tokenAmount: tokenAmount,
-            tokenGas: tokenGas,
-            recoverer: recoverer,
-            index: '0'
-        },
-        relayData: {
-            gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
-            callForwarder: constants.ZERO_ADDRESS,
-            callVerifier: constants.ZERO_ADDRESS
-        }
-    };
+//   return sw;
+// }
 
-    const createdataToSign = new TypedDeployRequestData(
-        chainId,
-        factory.address,
-        rReq
-    );
+// export async function createCustomSmartWalletFactory(
+//   template: IForwarderInstance
+// ): Promise<CustomSmartWalletFactoryInstance> {
+//   const CustomSmartWalletFactory = artifacts.require(
+//     'CustomSmartWalletFactory'
+//   );
+//   return await CustomSmartWalletFactory.new(template.address);
+// }
 
-    const deploySignature = getLocalEip712Signature(createdataToSign, privKey);
-    const encoded = TypedDataUtils.encodeData(
-        createdataToSign.primaryType,
-        createdataToSign.message,
-        createdataToSign.types
-    );
-    const countParams = DeployRequestDataType.length;
-    const suffixData = bufferToHex(encoded.slice((1 + countParams) * 32)); // keccak256 of suffixData
-    const txResult = await factory.relayedUserSmartWalletCreation(
-        rReq.request,
-        suffixData,
-        deploySignature,
-        { from: relayHub }
-    );
-    console.log(
-        'Cost of deploying SmartWallet: ',
-        txResult.receipt.cumulativeGasUsed
-    );
-    const swAddress = await factory.getSmartWalletAddress(
-        ownerEOA,
-        recoverer,
-        logicAddr,
-        soliditySha3Raw({ t: 'bytes', v: initParams }),
-        '0'
-    );
+// export async function createCustomSmartWallet(
+//   relayHub: string,
+//   ownerEOA: string,
+//   factory: CustomSmartWalletFactoryInstance,
+//   privKey: Buffer,
+//   chainId = -1,
+//   logicAddr: string = constants.ZERO_ADDRESS,
+//   initParams = '0x',
+//   tokenContract: string = constants.ZERO_ADDRESS,
+//   tokenAmount = '0',
+//   tokenGas = '0',
+//   recoverer: string = constants.ZERO_ADDRESS
+// ): Promise<CustomSmartWalletInstance> {
+//   chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
+//   const rReq: DeployRequest = {
+//     request: {
+//       relayHub: relayHub,
+//       from: ownerEOA,
+//       to: logicAddr,
+//       value: '0',
+//       nonce: '0',
+//       data: initParams,
+//       tokenContract: tokenContract,
+//       tokenAmount: tokenAmount,
+//       tokenGas: tokenGas,
+//       recoverer: recoverer,
+//       index: '0',
+//     },
+//     relayData: {
+//       gasPrice: '10',
+//       relayWorker: constants.ZERO_ADDRESS,
+//       callForwarder: constants.ZERO_ADDRESS,
+//       callVerifier: constants.ZERO_ADDRESS,
+//     },
+//   };
 
-    const CustomSmartWallet = artifacts.require('CustomSmartWallet');
-    const sw: CustomSmartWalletInstance = await CustomSmartWallet.at(swAddress);
+//   const createdataToSign = new TypedDeployRequestData(
+//     chainId,
+//     factory.address,
+//     rReq
+//   );
 
-    return sw;
-}
+//   const deploySignature = getLocalEip712Signature(createdataToSign, privKey);
+//   const encoded = TypedDataUtils.encodeData(
+//     createdataToSign.primaryType,
+//     createdataToSign.message,
+//     createdataToSign.types
+//   );
+//   const countParams = DeployRequestDataType.length;
+//   const suffixData = bufferToHex(encoded.slice((1 + countParams) * 32)); // keccak256 of suffixData
+//   const txResult = await factory.relayedUserSmartWalletCreation(
+//     rReq.request,
+//     suffixData,
+//     deploySignature,
+//     { from: relayHub }
+//   );
+//   console.log(
+//     'Cost of deploying SmartWallet: ',
+//     txResult.receipt.cumulativeGasUsed
+//   );
+//   const swAddress = await factory.getSmartWalletAddress(
+//     ownerEOA,
+//     recoverer,
+//     logicAddr,
+//     soliditySha3Raw({ t: 'bytes', v: initParams }),
+//     '0'
+//   );
 
-export function getLocalEip712Signature(
-    typedRequestData: EIP712TypedData,
-    privateKey: Buffer
-): PrefixedHexString {
-    // @ts-ignore
-    return sigUtil.signTypedData_v4(privateKey, { data: typedRequestData });
-}
+//   const CustomSmartWallet = artifacts.require('CustomSmartWallet');
+//   const sw: CustomSmartWalletInstance = await CustomSmartWallet.at(swAddress);
 
-export async function deployHub(
-    penalizer: string = constants.ZERO_ADDRESS,
-    configOverride: Partial<RelayHubConfiguration> = {}
-): Promise<RelayHubInstance> {
-    const {
-        maxWorkerCount,
-        minimumEntryDepositValue,
-        minimumUnstakeDelay,
-        minimumStake
-    } = {
-        ...defaultEnvironment.relayHubConfiguration,
-        ...configOverride
-    };
-    return await RelayHub.new(
-        penalizer,
-        maxWorkerCount,
-        minimumEntryDepositValue,
-        minimumUnstakeDelay,
-        minimumStake
-    );
-}
+//   return sw;
+// }
 
-export async function getGaslessAccount(): Promise<AccountKeypair> {
-    const randomWallet = ethWallet.generate();
-    const gaslessAccount = {
-        privateKey: randomWallet.getPrivateKey(),
-        address: bufferToHex(
-            privateToAddress(randomWallet.getPrivateKey())
-        ).toLowerCase()
-    };
+// export function getLocalEip712Signature(
+//   typedRequestData: EIP712TypedData,
+//   privateKey: Buffer
+// ): PrefixedHexString {
+//   // @ts-ignore
+//   return sigUtil.signTypedData_v4(privateKey, { data: typedRequestData });
+// }
 
-    return gaslessAccount;
-}
+// export async function deployHub(
+//   penalizer: string = constants.ZERO_ADDRESS,
+//   configOverride: Partial<RelayHubConfiguration> = {}
+// ): Promise<RelayHubInstance> {
+//   const {
+//     maxWorkerCount,
+//     minimumEntryDepositValue,
+//     minimumUnstakeDelay,
+//     minimumStake,
+//   } = {
+//     ...defaultEnvironment.relayHubConfiguration,
+//     ...configOverride,
+//   };
+//   return await RelayHub.new(
+//     penalizer,
+//     maxWorkerCount,
+//     minimumEntryDepositValue,
+//     minimumUnstakeDelay,
+//     minimumStake
+//   );
+// }
 
-export async function evmMineMany(count: number): Promise<void> {
-    for (let i = 0; i < count; i++) {
-        await evmMine();
-    }
-}
+// export async function getGaslessAccount(): Promise<AccountKeypair> {
+//   const randomWallet = ethWallet.generate();
+//   const gaslessAccount = {
+//     privateKey: randomWallet.getPrivateKey(),
+//     address: bufferToHex(
+//       privateToAddress(randomWallet.getPrivateKey())
+//     ).toLowerCase(),
+//   };
 
-export async function evmMine(): Promise<any> {
-    return await new Promise((resolve, reject) => {
-        (web3.currentProvider as HttpProvider).send(
-            {
-                jsonrpc: '2.0',
-                method: 'evm_mine',
-                params: [],
-                id: Date.now()
-            },
-            (e: Error | null, r: any) => {
-                if (e) {
-                    reject(e);
-                } else {
-                    resolve(r);
-                }
-            }
-        );
-    });
-}
+//   return gaslessAccount;
+// }
 
-export function stripHex(s: string): string {
-    return s.slice(2, s.length);
-}
+// export async function evmMineMany(count: number): Promise<void> {
+//   for (let i = 0; i < count; i++) {
+//     await evmMine();
+//   }
+// }
+
+// export async function evmMine(): Promise<any> {
+//   return await new Promise((resolve, reject) => {
+//     (web3.currentProvider as HttpProvider).send(
+//       {
+//         jsonrpc: '2.0',
+//         method: 'evm_mine',
+//         params: [],
+//         id: Date.now(),
+//       },
+//       (e: Error | null, r: any) => {
+//         if (e) {
+//           reject(e);
+//         } else {
+//           resolve(r);
+//         }
+//       }
+//     );
+//   });
+// }
+
+// export function stripHex(s: string): string {
+//   return s.slice(2, s.length);
+// }

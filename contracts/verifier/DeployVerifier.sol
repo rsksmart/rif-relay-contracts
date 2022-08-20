@@ -15,16 +15,21 @@ import "../interfaces/EnvelopingTypes.sol";
  * A Verifier to be used on deploys.
  */
 contract DeployVerifier is IDeployVerifier, ITokenHandler, Ownable {
-
-    address private factory;
-    mapping (address => bool) public tokens;
+    address private _factory;
+    mapping(address => bool) public tokens;
     address[] public acceptedTokens;
 
     constructor(address walletFactory) public {
-        factory = walletFactory;
+        _factory = walletFactory;
     }
 
-    function versionVerifier() external override virtual view returns (string memory){
+    function versionVerifier()
+        external
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         return "rif.enveloping.token.iverifier@2.0.1";
     }
 
@@ -32,28 +37,43 @@ contract DeployVerifier is IDeployVerifier, ITokenHandler, Ownable {
     function verifyRelayedCall(
         EnvelopingTypes.DeployRequest calldata relayRequest,
         bytes calldata signature
-    )
-    external 
-    override 
-    virtual
-    returns (bytes memory context) 
-    {
-        require(tokens[relayRequest.request.tokenContract], "Token contract not allowed");
-        require(relayRequest.relayData.callForwarder == factory, "Invalid factory");
+    ) external virtual override returns (bytes memory context) {
+        require(
+            tokens[relayRequest.request.tokenContract],
+            "Token contract not allowed"
+        );
+        require(
+            relayRequest.relayData.callForwarder == _factory,
+            "Invalid factory"
+        );
 
-        address contractAddr = SmartWalletFactory(relayRequest.relayData.callForwarder)
-            .getSmartWalletAddress(
-            relayRequest.request.from, 
-            relayRequest.request.recoverer, 
-            relayRequest.request.index);
+        address contractAddr = SmartWalletFactory(
+            relayRequest.relayData.callForwarder
+        ).getSmartWalletAddress(
+                relayRequest.request.from,
+                relayRequest.request.recoverer,
+                relayRequest.request.index
+            );
 
         require(!_isContract(contractAddr), "Address already created!");
 
-        if(relayRequest.request.tokenContract != address(0)){
-            require(relayRequest.request.tokenAmount <= IERC20(relayRequest.request.tokenContract).balanceOf(contractAddr), "balance too low");
+        if (relayRequest.request.tokenContract != address(0)) {
+            require(
+                relayRequest.request.tokenAmount <=
+                    IERC20(relayRequest.request.tokenContract).balanceOf(
+                        contractAddr
+                    ),
+                "balance too low"
+            );
         }
 
-        return (abi.encode(contractAddr, relayRequest.request.tokenAmount, relayRequest.request.tokenContract));
+        return (
+            abi.encode(
+                contractAddr,
+                relayRequest.request.tokenAmount,
+                relayRequest.request.tokenContract
+            )
+        );
     }
 
     function acceptToken(address token) external onlyOwner {
@@ -63,11 +83,16 @@ contract DeployVerifier is IDeployVerifier, ITokenHandler, Ownable {
         acceptedTokens.push(token);
     }
 
-    function getAcceptedTokens() external override view returns (address[] memory){
+    function getAcceptedTokens()
+        external
+        view
+        override
+        returns (address[] memory)
+    {
         return acceptedTokens;
     }
 
-    function acceptsToken(address token) external override view returns (bool){
+    function acceptsToken(address token) external view override returns (bool) {
         return tokens[token];
     }
 
@@ -76,7 +101,7 @@ contract DeployVerifier is IDeployVerifier, ITokenHandler, Ownable {
      * Should NOT be used in a contructor, it fails
      * See: https://stackoverflow.com/a/54056854
      */
-    function _isContract(address _addr) internal view returns (bool){
+    function _isContract(address _addr) internal view returns (bool) {
         uint32 size;
         assembly {
             size := extcodesize(_addr)
