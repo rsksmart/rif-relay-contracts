@@ -3,19 +3,20 @@ import { oneRBTC } from '../utils';
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { expect } from 'chai';
+import chai, { expect, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ethers } from 'hardhat';
 import { Penalizer } from 'typechain-types/contracts/Penalizer';
 import { RelayHub } from 'typechain-types/contracts/RelayHub';
 import { createContractDeployer } from './utils';
+import { mine } from '@nomicfoundation/hardhat-network-helpers';
+import { BigNumber } from 'ethers';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-describe('RelayHub Contract', () => {
+describe('RelayHub Contract', function() {
   let deployRelayHubContract: ReturnType<typeof createContractDeployer>;
-  let relayOwner: SignerWithAddress, relayOwnerAddr: string;
   let relayManager: SignerWithAddress, relayManagerAddr: string;
   let relayWorker: SignerWithAddress, relayWorkerAddr: string;
   let otherUsers: SignerWithAddress[];
@@ -23,10 +24,9 @@ describe('RelayHub Contract', () => {
   let fakePenalizer: FakeContract<Penalizer>;
   let mockRelayHub: MockContract<RelayHub>;
 
-  beforeEach(async () => {
-    [relayOwner, relayManager, relayWorker, ...otherUsers] =
+  beforeEach(async function() {
+    [, relayManager, relayWorker, ...otherUsers] =
       await ethers.getSigners();
-    relayOwnerAddr = relayOwner.address;
     relayManagerAddr = relayManager.address;
     relayWorkerAddr = relayWorker.address;
 
@@ -35,13 +35,13 @@ describe('RelayHub Contract', () => {
     deployRelayHubContract = createContractDeployer(fakePenalizer.address);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     mockRelayHub = undefined as unknown as MockContract<RelayHub>;
   });
 
-  describe('constructor', () => {
-    it('should require maxWorkerCount > 0', async () => {
-      const promiseOfRevert = deployRelayHubContract([, '0']);
+  describe('constructor', function() {
+    it('should require maxWorkerCount > 0', async function() {
+      const promiseOfRevert = deployRelayHubContract([undefined, '0']);
 
       await expect(promiseOfRevert).to.have.revertedWith(
         'invalid hub init params'
@@ -54,8 +54,12 @@ describe('RelayHub Contract', () => {
       );
     });
 
-    it('should require minimumEntryDepositValue > 0', async () => {
-      const promiseOfRevert = deployRelayHubContract([, , '0']);
+    it('should require minimumEntryDepositValue > 0', async function() {
+      const promiseOfRevert = deployRelayHubContract([
+        undefined,
+        undefined,
+        '0',
+      ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
         'invalid hub init params'
@@ -68,8 +72,13 @@ describe('RelayHub Contract', () => {
       );
     });
 
-    it('should require minimumUnstakeDelay > 0', async () => {
-      const promiseOfRevert = deployRelayHubContract([, , , '0']);
+    it('should require minimumUnstakeDelay > 0', async function() {
+      const promiseOfRevert = deployRelayHubContract([
+        undefined,
+        undefined,
+        undefined,
+        '0',
+      ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
         'invalid hub init params'
@@ -82,8 +91,14 @@ describe('RelayHub Contract', () => {
       );
     });
 
-    it('should require minimumStake > 0', async () => {
-      const promiseOfRevert = deployRelayHubContract([, , , , '0']);
+    it('should require minimumStake > 0', async function() {
+      const promiseOfRevert = deployRelayHubContract([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        '0',
+      ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
         'invalid hub init params'
@@ -97,13 +112,13 @@ describe('RelayHub Contract', () => {
     });
   });
 
-  describe('', () => {
-    beforeEach(async () => {
+  describe('', function() {
+    beforeEach(async function() {
       mockRelayHub = await deployRelayHubContract();
     });
 
     describe('addRelayWorkers', function () {
-      it('should register relay worker', async () => {
+      it('should register relay worker', async function() {
         await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
           value: oneRBTC,
         });
@@ -128,7 +143,7 @@ describe('RelayHub Contract', () => {
 
       it('should register an array of workers', async function () {
         const expectedWorkerCount = 55;
-        mockRelayHub.setVariable('maxWorkerCount', expectedWorkerCount);
+        await mockRelayHub.setVariable('maxWorkerCount', expectedWorkerCount);
 
         await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
           value: oneRBTC.mul(expectedWorkerCount),
@@ -163,13 +178,13 @@ describe('RelayHub Contract', () => {
         );
       });
 
-      describe('with one worker', () => {
+      describe('with one worker', function() {
         const addWorker = (
           manager: SignerWithAddress,
           workerAddr = relayWorkerAddr
         ) => mockRelayHub.connect(manager).addRelayWorkers([workerAddr]);
 
-        beforeEach(async () => {
+        beforeEach(async function() {
           // Add stake to manager
           await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
             value: oneRBTC,
@@ -182,7 +197,7 @@ describe('RelayHub Contract', () => {
           await mockRelayHub.setVariable('maxWorkerCount', 2);
         });
 
-        it('shoud map the manager addr onto the worker addr', async () => {
+        it('shoud map the manager addr onto the worker addr', async function() {
           const expectedManagerAddr = relayManagerAddr;
           const actualManager = await mockRelayHub.workerToManager(
             relayWorkerAddr
@@ -195,7 +210,7 @@ describe('RelayHub Contract', () => {
           expect(actualManagerAddr).to.eq(expectedManagerAddr);
         });
 
-        it('should NOT register the same worker twice', async () => {
+        it('should NOT register the same worker twice', async function() {
           // Adding same worker for the same manager second time
           await expect(addWorker(relayManager)).to.be.revertedWith(
             'this worker has a manager'
@@ -220,7 +235,7 @@ describe('RelayHub Contract', () => {
 
         it('should fail when adding more workers than maxWorkerCount', async function () {
           const expectedWorkerCountLimit = 13;
-          mockRelayHub.setVariable('maxWorkerCount', expectedWorkerCountLimit);
+          await mockRelayHub.setVariable('maxWorkerCount', expectedWorkerCountLimit);
 
           await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
             value: oneRBTC.mul(expectedWorkerCountLimit),
@@ -238,8 +253,8 @@ describe('RelayHub Contract', () => {
       });
     });
 
-    describe('disableRelayWorkers', () => {
-      beforeEach(async () => {
+    describe('disableRelayWorkers', function() {
+      beforeEach(async function() {
         await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
           value: oneRBTC,
         });
@@ -267,7 +282,214 @@ describe('RelayHub Contract', () => {
       });
     });
 
-    describe('stakeForAddress', () => {});
+    describe('stakeForAddress', function() {
+      it('Should stake only from owner account', async function() {
+        await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
+          value: oneRBTC,
+        });
+
+        await assert.isRejected(
+          mockRelayHub
+            .connect(relayManager)
+            .stakeForAddress(relayManagerAddr, 1000, {
+              value: oneRBTC,
+            }),
+          'not owner',
+          'Stake was not made by the owner account'
+        );
+      });
+
+      it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async function() {
+        await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
+          value: oneRBTC,
+        });
+
+        await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr]);
+        await mockRelayHub.unlockStake(relayManagerAddr);
+
+        //Verifying stake is now unlocked
+        const stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
+        console.log('stakeInfo :', stakeInfo);
+        const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
+
+        assert.isTrue(isUnlocked, 'Stake is not unlocked');
+
+        //Moving blocks to be able to unstake
+        await mine(Number(stakeInfo.unstakeDelay));
+
+        const gasPrice = BigNumber.from('60000000');
+        await assert.isRejected(
+          mockRelayHub.withdrawStake(relayWorkerAddr, {
+            gasPrice,
+          }),
+          'not owner',
+          'Withdraw was made successfully'
+        );
+      });
+
+      // it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async () => {
+      //   await mockRelayHub.stakeForAddress(relayManager, 1000, {
+      //     value: oneRBTC,
+      //     from: relayOwner,
+      //   });
+
+      //   await mockRelayHub.addRelayWorkers([relayWorker], {
+      //     from: relayManager,
+      //   });
+      //   await mockRelayHub.unlockStake(relayManager, {
+      //     from: relayOwner,
+      //   });
+
+      //   //Verifying stake is now unlocked
+      //   let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+      //   const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
+      //   assert.isTrue(isUnlocked, 'Stake is not unlocked');
+
+      //   //Moving blocks to be able to unstake
+      //   await evmMineMany(Number(stakeInfo.unstakeDelay));
+
+      //   stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+      //   const stakeBalanceBefore = toBN(stakeInfo.stake);
+
+      //   const relayOwnerBalanceBefore = toBN(
+      //     await web3.eth.getBalance(relayOwner)
+      //   );
+
+      //   const gasPrice = toBN('60000000');
+      //   const txResponse = await mockRelayHub.withdrawStake(relayManager, {
+      //     from: relayOwner,
+      //     gasPrice,
+      //   });
+
+      //   //Getting the gas used in order to calculate the original balance of the account
+      //   const rbtcUsed = toBN(
+      //     (await web3.eth.getTransactionReceipt(txResponse.tx))
+      //       .cumulativeGasUsed
+      //   ).mul(gasPrice);
+
+      //   const relayOwnerBalanceAfter = toBN(
+      //     await web3.eth.getBalance(relayOwner)
+      //   );
+      //   assert.isTrue(
+      //     relayOwnerBalanceAfter.eq(
+      //       relayOwnerBalanceBefore.sub(rbtcUsed).add(stakeBalanceBefore)
+      //     ),
+      //     'Withdraw/unstake process have failed'
+      //   );
+
+      //   stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+      //   const stakeAfterWithdraw = toBN(stakeInfo.stake);
+
+      //   //Verifying there are no more stake balance for the manager
+      //   assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
+      // });
+
+      // it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async () => {
+      //   let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+      //   assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
+
+      //   await mockRelayHub.stakeForAddress(relayManager, 1000, {
+      //     value: oneRBTC,
+      //     from: relayOwner,
+      //   });
+
+      //   stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+
+      //   await assert.isRejected(
+      //     mockRelayHub.stakeForAddress(relayManager, 100, {
+      //       value: ether('10'),
+      //       from: relayOwner,
+      //     }),
+      //     'unstakeDelay cannot be decreased',
+      //     'Stake was made properly'
+      //   );
+
+      //   await mockRelayHub.stakeForAddress(relayManager, 2000, {
+      //     value: ether('10'),
+      //     from: relayOwner,
+      //   });
+
+      //   stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
+
+      //   assert.strictEqual(
+      //     stakeInfo.unstakeDelay,
+      //     '2000',
+      //     'Unstake delay was not replaced'
+      //   );
+      //   assert.isTrue(
+      //     stakeInfo.stake === '11000000000000000000',
+      //     'Stakes were not added properly'
+      //   );
+      // });
+
+      // it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async () => {
+      //   await mockRelayHub.stakeForAddress(relayManager, 1000, {
+      //     value: oneRBTC,
+      //     from: relayOwner,
+      //   });
+
+      //   //Adding a new worker to the manager
+      //   await mockRelayHub.addRelayWorkers([relayWorker], {
+      //     from: relayManager,
+      //   });
+      //   await mockRelayHub.workerToManager(relayWorker);
+
+      //   const gasPrice = toBN('60000000');
+      //   await assert.isRejected(
+      //     mockRelayHub.withdrawStake(relayManager, {
+      //       from: relayOwner,
+      //       gasPrice,
+      //     }),
+      //     'Withdrawal is not scheduled',
+      //     'Withdrawal was completed'
+      //   );
+
+      //   await mockRelayHub.unlockStake(relayManager, {
+      //     from: relayOwner,
+      //   });
+      //   await assert.isRejected(
+      //     mockRelayHub.withdrawStake(relayManager, {
+      //       from: relayOwner,
+      //       gasPrice,
+      //     }),
+      //     'Withdrawal is not due',
+      //     'Withdrawal was completed'
+      //   );
+      // });
+
+      // it('Should fail when staking Manager and Owner account are the same when staking', async () => {
+      //   await assert.isRejected(
+      //     mockRelayHub.stakeForAddress(relayManager, 1000, {
+      //       value: oneRBTC,
+      //       from: relayManager,
+      //     }),
+      //     'caller is the relayManager',
+      //     'Stake for manager was made with manager account as owner'
+      //   );
+      // });
+
+      // it('Should fail when stake is less than minimum stake value', async () => {
+      //   await assert.isRejected(
+      //     mockRelayHub.stakeForAddress(relayManager, 1000, {
+      //       value: ether('0.0005'),
+      //       from: relayOwner,
+      //     }),
+      //     'Insufficient intitial stake',
+      //     'Stake was made with less value than the minimum'
+      //   );
+      // });
+
+      // it('Should fail when sender is a RelayManager', async () => {
+
+      //   await assert.isRejected(
+      //     mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
+      //       value: oneRBTC,
+      //     }),
+      //     'sender is a relayManager itself',
+      //     'Stake was made with less value than the minimum'
+      //   );
+      // });
+    });
   });
 });
 
@@ -277,7 +499,7 @@ describe('RelayHub Contract', () => {
 //     let chainId: number;
 //     let relayHub: string;
 //     let penalizer: PenalizerInstance;
-//     let relayHubInstance: RelayHubInstance;
+//     let mockRelayHub: mockRelayHub;
 //     let recipientContract: TestRecipientInstance;
 //     let verifierContract: TestVerifierEverythingAcceptedInstance;
 //     let deployVerifierContract: TestDeployVerifierEverythingAcceptedInstance;
@@ -303,16 +525,16 @@ describe('RelayHub Contract', () => {
 //     describe('Manager tests - Stake related scenarios', async () => {
 //       beforeEach(async function () {
 //         penalizer = await Penalizer.new();
-//         relayHubInstance = await deployHub(penalizer.address);
+//         mockRelayHub = await deployHub(penalizer.address);
 //       });
 
 //       it('Should stake only from owner account', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 //         await assert.isRejected(
-//           relayHubInstance.stakeForAddress(relayManager, 1000, {
+//           mockRelayHub.stakeForAddress(relayManager, 1000, {
 //             value: oneRBTC,
 //             from: _,
 //           }),
@@ -322,20 +544,20 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 
 //         //Verifying stake is now unlocked
-//         const stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         const stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
 //         assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
@@ -344,7 +566,7 @@ describe('RelayHub Contract', () => {
 
 //         const gasPrice = toBN('60000000');
 //         await assert.isRejected(
-//           relayHubInstance.withdrawStake(relayWorker, {
+//           mockRelayHub.withdrawStake(relayWorker, {
 //             from: relayOwner,
 //             gasPrice,
 //           }),
@@ -354,27 +576,27 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 
 //         //Verifying stake is now unlocked
-//         let stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
 //         assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
 //         //Moving blocks to be able to unstake
 //         await evmMineMany(Number(stakeInfo.unstakeDelay));
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeBalanceBefore = toBN(stakeInfo.stake);
 
 //         const relayOwnerBalanceBefore = toBN(
@@ -382,7 +604,7 @@ describe('RelayHub Contract', () => {
 //         );
 
 //         const gasPrice = toBN('60000000');
-//         const txResponse = await relayHubInstance.withdrawStake(relayManager, {
+//         const txResponse = await mockRelayHub.withdrawStake(relayManager, {
 //           from: relayOwner,
 //           gasPrice,
 //         });
@@ -403,7 +625,7 @@ describe('RelayHub Contract', () => {
 //           'Withdraw/unstake process have failed'
 //         );
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
 //         //Verifying there are no more stake balance for the manager
@@ -411,18 +633,18 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async () => {
-//         let stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
 
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 
 //         await assert.isRejected(
-//           relayHubInstance.stakeForAddress(relayManager, 100, {
+//           mockRelayHub.stakeForAddress(relayManager, 100, {
 //             value: ether('10'),
 //             from: relayOwner,
 //           }),
@@ -430,12 +652,12 @@ describe('RelayHub Contract', () => {
 //           'Stake was made properly'
 //         );
 
-//         await relayHubInstance.stakeForAddress(relayManager, 2000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 2000, {
 //           value: ether('10'),
 //           from: relayOwner,
 //         });
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 
 //         assert.strictEqual(
 //           stakeInfo.unstakeDelay,
@@ -449,20 +671,20 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
 //         //Adding a new worker to the manager
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.workerToManager(relayWorker);
+//         await mockRelayHub.workerToManager(relayWorker);
 
 //         const gasPrice = toBN('60000000');
 //         await assert.isRejected(
-//           relayHubInstance.withdrawStake(relayManager, {
+//           mockRelayHub.withdrawStake(relayManager, {
 //             from: relayOwner,
 //             gasPrice,
 //           }),
@@ -470,11 +692,11 @@ describe('RelayHub Contract', () => {
 //           'Withdrawal was completed'
 //         );
 
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 //         await assert.isRejected(
-//           relayHubInstance.withdrawStake(relayManager, {
+//           mockRelayHub.withdrawStake(relayManager, {
 //             from: relayOwner,
 //             gasPrice,
 //           }),
@@ -485,7 +707,7 @@ describe('RelayHub Contract', () => {
 
 //       it('Should fail when staking Manager and Owner account are the same when staking', async () => {
 //         await assert.isRejected(
-//           relayHubInstance.stakeForAddress(relayManager, 1000, {
+//           mockRelayHub.stakeForAddress(relayManager, 1000, {
 //             value: oneRBTC,
 //             from: relayManager,
 //           }),
@@ -496,7 +718,7 @@ describe('RelayHub Contract', () => {
 
 //       it('Should fail when stake is less than minimum stake value', async () => {
 //         await assert.isRejected(
-//           relayHubInstance.stakeForAddress(relayManager, 1000, {
+//           mockRelayHub.stakeForAddress(relayManager, 1000, {
 //             value: ether('0.0005'),
 //             from: relayOwner,
 //           }),
@@ -506,13 +728,13 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should fail when sender is a RelayManager', async () => {
-//         relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
 //         await assert.isRejected(
-//           relayHubInstance.stakeForAddress(_, 1000, {
+//           mockRelayHub.stakeForAddress(_, 1000, {
 //             value: oneRBTC,
 //             from: relayManager,
 //           }),
@@ -531,7 +753,7 @@ describe('RelayHub Contract', () => {
 //         chainId = env.chainId;
 
 //         penalizer = await Penalizer.new();
-//         relayHubInstance = await deployHub(penalizer.address);
+//         mockRelayHub = await deployHub(penalizer.address);
 
 //         const smartWalletTemplate: SmartWalletInstance =
 //           await SmartWallet.new();
@@ -547,7 +769,7 @@ describe('RelayHub Contract', () => {
 
 //         target = recipientContract.address;
 //         verifier = verifierContract.address;
-//         relayHub = relayHubInstance.address;
+//         relayHub = mockRelayHub.address;
 
 //         gaslessAccount = await getGaslessAccount();
 //         forwarderInstance = await createSmartWallet(
@@ -597,12 +819,12 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should fail a relayRequest if the manager is unstaked', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         let relayWorkersBefore = await relayHubInstance.workerCount(
+//         let relayWorkersBefore = await mockRelayHub.workerCount(
 //           relayManager
 //         );
 //         assert.equal(
@@ -611,24 +833,24 @@ describe('RelayHub Contract', () => {
 //           `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
 //         );
 
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.workerToManager(relayWorker);
+//         await mockRelayHub.workerToManager(relayWorker);
 
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 
 //         //Verifying stake is now unlocked
-//         let stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
 //         assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
 //         //Moving blocks to be able to unstake
 //         await evmMineMany(Number(stakeInfo.unstakeDelay));
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeBalanceBefore = toBN(stakeInfo.stake);
 
 //         const relayOwnerBalanceBefore = toBN(
@@ -636,7 +858,7 @@ describe('RelayHub Contract', () => {
 //         );
 
 //         const gasPrice = toBN('60000000');
-//         const txResponse = await relayHubInstance.withdrawStake(relayManager, {
+//         const txResponse = await mockRelayHub.withdrawStake(relayManager, {
 //           from: relayOwner,
 //           gasPrice,
 //         });
@@ -657,13 +879,13 @@ describe('RelayHub Contract', () => {
 //           'Withdraw/unstake process have failed'
 //         );
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
 //         //Verifying there are no more stake balance for the manager
 //         assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
 
-//         relayWorkersBefore = await relayHubInstance.workerCount(relayManager);
+//         relayWorkersBefore = await mockRelayHub.workerCount(relayManager);
 //         assert.equal(
 //           relayWorkersBefore.toNumber(),
 //           1,
@@ -671,7 +893,7 @@ describe('RelayHub Contract', () => {
 //         );
 
 //         await assert.isRejected(
-//           relayHubInstance.relayCall(relayRequest, signature, {
+//           mockRelayHub.relayCall(relayRequest, signature, {
 //             from: relayWorker,
 //             gas,
 //           }),
@@ -681,22 +903,22 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should fail a relayRequest if the manager is in the last block of delay blocks', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.workerToManager(relayWorker);
+//         await mockRelayHub.workerToManager(relayWorker);
 
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 
 //         await assert.isRejected(
-//           relayHubInstance.relayCall(relayRequest, signature, {
+//           mockRelayHub.relayCall(relayRequest, signature, {
 //             from: relayWorker,
 //             gas,
 //           }),
@@ -722,7 +944,7 @@ describe('RelayHub Contract', () => {
 //         chainId = env.chainId;
 
 //         penalizer = await Penalizer.new();
-//         relayHubInstance = await deployHub(penalizer.address);
+//         mockRelayHub = await deployHub(penalizer.address);
 //         verifierContract = await TestVerifierEverythingAccepted.new();
 //         deployVerifierContract =
 //           await TestDeployVerifierEverythingAccepted.new();
@@ -738,7 +960,7 @@ describe('RelayHub Contract', () => {
 
 //         target = recipientContract.address;
 //         verifier = verifierContract.address;
-//         relayHub = relayHubInstance.address;
+//         relayHub = mockRelayHub.address;
 
 //         sharedDeployRequestData = {
 //           request: {
@@ -786,14 +1008,14 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should faild a deployRequest if SmartWallet has already been initialized', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: ether('2'),
 //           from: relayOwner,
 //         });
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.registerRelayServer(url, {
+//         await mockRelayHub.registerRelayServer(url, {
 //           from: relayManager,
 //         });
 
@@ -818,7 +1040,7 @@ describe('RelayHub Contract', () => {
 //         await token.mint('1', calculatedAddr);
 
 //         await assert.isRejected(
-//           relayHubInstance.deployCall(
+//           mockRelayHub.deployCall(
 //             relayRequestMisbehavingVerifier,
 //             signatureWithMisbehavingVerifier,
 //             { from: relayWorker, gas, gasPrice }
@@ -829,12 +1051,12 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should faild a deployRequest if Manager is unstaked', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         let relayWorkersBefore = await relayHubInstance.workerCount(
+//         let relayWorkersBefore = await mockRelayHub.workerCount(
 //           relayManager
 //         );
 //         assert.equal(
@@ -843,22 +1065,22 @@ describe('RelayHub Contract', () => {
 //           `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
 //         );
 
-//         await relayHubInstance.addRelayWorkers([relayWorker], {
+//         await mockRelayHub.addRelayWorkers([relayWorker], {
 //           from: relayManager,
 //         });
-//         await relayHubInstance.workerToManager(relayWorker);
+//         await mockRelayHub.workerToManager(relayWorker);
 
-//         await relayHubInstance.unlockStake(relayManager, {
+//         await mockRelayHub.unlockStake(relayManager, {
 //           from: relayOwner,
 //         });
 
 //         //Verifying stake is now unlocked
-//         let stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         let stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 
 //         //Moving blocks to be able to unstake
 //         await evmMineMany(Number(stakeInfo.unstakeDelay));
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeBalanceBefore = toBN(stakeInfo.stake);
 
 //         const relayOwnerBalanceBefore = toBN(
@@ -866,7 +1088,7 @@ describe('RelayHub Contract', () => {
 //         );
 
 //         const gasPrice = toBN('60000000');
-//         const txResponse = await relayHubInstance.withdrawStake(relayManager, {
+//         const txResponse = await mockRelayHub.withdrawStake(relayManager, {
 //           from: relayOwner,
 //           gasPrice,
 //         });
@@ -887,13 +1109,13 @@ describe('RelayHub Contract', () => {
 //           'Withdraw/unstake process have failed'
 //         );
 
-//         stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
+//         stakeInfo = await mockRelayHub.getStakeInfo(relayManager);
 //         const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
 //         //Verifying there are no more stake balance for the manager
 //         assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
 
-//         relayWorkersBefore = await relayHubInstance.workerCount(relayManager);
+//         relayWorkersBefore = await mockRelayHub.workerCount(relayManager);
 //         assert.equal(
 //           relayWorkersBefore.toNumber(),
 //           1,
@@ -908,7 +1130,7 @@ describe('RelayHub Contract', () => {
 //         await token.mint('1', calculatedAddr);
 
 //         await assert.isRejected(
-//           relayHubInstance.deployCall(
+//           mockRelayHub.deployCall(
 //             relayRequestMisbehavingVerifier,
 //             signatureWithMisbehavingVerifier,
 //             { from: relayWorker, gas, gasPrice }
@@ -919,12 +1141,12 @@ describe('RelayHub Contract', () => {
 //       });
 
 //       it('Should fail when registering with no workers assigned to the Manager', async () => {
-//         await relayHubInstance.stakeForAddress(relayManager, 1000, {
+//         await mockRelayHub.stakeForAddress(relayManager, 1000, {
 //           value: oneRBTC,
 //           from: relayOwner,
 //         });
 
-//         const relayWorkersBefore = await relayHubInstance.workerCount(
+//         const relayWorkersBefore = await mockRelayHub.workerCount(
 //           relayManager
 //         );
 //         assert.equal(
@@ -934,7 +1156,7 @@ describe('RelayHub Contract', () => {
 //         );
 
 //         await assert.isRejected(
-//           relayHubInstance.registerRelayServer(url, {
+//           mockRelayHub.registerRelayServer(url, {
 //             from: relayManager,
 //           }),
 //           'no relay workers',
