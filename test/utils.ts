@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers';
 
-export const RBTCDecimals = 18;
-export const oneRBTC = BigNumber.from(1).pow(RBTCDecimals);
+export const RBTC_DECIMALS = 18;
+export const oneRBTC = BigNumber.from(1).pow(RBTC_DECIMALS);
 
 // import RelayHubConfiguration from '../types/RelayHubConfiguration';
 // import {

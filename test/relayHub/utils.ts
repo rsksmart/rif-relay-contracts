@@ -21,7 +21,7 @@ export const createContractDeployer =
   ]: Partial<RelayHubOptions> = []) => {
     const relayHubFactory = await smock.mock<RelayHub__factory>('RelayHub');
 
-    return await relayHubFactory.deploy(
+    return relayHubFactory.deploy(
       penalizerOverride ?? penalizer,
       maxWorkerCount ?? MAX_WORKER_COUNT,
       minimumEntryDepositValue ?? MINIMUM_ENTRY_DEPOSIT_VALUE,
