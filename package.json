@@ -1,9 +1,9 @@
 {
   "name": "@rsksmart/rif-relay-contracts",
-  "version": "0.0.2-alpha.10",
-  "description": "This project contains all the contracts needed for the rif relay system.",
-  "main": "dist/index.js",
+  "version": "1.0.2-alpha.0",
   "private": false,
+  "description": "This project contains all the contracts needed for the rif relay system.",
+  "license": "MIT",
   "author": "RIF Payments Team",
   "contributors": [
     {
@@ -47,7 +47,63 @@
       "url": "https://github.com/franciscotobar"
     }
   ],
-  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
+    "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
+    "ci:test": "npm run compile && npm run test",
+    "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed && hardhat clean",
+    "compile": "npm run clean && hardhat compile --force",
+    "deploy": "hardhat run scripts/deploy.ts --network",
+    "deploy-configure": "hardhat run scripts/deploy.ts --network",
+    "docs": "hardhat docgen",
+    "format": "npm run format:sol && npm run format:ts",
+    "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
+    "format:ts": "prettier -c -w --no-editorconfig **/*.ts",
+    "postinstall": "npm run compile",
+    "lint": "npm run lint:sol && npm run lint:ts",
+    "lint:sol": "solhint --fix 'contracts/**/*.sol'",
+    "lint:ts": "eslint test --ext .ts --fix",
+    "prepare": "husky install",
+    "tdd": "npm run compile && REPORT_GAS=true hardhat watch tdd",
+    "test": "REPORT_GAS=true hardhat test"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache --fix",
+    "package.json": "npx sort-package-json"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.1.1",
+    "@openzeppelin/contracts": "^3.4.0",
+    "ethers": "^5.7.0",
+    "hardhat": "2.10.2",
+    "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-docgen": "^1.3.0",
+    "hardhat-watcher": "^2.5.0",
+    "typechain": "^8.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@defi-wonderland/smock": "^2.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "chai-as-promised": "^7.1.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-mocha": "^10.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.24",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5"
+  },
+  "peerDependencies": {
+    "ethers": "^5.7.0"
+  },
   "publishConfig": {
     "ignore": [
       "!dist",
@@ -56,60 +112,5 @@
       "src",
       ".github"
     ]
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^17.0.3",
-    "@commitlint/config-conventional": "^17.0.3",
-    "@defi-wonderland/smock": "^2.2.0",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
-    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "@nomiclabs/hardhat-ethers": "^2.1.1",
-    "@typescript-eslint/eslint-plugin": "^5.35.1",
-    "@typescript-eslint/parser": "^5.33.1",
-    "chai-as-promised": "^7.1.1",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-mocha": "^10.1.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "hardhat-contract-sizer": "^2.6.1",
-    "hardhat-docgen": "^1.3.0",
-    "hardhat-watcher": "^2.5.0",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.24",
-    "solhint": "^3.3.7",
-    "solhint-plugin-prettier": "^0.0.5"
-  },
-  "scripts": {
-    "prepare": "husky install",
-    "test": "REPORT_GAS=true hardhat test",
-    "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed && hardhat clean",
-    "compile": "npm run clean && hardhat compile --force",
-    "tdd": "npm run compile && REPORT_GAS=true hardhat watch tdd",
-    "docs": "hardhat docgen",
-    "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
-    "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
-    "ci:test": "npm run compile && npm run test",
-    "lint:sol": "solhint --fix 'contracts/**/*.sol'",
-    "lint:ts": "eslint test --ext .ts --fix",
-    "lint": "npm run lint:sol && npm run lint:ts",
-    "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
-    "format:ts": "prettier -c -w --no-editorconfig **/*.ts",
-    "format": "npm run format:sol && npm run format:ts",
-    "postinstall": "npm run compile",
-    "deploy": "hardhat run scripts/deploy.ts --network",
-    "deploy-configure": "hardhat run scripts/deploy.ts --network"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^3.4.0",
-    "ethers": "^5.7.0",
-    "hardhat": "^2.10.2"
-  },
-  "peerDependencies": {
-    "ethers": "^5.7.0",
-    "hardhat": "^2.10.2"
-  },
-  "lint-staged": {
-    "*.ts": "eslint --cache --fix"
   }
 }
