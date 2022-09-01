@@ -1,9 +1,8 @@
-import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import 'hardhat-watcher';
-import '@nomiclabs/hardhat-ethers';
 import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
+import 'hardhat-watcher';
+import { HardhatUserConfig } from 'hardhat/config';
 
 const config: HardhatUserConfig = {
   solidity: {

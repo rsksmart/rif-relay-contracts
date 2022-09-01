@@ -1,16 +1,17 @@
-import { oneRBTC } from '../utils';
+import { oneRBTC } from '../utils/constants';
 
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
+import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { expect, assert } from 'chai';
+import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import { Penalizer } from 'typechain-types/contracts/Penalizer';
 import { RelayHub } from 'typechain-types/contracts/RelayHub';
 import { createContractDeployer } from './utils';
-import { mine } from '@nomicfoundation/hardhat-network-helpers';
-import { BigNumber } from 'ethers';
+import { ERR_HUB_BAD_PARAMS, ERR_NOT_OWNER, ERR_TOO_MANY_WORKERS, ERR_UNSTAKED, ERR_WORKER_HAS_MANAGER } from '../utils/errorMessages.utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -44,13 +45,13 @@ describe('RelayHub Contract', function() {
       const promiseOfRevert = deployRelayHubContract([undefined, '0']);
 
       await expect(promiseOfRevert).to.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
 
       const promiseOfRelayHub = deployRelayHubContract();
 
       await expect(promiseOfRelayHub).to.not.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
     });
 
@@ -62,13 +63,13 @@ describe('RelayHub Contract', function() {
       ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
 
       const promiseOfRelayHub = deployRelayHubContract();
 
       await expect(promiseOfRelayHub).to.not.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
     });
 
@@ -81,13 +82,13 @@ describe('RelayHub Contract', function() {
       ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
 
       const promiseOfRelayHub = deployRelayHubContract();
 
       await expect(promiseOfRelayHub).to.not.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
     });
 
@@ -101,13 +102,13 @@ describe('RelayHub Contract', function() {
       ]);
 
       await expect(promiseOfRevert).to.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
 
       const promiseOfRelayHub = deployRelayHubContract();
 
       await expect(promiseOfRelayHub).to.not.have.revertedWith(
-        'invalid hub init params'
+        ERR_HUB_BAD_PARAMS
       );
     });
   });
@@ -174,7 +175,7 @@ describe('RelayHub Contract', function() {
           .addRelayWorkers([relayWorkerAddr]);
 
         await expect(promiseOfWorker).to.have.revertedWith(
-          'RelayManager not staked'
+          ERR_UNSTAKED
         );
       });
 
@@ -213,7 +214,7 @@ describe('RelayHub Contract', function() {
         it('should NOT register the same worker twice', async function() {
           // Adding same worker for the same manager second time
           await expect(addWorker(relayManager)).to.be.revertedWith(
-            'this worker has a manager'
+            ERR_WORKER_HAS_MANAGER
           );
         });
 
@@ -229,7 +230,7 @@ describe('RelayHub Contract', function() {
           );
 
           await expect(addWorker(anotherRelayManager)).to.be.revertedWith(
-            'this worker has a manager'
+            ERR_WORKER_HAS_MANAGER
           );
         });
 
@@ -248,7 +249,7 @@ describe('RelayHub Contract', function() {
             .connect(relayManager)
             .addRelayWorkers(workers);
 
-          await expect(promiseOfWorkers).to.revertedWith('too many workers');
+          await expect(promiseOfWorkers).to.revertedWith(ERR_TOO_MANY_WORKERS);
         });
       });
     });
@@ -294,7 +295,7 @@ describe('RelayHub Contract', function() {
             .stakeForAddress(relayManagerAddr, 1000, {
               value: oneRBTC,
             }),
-          'not owner',
+          ERR_NOT_OWNER,
           'Stake was not made by the owner account'
         );
       });
@@ -322,7 +323,7 @@ describe('RelayHub Contract', function() {
           mockRelayHub.withdrawStake(relayWorkerAddr, {
             gasPrice,
           }),
-          'not owner',
+          ERR_NOT_OWNER,
           'Withdraw was made successfully'
         );
       });
@@ -538,7 +539,7 @@ describe('RelayHub Contract', function() {
 //             value: oneRBTC,
 //             from: _,
 //           }),
-//           'not owner',
+//           ERR_NOT_OWNER,
 //           'Stake was not made by the owner account'
 //         );
 //       });
@@ -570,7 +571,7 @@ describe('RelayHub Contract', function() {
 //             from: relayOwner,
 //             gasPrice,
 //           }),
-//           'not owner',
+//           ERR_NOT_OWNER,
 //           'Withdraw was made successfully'
 //         );
 //       });
@@ -897,7 +898,7 @@ describe('RelayHub Contract', function() {
 //             from: relayWorker,
 //             gas,
 //           }),
-//           'RelayManager not staked',
+//           ERR_UNSTAKED,
 //           'Relay request was properly processed'
 //         );
 //       });
@@ -922,7 +923,7 @@ describe('RelayHub Contract', function() {
 //             from: relayWorker,
 //             gas,
 //           }),
-//           'RelayManager not staked',
+//           ERR_UNSTAKED,
 //           'Relay request was properly processed'
 //         );
 //       });
@@ -1135,7 +1136,7 @@ describe('RelayHub Contract', function() {
 //             signatureWithMisbehavingVerifier,
 //             { from: relayWorker, gas, gasPrice }
 //           ),
-//           'RelayManager not staked',
+//           ERR_UNSTAKED,
 //           'Deploy was processed successfully'
 //         );
 //       });

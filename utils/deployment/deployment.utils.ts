@@ -11,7 +11,7 @@ export interface ContractFactory<C extends Contract>
 
 export type DeployerParam<
   C extends Contract,
-  A = ContractFactory<C>['deploy']
+  A extends {} = ContractFactory<C>['deploy']
 > = {
   contractName: string;
   constructorArgs: A;
@@ -34,7 +34,7 @@ export type DeployerReturnType<C extends Contract> = Promise<{
 
 export const deployContract = async <
   C extends Contract,
-  A = ContractFactory<C>['deploy']
+  A extends {} = ContractFactory<C>['deploy']
 >({
   contractName,
   constructorArgs,
