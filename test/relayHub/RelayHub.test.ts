@@ -5,7 +5,6 @@ import {
     DeployRequest,
     cloneDeployRequest,
     TypedRequestData,
-    getDomainSeparatorHash,
     TypedDeployRequestData
 } from '../../';
 
@@ -38,7 +37,7 @@ import {
     TestDeployVerifierEverythingAcceptedInstance
 } from '../../types/truffle-contracts';
 import chaiAsPromised from 'chai-as-promised';
-// import { AccountKeypair } from '@rsksmart/rif-relay-client';
+import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { toBN } from 'web3-utils';
 
 import chai from 'chai';
@@ -82,7 +81,7 @@ contract(
                     from: relayOwner
                 });
 
-                //Getting the relaay workers count before adding a new worker
+                //Getting the relay workers count before adding a new worker
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
@@ -741,7 +740,7 @@ contract(
                         from: relayManager
                     }),
                     'sender is a relayManager itself',
-                    'Stake was made with less value than the minimum'
+                    'Stake was made with proper relayManager'
                 );
             });
         });
@@ -801,11 +800,7 @@ contract(
                         gasPrice,
                         relayWorker,
                         callForwarder: forwarder,
-                        callVerifier: verifier,
-                        domainSeparator: getDomainSeparatorHash(
-                            forwarder,
-                            chainId
-                        )
+                        callVerifier: verifier
                     }
                 };
 
@@ -998,11 +993,7 @@ contract(
                         gasPrice,
                         relayWorker,
                         callForwarder: factory.address,
-                        callVerifier: deployVerifierContract.address,
-                        domainSeparator: getDomainSeparatorHash(
-                            factory.address,
-                            chainId
-                        )
+                        callVerifier: deployVerifierContract.address
                     }
                 };
 

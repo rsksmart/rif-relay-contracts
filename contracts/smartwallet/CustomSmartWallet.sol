@@ -14,7 +14,11 @@ contract CustomSmartWallet is IForwarder {
 
     uint256 public override nonce;
     bytes32 public constant DATA_VERSION_HASH = keccak256("2");
-    bytes32 public domainSeparator;    
+    bytes32 public domainSeparator;
+
+    constructor() public {
+        setOwner(msg.sender);
+    }
     
     function buildDomainSeparator() internal {
         domainSeparator = keccak256(
@@ -34,6 +38,23 @@ contract CustomSmartWallet is IForwarder {
         bytes calldata sig
     ) external override view {
         _verifySig(suffixData, req, sig);
+    }
+
+    function setOwner(address owner) private {
+        //To avoid re-entrancy attacks by external contracts, the first thing we do is set
+        //the variable that controls "is initialized"
+        //We set this instance as initialized, by
+        //storing the logic address
+        //Set the owner of this Smart Wallet
+        //slot for owner = bytes32(uint256(keccak256('eip1967.proxy.owner')) - 1) = a7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
+        bytes32 ownerCell = keccak256(abi.encodePacked(owner));
+
+        assembly {
+            sstore(
+                0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a,
+                ownerCell
+            )
+        }
     }
 
     function getOwner() private view returns (bytes32 owner){
@@ -269,20 +290,7 @@ contract CustomSmartWallet is IForwarder {
 
         require(getOwner() == bytes32(0), "already initialized");
 
-        //To avoid re-entrancy attacks by external contracts, the first thing we do is set
-        //the variable that controls "is initialized"
-        //We set this instance as initialized, by
-        //storing the logic address
-        //Set the owner of this Smart Wallet
-        //slot for owner = bytes32(uint256(keccak256('eip1967.proxy.owner')) - 1) = a7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
-        bytes32 ownerCell = keccak256(abi.encodePacked(owner));
-
-        assembly {
-            sstore(
-                0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a,
-                ownerCell
-            )
-        }
+        setOwner(owner);
 
         //we need to initialize the contract
         if (tokenAmount > 0) {
