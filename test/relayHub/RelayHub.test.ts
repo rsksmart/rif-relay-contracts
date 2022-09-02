@@ -734,6 +734,16 @@ contract(
                     from: relayOwner
                 });
 
+                const stakeInfo = await relayHubInstance.getStakeInfo(
+                    relayManager
+                );
+
+                assert.equal(
+                    stakeInfo.owner,
+                    constants.ZERO_ADDRESS,
+                    'sender is a relayManager itself'
+                );
+
                 await assert.isRejected(
                     relayHubInstance.stakeForAddress(_, 1000, {
                         value: ether('1'),
