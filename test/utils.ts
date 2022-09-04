@@ -5,15 +5,27 @@ import {
     SmartWalletInstance,
     CustomSmartWalletFactoryInstance,
     CustomSmartWalletInstance,
-    RelayHubInstance
+    RelayHubInstance,
+    TestTokenInstance
 } from '../types/truffle-contracts';
 import {
     DeployRequest,
     DeployRequestDataType,
-    TypedDeployRequestData
+    DeployRequestStruct,
+    ForwardRequest,
+    ForwardRequestType,
+    RelayData,
+    RelayRequest,
+    TypedDeployRequestData,
+    TypedRequestData
 } from '../';
 import { constants } from './constants';
-import sigUtil, { EIP712TypedData, TypedDataUtils } from 'eth-sig-util';
+import sigUtil, {
+    // @ts-ignore
+    signTypedData_v4,
+    EIP712TypedData,
+    TypedDataUtils
+} from 'eth-sig-util';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
@@ -327,4 +339,150 @@ export async function evmMine(): Promise<any> {
 
 export function stripHex(s: string): string {
     return s.slice(2, s.length);
+}
+
+/**
+ * Function to get the actual token balance for an account
+ * @param token
+ * @param account
+ * @returns The account token balance
+ */
+export async function getTokenBalance(
+    token: TestTokenInstance,
+    account: string
+): Promise<BN> {
+    return await token.balanceOf(account);
+}
+
+/**
+ * Function to add tokens to an account
+ * @param token
+ * @param recipient
+ * @param amount
+ */
+export async function mintTokens(
+    token: TestTokenInstance,
+    recipient: string,
+    amount: string
+): Promise<void> {
+    await token.mint(amount, recipient);
+}
+
+/**
+ * Function to sign a transaction
+ * @param senderPrivateKey
+ * @param relayRequest
+ * @param chainId
+ * @returns  the signature and suffix data
+ */
+export function signRequest(
+    senderPrivateKey: Buffer,
+    relayRequest: RelayRequest | DeployRequest,
+    chainId: number
+): { signature: string; suffixData: string } {
+    const deployment = 'index' in relayRequest.request;
+    const reqData: EIP712TypedData = deployment
+        ? new TypedDeployRequestData(
+              chainId,
+              relayRequest.relayData.callForwarder,
+              relayRequest as DeployRequest
+          )
+        : new TypedRequestData(
+              chainId,
+              relayRequest.relayData.callForwarder,
+              relayRequest as RelayRequest
+          );
+    const signature = signTypedData_v4(senderPrivateKey, { data: reqData });
+    const suffixData = bufferToHex(
+        TypedDataUtils.encodeData(
+            reqData.primaryType,
+            reqData.message,
+            reqData.types
+        ).slice(
+            (1 +
+                (deployment
+                    ? DeployRequestDataType.length
+                    : ForwardRequestType.length)) *
+                32
+        )
+    );
+    return { signature, suffixData };
+}
+
+const baseRelayData: RelayData = {
+    gasPrice: '1',
+    relayWorker: constants.ZERO_ADDRESS,
+    callForwarder: constants.ZERO_ADDRESS,
+    callVerifier: constants.ZERO_ADDRESS
+};
+
+const baseDeployRequest: DeployRequestStruct = {
+    relayHub: constants.ZERO_ADDRESS,
+    from: constants.ZERO_ADDRESS,
+    to: constants.ZERO_ADDRESS,
+    tokenContract: constants.ZERO_ADDRESS,
+    recoverer: constants.ZERO_ADDRESS,
+    value: '0',
+    nonce: '0',
+    tokenAmount: '1',
+    tokenGas: '50000',
+    index: '0',
+    data: '0x'
+};
+
+const baseRelayRequest: ForwardRequest = {
+    relayHub: constants.ZERO_ADDRESS,
+    from: constants.ZERO_ADDRESS,
+    to: constants.ZERO_ADDRESS,
+    value: '0',
+    gas: '1000000',
+    nonce: '0',
+    data: '0x',
+    tokenContract: constants.ZERO_ADDRESS,
+    tokenAmount: '1',
+    tokenGas: '50000'
+};
+
+/**
+ *
+ * @param request Function to create the basic relay request
+ * @param relayData
+ * @returns The relay request with basic/default values
+ */
+export function createRequest(
+    request: Partial<ForwardRequest>,
+    relayData: Partial<RelayData>
+): RelayRequest;
+export function createRequest(
+    request: Partial<DeployRequestStruct>,
+    relayData: Partial<RelayData>
+): DeployRequest;
+export function createRequest(
+    request: Partial<ForwardRequest> | Partial<DeployRequestStruct>,
+    relayData: Partial<RelayData>
+): RelayRequest | DeployRequest {
+    let result: RelayRequest | DeployRequest;
+
+    'index' in request
+        ? (result = {
+              request: {
+                  ...baseDeployRequest,
+                  ...request
+              },
+              relayData: {
+                  ...baseRelayData,
+                  ...relayData
+              }
+          })
+        : (result = {
+              request: {
+                  ...baseRelayRequest,
+                  ...request
+              },
+              relayData: {
+                  ...baseRelayData,
+                  ...relayData
+              }
+          });
+    return result;
 }

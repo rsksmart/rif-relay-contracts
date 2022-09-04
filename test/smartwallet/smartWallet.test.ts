@@ -5,23 +5,18 @@ import {
 } from '../../types/truffle-contracts';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {
-    EIP712TypedData,
-    // @ts-ignore
-    signTypedData_v4,
-    TypedDataUtils
-} from 'eth-sig-util';
 import { BN, bufferToHex, toBuffer, privateToAddress } from 'ethereumjs-util';
 import { expectRevert } from '@openzeppelin/test-helpers';
-import {
-    TypedRequestData,
-    ForwardRequestType,
-    RelayRequest,
-    ForwardRequest,
-    RelayData
-} from '../../dist';
+import { RelayData } from '../../';
 import { constants } from '../constants';
-import { generateBytes32, getTestingEnvironment } from '../utils';
+import {
+    createRequest,
+    generateBytes32,
+    getTestingEnvironment,
+    getTokenBalance,
+    mintTokens,
+    signRequest
+} from '../utils';
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;
@@ -29,103 +24,6 @@ const assert = chai.assert;
 const SmartWallet = artifacts.require('SmartWallet');
 const TestToken = artifacts.require('TestToken');
 const TestForwarderTarget = artifacts.require('TestForwarderTarget');
-
-/**
- * Function to get the actual token balance for an account
- * @param token
- * @param account
- * @returns The account token balance
- */
-async function getTokenBalance(
-    token: TestTokenInstance,
-    account: string
-): Promise<BN> {
-    return await token.balanceOf(account);
-}
-
-/**
- * Function to add tokens to an account
- * @param token
- * @param recipient
- * @param amount
- */
-async function mintTokens(
-    token: TestTokenInstance,
-    recipient: string,
-    amount: string
-): Promise<void> {
-    await token.mint(amount, recipient);
-}
-
-/**
- * Function to sign a transaction
- * @param senderPrivateKey
- * @param relayRequest
- * @param chainId
- * @returns  the signature and suffix data
- */
-function signRequest(
-    senderPrivateKey: Buffer,
-    relayRequest: RelayRequest,
-    chainId: number
-): { signature: string; suffixData: string } {
-    const reqData: EIP712TypedData = new TypedRequestData(
-        chainId,
-        relayRequest.relayData.callForwarder,
-        relayRequest
-    );
-    const signature = signTypedData_v4(senderPrivateKey, { data: reqData });
-    const suffixData = bufferToHex(
-        TypedDataUtils.encodeData(
-            reqData.primaryType,
-            reqData.message,
-            reqData.types
-        ).slice((1 + ForwardRequestType.length) * 32)
-    );
-    return { signature, suffixData };
-}
-
-/**
- *
- * @param request Function to create the basic relay request
- * @param relayData
- * @returns The relay request with basic/default values
- */
-function createRequest(
-    request: Partial<ForwardRequest>,
-    relayData: Partial<RelayData>
-): RelayRequest {
-    const baseRequest: RelayRequest = {
-        request: {
-            relayHub: constants.ZERO_ADDRESS,
-            from: constants.ZERO_ADDRESS,
-            to: constants.ZERO_ADDRESS,
-            value: '0',
-            gas: '1000000',
-            nonce: '0',
-            data: '0x',
-            tokenContract: constants.ZERO_ADDRESS,
-            tokenAmount: '1',
-            tokenGas: '50000'
-        },
-        relayData: {
-            gasPrice: '1',
-            relayWorker: constants.ZERO_ADDRESS,
-            callForwarder: constants.ZERO_ADDRESS,
-            callVerifier: constants.ZERO_ADDRESS
-        }
-    };
-    return {
-        request: {
-            ...baseRequest.request,
-            ...request
-        },
-        relayData: {
-            ...baseRequest.relayData,
-            ...relayData
-        }
-    };
-}
 
 contract(
     'SmartWallet contract - Unit testing on methods isInitialize and initialize',
