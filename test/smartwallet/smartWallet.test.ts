@@ -1,696 +1,889 @@
-import { use, assert } from 'chai';
+import { ethers as hardhat } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import chai, { expect } from 'chai';
+import { FakeContract, smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
-import { BN, bufferToHex, toBuffer, privateToAddress } from 'ethereumjs-util';
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { TypedDataUtils } from '@metamask/eth-sig-util';
 import {
-    TestTokenInstance,
-    SmartWalletInstance,
-    TestForwarderTargetInstance,
-    SmartWalletFactoryInstance
-} from '../../types/truffle-contracts';
-import { RelayData } from '../../';
+  getLocalEip712Signature,
+  TypedRequestData,
+  TypedDeployRequestData,
+  getLocalEip712DeploySignature,
+} from '../utils/EIP712Utils';
+import { SignTypedDataVersion } from '@metamask/eth-sig-util';
+import { Wallet } from 'ethers';
 import {
-    createRequest,
-    createSmartWallet,
-    createSmartWalletFactory,
-    generateBytes32,
-    getTestingEnvironment,
-    getTokenBalance,
-    mintTokens,
-    signRequest
-} from '../utils';
+  SmartWallet,
+  SmartWalletFactory,
+  ERC20,
+  SmartWallet__factory,
+} from 'typechain-types';
+import { BaseProvider } from '@ethersproject/providers';
+import {
+  EnvelopingTypes,
+  IForwarder,
+} from 'typechain-types/contracts/RelayHub';
+import { MockContract } from '@defi-wonderland/smock';
+import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 
-use(chaiAsPromised);
+chai.use(smock.matchers);
+chai.use(chaiAsPromised);
 
-const SmartWallet = artifacts.require('SmartWallet');
-const TestToken = artifacts.require('TestToken');
-const TestForwarderTarget = artifacts.require('TestForwarderTarget');
+const ZERO_ADDRESS = hardhat.constants.AddressZero;
+const ONE_FIELD_IN_BYTES = 32;
+const HARDHAT_CHAIN_ID = 31337;
 
-contract(
-    'SmartWallet contract - Unit testing on methods isInitialize and initialize',
-    ([worker]) => {
-        let token: TestTokenInstance;
-        let senderAddress: string;
-        let smartWallet: SmartWalletInstance;
-        let factory: SmartWalletFactoryInstance;
-        let chainId: number;
-        const senderPrivateKey = toBuffer(generateBytes32(1));
+type ForwardRequest = IForwarder.ForwardRequestStruct;
+type RelayData = EnvelopingTypes.RelayDataStruct;
+type RelayRequest = EnvelopingTypes.RelayRequestStruct;
+type DeployRequest = EnvelopingTypes.DeployRequestStruct;
+type DeployRequestInternal = IForwarder.DeployRequestStruct;
 
-        describe('Testing initialize and isInitialize methods and values for parameters', () => {
-            beforeEach(
-                'Setting senderAccount, Contract instance and Test Token',
-                async () => {
-                    // Initializing all the variables and instances for each test
-                    chainId = (await getTestingEnvironment()).chainId;
-                    token = await TestToken.new();
-                    senderAddress = bufferToHex(
-                        privateToAddress(senderPrivateKey)
-                    ).toLowerCase();
-                    const smartWalletTemplate = await SmartWallet.new();
-                    factory = await createSmartWalletFactory(
-                        smartWalletTemplate
-                    );
-                }
-            );
+describe('SmartWallet contract', function () {
+  let smartWalletFactory: SmartWalletFactory;
+  let provider: BaseProvider;
+  let owner: Wallet;
+  let relayHub: SignerWithAddress;
+  let fakeToken: FakeContract<ERC20>;
 
-            it('Should initialize the smart wallet properly', async () => {
-                smartWallet = await createSmartWallet(
-                    worker,
-                    senderAddress,
-                    factory,
-                    senderPrivateKey,
-                    chainId
-                );
+  function createRequest(
+    request: Partial<ForwardRequest>,
+    relayData?: Partial<RelayData>
+  ): RelayRequest {
+    const baseRequest: RelayRequest = {
+      request: {
+        relayHub: ZERO_ADDRESS,
+        from: ZERO_ADDRESS,
+        to: ZERO_ADDRESS,
+        tokenContract: ZERO_ADDRESS,
+        value: '0',
+        gas: '10000',
+        nonce: '0',
+        tokenAmount: '0',
+        tokenGas: '50000',
+        validUntilTime: '0',
+        data: '0x',
+      },
+      relayData: {
+        gasPrice: '1',
+        feesReceiver: ZERO_ADDRESS,
+        callForwarder: ZERO_ADDRESS,
+        callVerifier: ZERO_ADDRESS,
+      },
+    };
 
-                assert.isTrue(await smartWallet.isInitialized());
-            });
+    return {
+      request: {
+        ...baseRequest.request,
+        ...request,
+      },
+      relayData: {
+        ...baseRequest.relayData,
+        ...relayData,
+      },
+    };
+  }
 
-            it('Should verify method initialize fails when contract has already been initialized', async () => {
-                smartWallet = await createSmartWallet(
-                    worker,
-                    senderAddress,
-                    factory,
-                    senderPrivateKey,
-                    chainId
-                );
+  function createDeployRequest(
+    request: Partial<DeployRequestInternal>,
+    relayData?: Partial<RelayData>
+  ): DeployRequest {
+    const baseRequest = {
+      request: {
+        relayHub: ZERO_ADDRESS,
+        from: ZERO_ADDRESS,
+        to: ZERO_ADDRESS,
+        tokenContract: ZERO_ADDRESS,
+        recoverer: ZERO_ADDRESS,
+        value: '0',
+        nonce: '0',
+        tokenAmount: '0',
+        tokenGas: '50000',
+        index: '0',
+        validUntilTime: '0',
+        data: '0x',
+      },
+      relayData: {
+        gasPrice: '1',
+        feesReceiver: ZERO_ADDRESS,
+        callForwarder: ZERO_ADDRESS,
+        callVerifier: ZERO_ADDRESS,
+      },
+    };
 
-                assert.isTrue(await smartWallet.isInitialized());
+    return {
+      request: {
+        ...baseRequest.request,
+        ...request,
+      },
+      relayData: {
+        ...baseRequest.relayData,
+        ...relayData,
+      },
+    };
+  }
 
-                await assert.isRejected(
-                    smartWallet.initialize(
-                        senderAddress,
-                        token.address,
-                        worker,
-                        '0',
-                        '400000'
-                    ),
-                    'already initialized',
-                    'Error while validating data'
-                );
-            });
-        });
+  function buildDomainSeparator(address: string) {
+    const domainSeparator = {
+      name: 'RSK Enveloping Transaction',
+      version: '2',
+      chainId: HARDHAT_CHAIN_ID,
+      verifyingContract: address,
+    };
+
+    return hardhat.utils._TypedDataEncoder.hashDomain(domainSeparator);
+  }
+
+  function getSuffixData(typedRequestData: TypedRequestData): string {
+    const encoded = TypedDataUtils.encodeData(
+      typedRequestData.primaryType,
+      typedRequestData.message,
+      typedRequestData.types,
+      SignTypedDataVersion.V4
+    );
+
+    const messageSize = Object.keys(typedRequestData.message).length;
+
+    return (
+      '0x' + encoded.slice(messageSize * ONE_FIELD_IN_BYTES).toString('hex')
+    );
+  }
+
+  async function createSmartWalletFactory(owner: Wallet) {
+    const smartWalletTemplateFactory = await hardhat.getContractFactory(
+      'SmartWallet'
+    );
+
+    const smartWalletTemplate = await smartWalletTemplateFactory.deploy();
+
+    const smartWalletFactoryFactory = await hardhat.getContractFactory(
+      'SmartWalletFactory'
+    );
+
+    smartWalletFactory = await smartWalletFactoryFactory
+      .connect(owner)
+      .deploy(smartWalletTemplate.address);
+  }
+
+  //This function is being tested as an integration test because of the lack of tools to unit test it
+  describe('Function initialize()', function () {
+
+    async function getAlreadyDeployedSmartWallet() {
+      const smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
+        owner.address,
+        ZERO_ADDRESS,
+        0
+      );
+
+      return await hardhat.getContractAt('SmartWallet', smartWalletAddress);
     }
-);
 
-contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
-    describe('Testing verify method for values and parameters', () => {
-        let token: TestTokenInstance;
-        let senderAddress: string;
-        let smartWallet: SmartWalletInstance;
-        let chainId: number;
-        const senderPrivateKey = toBuffer(generateBytes32(1));
-        let recipientFunction: any;
-        let recipient: TestForwarderTargetInstance;
-        let relayData: Partial<RelayData>;
+    beforeEach(async function () {
+      let fundedAccount: SignerWithAddress;
+      [relayHub, fundedAccount] = await hardhat.getSigners();
 
-        beforeEach('Setting senderAccount and Test Token', async () => {
-            chainId = (await getTestingEnvironment()).chainId;
-            senderAddress = bufferToHex(
-                privateToAddress(senderPrivateKey)
-            ).toLowerCase();
-            const smartWalletTemplate = await SmartWallet.new();
-            const factory = await createSmartWalletFactory(smartWalletTemplate);
-            smartWallet = await createSmartWallet(
-                worker,
-                senderAddress,
-                factory,
-                senderPrivateKey,
-                chainId
-            );
-            token = await TestToken.new();
-            recipient = await TestForwarderTarget.new();
-            recipientFunction = recipient.contract.methods
-                .emitMessage('hello')
-                .encodeABI();
-        });
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
 
-        it('Should verify method verify reverts when all parameters are null', async () => {
-            await assert.isRejected(smartWallet.verify(null, null, ''));
-        });
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      await createSmartWalletFactory(owner);
 
-        it('Should verify method verify reverts when all parameters are empty but the request', async () => {
-            const initialNonce = await smartWallet.nonce();
-
-            const relayRequest = await createRequest(
-                {
-                    data: recipientFunction,
-                    to: recipient.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    tokenContract: token.address,
-                    from: senderAddress,
-                    validUntilTime: '0'
-                },
-                relayData
-            );
-            await assert.isRejected(
-                smartWallet.verify('', relayRequest.request, '')
-            );
-        });
-
-        it('Should verify method verify revert because owner is not the owner of the smart wallet', async () => {
-            const senderAccount = web3.eth.accounts.create();
-            assert.isTrue(await smartWallet.isInitialized());
-
-            const initialNonce = await smartWallet.nonce();
-
-            const relayRequest = createRequest(
-                {
-                    data: recipientFunction,
-                    to: recipient.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    tokenContract: token.address,
-                    from: senderAccount.address,
-                    validUntilTime: '0'
-                },
-                relayData
-            );
-
-            relayRequest.request.from = smartWallet.address;
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await assert.isRejected(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                'Not the owner of the SmartWallet',
-                'Error while validating the owner'
-            );
-        });
-
-        it('Should verify method verify revert because nonce mismatch', async () => {
-            assert.isTrue(await smartWallet.isInitialized());
-
-            const relayRequest = createRequest(
-                {
-                    data: recipientFunction,
-                    to: recipient.address,
-                    nonce: '100',
-                    relayHub: worker,
-                    tokenContract: token.address,
-                    from: senderAddress,
-                    validUntilTime: '0'
-                },
-                relayData
-            );
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await assert.isRejected(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                'nonce mismatch',
-                'Error while validating data'
-            );
-        });
-
-        it('Should verify method verify and revert because of signature mismatch', async () => {
-            assert.isTrue(await smartWallet.isInitialized());
-
-            const initialNonce = await smartWallet.nonce();
-
-            const relayRequest = await createRequest(
-                {
-                    data: recipientFunction,
-                    to: recipient.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    tokenContract: token.address,
-                    from: senderAddress,
-                    validUntilTime: '0'
-                },
-                relayData
-            );
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await expectRevert(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                'Signature mismatch',
-                'Error while validating data'
-            );
-        });
-
-        it('Should verify method successfully sign a txn', async () => {
-            assert.isTrue(await smartWallet.isInitialized());
-
-            const initialNonce = await smartWallet.nonce();
-            const relayRequest = createRequest(
-                {
-                    data: recipientFunction,
-                    to: recipient.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    tokenContract: token.address,
-                    from: senderAddress,
-                    value: '0',
-                    gas: '400000',
-                    tokenAmount: '0',
-                    tokenGas: '400000',
-                    validUntilTime: '0'
-                },
-                relayData
-            );
-            relayRequest.relayData.callForwarder = smartWallet.address;
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-            await assert.isFulfilled(
-                smartWallet.verify(suffixData, relayRequest.request, signature)
-            );
-        });
+      fakeToken = await smock.fake('ERC20');
     });
+
+    describe('', function () {
+      let smartWallet: SmartWallet;
+
+      beforeEach(async function () {
+        const dataTypesToSign = ['address', 'address', 'address', 'uint256'];
+        const valuesToSign = [smartWalletFactory.address, owner.address, ZERO_ADDRESS, 0];
+        const toSign = hardhat.utils.solidityKeccak256(
+          dataTypesToSign,
+          valuesToSign
+        );
+
+        const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+        const signature = createValidPersonalSignSignature(privateKey, toSign);
+
+        await smartWalletFactory.createUserSmartWallet(
+          owner.address,
+          ZERO_ADDRESS,
+          '0',
+          signature
+        );
+
+        smartWallet = await getAlreadyDeployedSmartWallet();
+      });
+
+      it('Should initialize a SmartWallet', async function () {
+        expect(await smartWallet.isInitialized()).to.be.true;
+      });
+
+      it('Should fail to initialize a SmartWallet twice', async function () {
+        await expect(
+          smartWallet.initialize(
+            owner.address,
+            fakeToken.address,
+            ZERO_ADDRESS,
+            10,
+            400000
+          ),
+          'Second initialization not rejected'
+        ).to.be.revertedWith('already initialized');
+      });
+
+      it('Should create the domainSeparator', async function () {
+        expect(await smartWallet.domainSeparator()).to.be.properHex(64);
+      });
+    });
+
+    it('Should call transfer on not sponsored deployment', async function () {
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '1',
+        tokenAmount: '1',
+        tokenContract: fakeToken.address,
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      fakeToken.transfer.returns(true);
+
+      await smartWalletFactory
+        .connect(relayHub)
+        .relayedUserSmartWalletCreation(
+          deployRequest.request,
+          suffixData,
+          owner.address,
+          signature
+        );
+
+      expect(fakeToken.transfer).to.be.called;
+    });
+
+    it('Should not call transfer on sponsored deployment', async function () {
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '0',
+        tokenAmount: '0',
+        tokenContract: fakeToken.address,
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      fakeToken.transfer.returns(true);
+
+      await smartWalletFactory
+        .connect(relayHub)
+        .relayedUserSmartWalletCreation(
+          deployRequest.request,
+          suffixData,
+          owner.address,
+          signature
+        );
+
+      expect(fakeToken.transfer).not.to.be.called;
+    });
+
+    it('Should fail when the token transfer method fails', async function () {
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '1',
+        tokenAmount: '1',
+        tokenContract: fakeToken.address,
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      fakeToken.transfer.returns(false);
+
+      await expect(
+        smartWalletFactory
+          .connect(relayHub)
+          .relayedUserSmartWalletCreation(
+            deployRequest.request,
+            suffixData,
+            owner.address,
+            signature
+          )
+      ).to.be.revertedWith('Unable to initialize SW');
+    });
+  });
+
+  describe('Function verify()', function () {
+    let mockSmartWallet: MockContract<SmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+
+    beforeEach(async function () {
+      const [, fundedAccount] = await hardhat.getSigners();
+
+      const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>(
+        'CustomSmartWallet'
+      );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+
+      const domainSeparator = buildDomainSeparator(mockSmartWallet.address);
+      await mockSmartWallet.setVariable('domainSeparator', domainSeparator);
+    });
+
+    it('Should verify a transaction', async function () {
+      const relayRequest = createRequest({
+        from: owner.address,
+        nonce: '0',
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+      ).not.to.be.rejected;
+    });
+
+    it('Should fail when not called by the owner', async function () {
+      const notTheOwner = hardhat.Wallet.createRandom();
+      notTheOwner.connect(provider);
+
+      const relayRequest = createRequest({
+        from: notTheOwner.address,
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        notTheOwner.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(
+        notTheOwner.privateKey.substring(2, 66),
+        'hex'
+      );
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+      ).to.be.rejectedWith('Not the owner of the SmartWallet');
+    });
+
+    it('Should fail when the nonce is wrong', async function () {
+      const relayRequest = createRequest({
+        from: owner.address,
+        nonce: '2',
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        owner.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+      ).to.be.rejectedWith('nonce mismatch');
+    });
+
+    it('Should fail when the signature is wrong', async function () {
+      const notTheOwner = hardhat.Wallet.createRandom();
+      notTheOwner.connect(provider);
+
+      const relayRequest = createRequest({
+        from: owner.address,
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        owner.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(
+        notTheOwner.privateKey.substring(2, 66),
+        'hex'
+      );
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+      ).to.be.rejectedWith('Signature mismatch');
+    });
+  });
+
+  describe('Function execute()', function () {
+    let mockSmartWallet: MockContract<SmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+    let recipient: FakeContract;
+    let recipientFunction: string;
+    let privateKey: Buffer;
+    let worker: SignerWithAddress;
+
+    beforeEach(async function () {
+      let fundedAccount: SignerWithAddress;
+      [relayHub, fundedAccount, worker] = await hardhat.getSigners();
+
+      const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>(
+        'CustomSmartWallet'
+      );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+
+      const domainSeparator = buildDomainSeparator(mockSmartWallet.address);
+      await mockSmartWallet.setVariable('domainSeparator', domainSeparator);
+
+      recipient = await smock.fake('SmartWallet');
+      recipient.isInitialized.returns(true);
+
+      const ABI = ['function isInitialized()'];
+      const abiInterface = new hardhat.utils.Interface(ABI);
+      recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
+
+      privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      fakeToken = await smock.fake('ERC20');
+      fakeToken.transfer.returns(true);
+    });
+
+    it('Should execute a sponsored transaction', async function () {
+      const relayRequest = createRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: '10',
+          tokenGas: '40000',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      expect(fakeToken.transfer, 'Token.transfer() was not called').to.be
+        .called;
+      expect(recipient.isInitialized, 'Recipient method was not called').to.be
+        .called;
+    });
+
+    it('Should execute a not sponsored transaction', async function () {
+      const relayRequest = createRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: '0',
+          tokenGas: '0',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      expect(fakeToken.transfer, 'Token.transfer was called').not.to.be.called;
+      expect(recipient.isInitialized, 'Recipient method was not called').to.be
+        .called;
+    });
+
+    it('Should increment nonce', async function () {
+      const initialNonce = 0;
+
+      const relayRequest = createRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: '10',
+          tokenGas: '40000',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+          nonce: initialNonce.toString(),
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      expect(
+        await mockSmartWallet.nonce(),
+        'Nonce was not incremented'
+      ).to.equal(initialNonce + 1);
+    });
+
+    it('Should fail if not called by the relayHub', async function () {
+      const notTheRelayHub = hardhat.Wallet.createRandom();
+      notTheRelayHub.connect(provider);
+
+      const relayRequest = createRequest(
+        {
+          relayHub: notTheRelayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: '10',
+          tokenGas: '40000',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'The execution did not fail'
+      ).to.be.rejectedWith('Invalid caller');
+    });
+
+    it('Should fail when gas is not enough', async function () {
+      const relayRequest = createRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: '10',
+          gas: '10000000000',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution should fail'
+      ).to.be.rejectedWith('Not enough gas left');
+    });
+
+    it('Should fail when request is expired', async function () {
+      const relayRequest = createRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        validUntilTime: 1669903306, //Thursday, December 1, 2022 2:01:46 PM
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, owner.address, signature)
+      ).to.be.rejectedWith('SW: request expired');
+    });
+
+    it('Should transfer when request is not expired', async function () {
+      const date = new Date();
+      const expirationInSeconds = Math.floor(date.getTime() / 1000) + 86400;
+
+      const relayRequest = createRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        validUntilTime: expirationInSeconds, //Always 1 day (86400 sec) ahead
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, owner.address, signature),
+        'The transaction was reverted'
+      ).not.to.be.rejected;
+    });
+  });
+
+  describe('Function directExecute()', function () {
+    let mockSmartWallet: MockContract<SmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+    let recipient: FakeContract;
+    let recipientFunction: string;
+    let utilWallet: SignerWithAddress;
+
+    beforeEach(async function () {
+      let fundedAccount: SignerWithAddress;
+      [relayHub, fundedAccount, utilWallet] = await hardhat.getSigners();
+
+      const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>(
+        'CustomSmartWallet'
+      );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+
+      recipient = await smock.fake('SmartWallet');
+      recipient.isInitialized.returns(true);
+
+      const ABI = ['function isInitialized()'];
+      const abiInterface = new hardhat.utils.Interface(ABI);
+      recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
+
+      fakeToken = await smock.fake('ERC20');
+      fakeToken.transfer.returns(true);
+    });
+
+    it('Should execute a valid transaction', async function () {
+      await expect(
+        mockSmartWallet.directExecute(recipient.address, recipientFunction),
+        'Execution failed'
+      ).not.to.be.rejected;
+    });
+
+    it('Should failed when not called by the owner', async function () {
+      const notTheOwner = utilWallet;
+
+      await expect(
+        mockSmartWallet
+          .connect(notTheOwner)
+          .directExecute(recipient.address, recipientFunction),
+        'Execution should be rejected'
+      ).to.be.rejectedWith('Not the owner of the SmartWallet');
+    });
+
+    it('Should send balance back to owner', async function () {
+      const amountToTransfer = hardhat.utils.parseEther('1000');
+
+      await utilWallet.sendTransaction({
+        to: mockSmartWallet.address,
+        value: amountToTransfer,
+      });
+
+      const ownerBalanceBefore = await owner.getBalance();
+
+      await expect(
+        mockSmartWallet.directExecute(recipient.address, recipientFunction),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      const ownerBalanceAfter = await owner.getBalance();
+      const difference = Number(
+        hardhat.utils.formatEther(ownerBalanceAfter.sub(ownerBalanceBefore))
+      );
+      const amountToTransferAsNumber = Number(
+        hardhat.utils.formatEther(amountToTransfer)
+      );
+
+      expect(difference).approximately(amountToTransferAsNumber, 2);
+    });
+  });
+
+  describe('Function getOwner()', function () {
+    let mockSmartWallet: MockContract<SmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+
+    beforeEach(async function () {
+      const [, fundedAccount] = await hardhat.getSigners();
+
+      const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>(
+        'CustomSmartWallet'
+      );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+    });
+
+    it('Should return the encrypted owner', async function () {
+      const returnedOwner = await mockSmartWallet.getOwner();
+      const expectedOwner = hardhat.utils.solidityKeccak256(
+        ['address'],
+        [owner.address]
+      );
+      expect(returnedOwner).to.be.equal(
+        expectedOwner,
+        'Owner is not the returned one'
+      );
+    });
+  });
 });
-
-contract(
-    'SmartWallet contract - Unit testing on execute method',
-    ([worker]) => {
-        describe('Testing execute method for values and parameters', () => {
-            let token: TestTokenInstance;
-            let senderAddress: string;
-            let smartWallet: SmartWalletInstance;
-            let chainId: number;
-            const senderPrivateKey = toBuffer(generateBytes32(1));
-            let recipientFunction: any;
-            let recipient: TestForwarderTargetInstance;
-            let relayData: Partial<RelayData>;
-
-            beforeEach('Setting values', async () => {
-                chainId = (await getTestingEnvironment()).chainId;
-                senderAddress = bufferToHex(
-                    privateToAddress(senderPrivateKey)
-                ).toLowerCase();
-                token = await TestToken.new();
-                recipient = await TestForwarderTarget.new();
-                recipientFunction = recipient.contract.methods
-                    .emitMessage('hello')
-                    .encodeABI();
-                const smartWalletTemplate = await SmartWallet.new();
-                const factory = await createSmartWalletFactory(
-                    smartWalletTemplate
-                );
-                smartWallet = await createSmartWallet(
-                    worker,
-                    senderAddress,
-                    factory,
-                    senderPrivateKey,
-                    chainId
-                );
-                relayData = {
-                    callForwarder: smartWallet.address
-                };
-            });
-
-            it('Should verify the method executed revert to the Invalid caller', async () => {
-                const senderAccount = web3.eth.accounts.create();
-                assert.isTrue(await smartWallet.isInitialized());
-                const initialNonce = await smartWallet.nonce();
-
-                const relayRequest = await createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: senderAddress, //To make it fail
-                        tokenContract: token.address,
-                        from: senderAccount.address,
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-
-                recipient = await TestForwarderTarget.new();
-                recipientFunction = recipient.contract.methods
-                    .emitMessage('hello')
-                    .encodeABI();
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-
-                await assert.isRejected(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    ),
-                    'Invalid caller',
-                    'Error while validating the data'
-                );
-            });
-
-            it('Should verify the method executed revert to Unable to pay relay', async () => {
-                assert.isTrue(await smartWallet.isInitialized());
-
-                const initialNonce = await smartWallet.nonce();
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-
-                await assert.isRejected(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    ),
-                    'Unable to pay for relay',
-                    'Error while validating the data'
-                );
-            });
-
-            it('Should verify the method executed reverts to Not enough gas', async () => {
-                assert.isTrue(await smartWallet.isInitialized());
-
-                const initialNonce = await smartWallet.nonce();
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-                relayRequest.request.gas = '1000000000000000';
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-                await mintTokens(token, smartWallet.address, '1000');
-
-                await assert.isRejected(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    ),
-                    'Not enough gas left',
-                    'Error while validating the data'
-                );
-            });
-
-            it('Should verify the method executed success', async () => {
-                assert.isTrue(await smartWallet.isInitialized());
-
-                const initialNonce = await smartWallet.nonce();
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-                relayRequest.request.gas = '100';
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-                await mintTokens(token, smartWallet.address, '1000');
-
-                await assert.isFulfilled(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    )
-                );
-                assert.equal(
-                    (await smartWallet.nonce()).toString(),
-                    initialNonce.add(new BN(1)).toString(),
-                    'Calling execute method should increment nonce'
-                );
-            });
-
-            it('Should verify the method executed success to same sender and receiver', async () => {
-                const transferAmount = 1000;
-                assert.isTrue(await smartWallet.isInitialized());
-                const initialNonce = await smartWallet.nonce();
-                const initialBalance = getTokenBalance(token, senderAddress);
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: senderAddress,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        tokenAmount: transferAmount.toString(),
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-                relayRequest.request.gas = '100';
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-                await mintTokens(
-                    token,
-                    smartWallet.address,
-                    transferAmount.toString()
-                );
-
-                await assert.isFulfilled(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    )
-                );
-                assert.equal(
-                    (await smartWallet.nonce()).toString(),
-                    initialNonce.add(new BN(1)).toString(),
-                    'Calling execute method should increment nonce'
-                );
-                assert.equal(
-                    initialBalance.toString(),
-                    getTokenBalance(token, senderAddress).toString(),
-                    'Sender balance do not match'
-                );
-            });
-
-            it('Should verify balances after a transaction between accounts', async () => {
-                const transferAmount = 1000;
-                assert.isTrue(await smartWallet.isInitialized());
-                const initialNonce = await smartWallet.nonce();
-                const initialWorkerTokenBalance = await getTokenBalance(
-                    token,
-                    worker
-                );
-                const initialSWalletTokenBalance = await getTokenBalance(
-                    token,
-                    smartWallet.address
-                );
-                const relayRequest = createRequest(
-                    {
-                        data: recipientFunction,
-                        to: recipient.address,
-                        nonce: initialNonce.toString(),
-                        relayHub: worker,
-                        tokenContract: token.address,
-                        from: senderAddress,
-                        tokenAmount: transferAmount.toString(),
-                        validUntilTime: '0'
-                    },
-                    relayData
-                );
-                relayRequest.request.gas = '100';
-
-                const { signature, suffixData } = signRequest(
-                    senderPrivateKey,
-                    relayRequest,
-                    chainId
-                );
-                await mintTokens(
-                    token,
-                    smartWallet.address,
-                    transferAmount.toString()
-                );
-
-                assert.equal(
-                    (
-                        await getTokenBalance(token, smartWallet.address)
-                    ).toString(),
-                    new BN(transferAmount).toString(),
-                    'Smart wallet token balance was not increased'
-                );
-
-                await assert.isFulfilled(
-                    smartWallet.execute(
-                        suffixData,
-                        relayRequest.request,
-                        worker,
-                        signature,
-                        { from: worker }
-                    )
-                );
-
-                const tknBalance = await getTokenBalance(token, worker);
-                const swTknBalance = await getTokenBalance(
-                    token,
-                    smartWallet.address
-                );
-
-                assert.equal(
-                    tknBalance.toString(),
-                    initialWorkerTokenBalance
-                        .add(new BN(transferAmount))
-                        .toString(),
-                    'Worker token balance did not change'
-                );
-                assert.equal(
-                    swTknBalance.toString(),
-                    initialSWalletTokenBalance.toString(),
-                    'Smart wallet token balance did not change'
-                );
-                assert.equal(
-                    (await smartWallet.nonce()).toString(),
-                    initialNonce.add(new BN(1)).toString(),
-                    'Call to execute should increment nonce'
-                );
-            });
-        });
-    }
-);
-
-contract(
-    'SmartWallet contract - Unit testing on directExecute method',
-    ([worker, fundedAccount]) => {
-        describe('Testing directExecute method for values and parameters', () => {
-            let smartWallet: SmartWalletInstance;
-            let recipientFunction: any;
-            let recipient: TestForwarderTargetInstance;
-            const fundedAccountPrivateKey: Buffer = Buffer.from(
-                '0c06818f82e04c564290b32ab86b25676731fc34e9a546108bf109194c8e3aae',
-                'hex'
-            );
-
-            beforeEach('Setting values', async () => {
-                const chainId = (await getTestingEnvironment()).chainId;
-                recipient = await TestForwarderTarget.new();
-                recipientFunction = recipient.contract.methods
-                    .emitMessage('hello')
-                    .encodeABI();
-                const smartWalletTemplate = await SmartWallet.new();
-                const factory = await createSmartWalletFactory(
-                    smartWalletTemplate
-                );
-                smartWallet = await createSmartWallet(
-                    worker,
-                    fundedAccount,
-                    factory,
-                    fundedAccountPrivateKey,
-                    chainId
-                );
-            });
-
-            it('Should revert call to directExecute with empty parameter', async () => {
-                await assert.isRejected(
-                    smartWallet.directExecute('', recipientFunction, {
-                        from: fundedAccount
-                    })
-                );
-            });
-
-            it('Should revert call to directExecute with null parameter', async () => {
-                await assert.isRejected(
-                    smartWallet.directExecute(recipient.address, null, {
-                        from: fundedAccount
-                    })
-                );
-            });
-
-            it('Should revert call to directExecute with no funded account as parameter', async () => {
-                await assert.isRejected(
-                    smartWallet.directExecute(
-                        recipient.address,
-                        recipientFunction
-                    ),
-                    'Not the owner of the SmartWallet',
-                    'Error while validating the data'
-                );
-            });
-
-            it('Should revert call to directExecute with INVALID_ARGUMENT as parameter', async () => {
-                await assert.isRejected(
-                    smartWallet.directExecute('', recipientFunction, {
-                        from: fundedAccount
-                    }),
-                    'INVALID_ARGUMENT',
-                    'Error while validating the data'
-                );
-            });
-
-            it('Should call successfully the method directExecute through node funded account', async () => {
-                assert.isTrue(await smartWallet.isInitialized());
-                const initialNonce = await smartWallet.nonce();
-
-                await assert.isFulfilled(
-                    smartWallet.directExecute(
-                        recipient.address,
-                        recipientFunction,
-                        { from: fundedAccount }
-                    )
-                );
-                assert.equal(
-                    (await smartWallet.nonce()).toString(),
-                    initialNonce.toString(),
-                    'Call to direct execute should NOT increment nonce'
-                );
-            });
-        });
-    }
-);
-
-/* TODO - ADD tests for recover method */
