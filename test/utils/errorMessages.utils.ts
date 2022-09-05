@@ -1,0 +1,10 @@
+export const ERR_UNSTAKED = 'RelayManager not staked';
+export const ERR_HUB_BAD_PARAMS = 'invalid hub init params';
+export const ERR_WORKER_HAS_MANAGER = 'this worker has a manager';
+export const ERR_TOO_MANY_WORKERS = 'too many workers';
+export const ERR_NOT_OWNER = 'not owner';
+export const ERR_TXN_IS_EQUAL = 'tx is equal';
+export const ERR_UNKNOWN_RELAY_MANAGER = 'Unknown relay manager';
+export const ERROR_DIFFERENT_SIGNER = 'Different signer';
+export const ERROR_DIFFERENT_NONCE = 'Different nonce';
+export const ERROR_TXNS_ALREADY_PENALIZED = 'Transactions already penalized';
