@@ -1,4 +1,4 @@
-import { use, assert } from 'chai';
+import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { bufferToHex, privateToAddress, toBuffer } from 'ethereumjs-util';
 import { ethers } from 'ethers';
@@ -65,7 +65,7 @@ function createUserSmartWalletSignature(
     return signatureCollapsed;
 }
 
-contract('CustomSmartWalletFactory', ([worker]) => {
+contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
     let chainId: number;
     let factory: CustomSmartWalletFactoryInstance;
     const ownerPrivateKey = toBuffer(generateBytes32(1));
@@ -95,8 +95,7 @@ contract('CustomSmartWalletFactory', ([worker]) => {
                 index
             );
 
-            await assert.isRejected(
-                CustomSmartWallet.at(smartWalletAddress),
+            expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
                 `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
             );
 
@@ -123,10 +122,10 @@ contract('CustomSmartWalletFactory', ([worker]) => {
             const smartWallet: CustomSmartWalletInstance =
                 await CustomSmartWallet.at(smartWalletAddress);
 
-            await assert.eventually.isTrue(smartWallet.isInitialized());
+            expect(smartWallet.isInitialized()).to.eventually.be.true;
         });
 
-        it('Should verify method initialize fails with a ZERO owner address parameter', async () => {
+        it('Should fail with a ZERO owner address parameter', async () => {
             const signatureCollapsed = createUserSmartWalletSignature(
                 ownerPrivateKey,
                 {
@@ -138,7 +137,7 @@ contract('CustomSmartWalletFactory', ([worker]) => {
                 }
             );
 
-            await assert.isRejected(
+            expect(
                 factory.createUserSmartWallet(
                     constants.ZERO_ADDRESS,
                     recoverer,
@@ -146,13 +145,41 @@ contract('CustomSmartWalletFactory', ([worker]) => {
                     index,
                     initParams,
                     signatureCollapsed
-                ),
+                )
+            ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Invalid signature'
+            );
+        });
+
+        it('Should fail when signature does not match', async () => {
+            const signatureCollapsed = createUserSmartWalletSignature(
+                ownerPrivateKey,
+                {
+                    owner: ownerAddress,
+                    recoverer,
+                    logicAddress,
+                    initParams,
+                    index
+                }
+            );
+
+            expect(
+                factory.createUserSmartWallet(
+                    otherAccount,
+                    recoverer,
+                    logicAddress,
+                    index,
+                    initParams,
+                    signatureCollapsed
+                )
+            ).to.be.rejectedWith(
                 'Returned error: VM Exception while processing transaction: revert Invalid signature'
             );
         });
     });
 
     describe('relayedUserSmartWalletCreation', () => {
+        let smartWalletAddress: string;
         let token: TestTokenInstance;
         const logicAddress = constants.ZERO_ADDRESS;
         const initParams = '0x';
@@ -161,22 +188,20 @@ contract('CustomSmartWalletFactory', ([worker]) => {
 
         beforeEach(async () => {
             token = await TestToken.new();
-        });
-
-        it('Should initialize the smart wallet in the expected address without paying fee', async () => {
-            const smartWalletAddress = await factory.getSmartWalletAddress(
+            smartWalletAddress = await factory.getSmartWalletAddress(
                 ownerAddress,
                 recoverer,
                 logicAddress,
                 soliditySha3Raw({ t: 'bytes', v: initParams }),
                 index
             );
+        });
 
+        it('Should initialize the smart wallet in the expected address without paying fee', async () => {
             const initialWorkerBalance = await getTokenBalance(token, worker);
-            assert.equal(initialWorkerBalance.toString(), '0');
+            expect(initialWorkerBalance.toString()).to.be.equal('0');
 
-            await assert.isRejected(
-                CustomSmartWallet.at(smartWalletAddress),
+            expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
                 `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
             );
 
@@ -215,31 +240,17 @@ contract('CustomSmartWalletFactory', ([worker]) => {
             const smartWallet: CustomSmartWalletInstance =
                 await CustomSmartWallet.at(smartWalletAddress);
 
-            await assert.eventually.isTrue(smartWallet.isInitialized());
+            expect(smartWallet.isInitialized()).to.eventually.be.true;
 
             const finalWorkerBalance = await getTokenBalance(token, worker);
-            assert.equal(finalWorkerBalance.toString(), '0');
+            expect(finalWorkerBalance.toString()).to.be.equal('0');
         });
 
         it('Should initialize the smart wallet in the expected address paying fee', async () => {
-            const smartWalletAddress = await factory.getSmartWalletAddress(
-                ownerAddress,
-                recoverer,
-                logicAddress,
-                soliditySha3Raw({ t: 'bytes', v: initParams }),
-                index
-            );
-
             const initialWorkerBalance = await getTokenBalance(token, worker);
-            assert.equal(initialWorkerBalance.toString(), '0');
+            expect(initialWorkerBalance.toString()).to.be.equal('0');
 
             await mintTokens(token, smartWalletAddress, '1000');
-
-            await assert.isRejected(
-                CustomSmartWallet.at(smartWalletAddress),
-                `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
-            );
-
             const fee = '500';
 
             const relayRequest = createRequest(
@@ -277,13 +288,13 @@ contract('CustomSmartWalletFactory', ([worker]) => {
             const smartWallet: CustomSmartWalletInstance =
                 await CustomSmartWallet.at(smartWalletAddress);
 
-            await assert.eventually.isTrue(smartWallet.isInitialized());
+            expect(smartWallet.isInitialized()).to.eventually.be.true;
 
             const finalWorkerBalance = await getTokenBalance(token, worker);
-            assert.equal(finalWorkerBalance.toString(), fee);
+            expect(finalWorkerBalance.toString()).to.be.equal(fee);
         });
 
-        it('Should verify method initialize reverts with negative token amount', async () => {
+        it('Should fail with negative token amount', async () => {
             const relayRequest = createRequest(
                 {
                     from: ownerAddress,
@@ -301,33 +312,19 @@ contract('CustomSmartWalletFactory', ([worker]) => {
                 }
             );
 
-            assert.throw(
-                () => signRequest(ownerPrivateKey, relayRequest, chainId),
-                'Supplied uint is negative'
-            );
+            expect(() =>
+                signRequest(ownerPrivateKey, relayRequest, chainId)
+            ).to.throw('Supplied uint is negative');
         });
 
-        it('Should verify method initialize successfully with token as ZERO address parameter', async () => {
-            const smartWalletAddress = await factory.getSmartWalletAddress(
-                ownerAddress,
-                recoverer,
-                logicAddress,
-                soliditySha3Raw({ t: 'bytes', v: initParams }),
-                index
-            );
-
-            await assert.isRejected(
-                CustomSmartWallet.at(smartWalletAddress),
-                `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
-            );
-
+        it('Should fail with token as ZERO address parameter', async () => {
             const relayRequest = createRequest(
                 {
                     from: ownerAddress,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: constants.ZERO_ADDRESS,
-                    tokenAmount: '0',
+                    tokenAmount: '5000',
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
@@ -352,11 +349,164 @@ contract('CustomSmartWalletFactory', ([worker]) => {
                     from: worker
                 }
             );
-
             const smartWallet: CustomSmartWalletInstance =
                 await CustomSmartWallet.at(smartWalletAddress);
 
-            await assert.eventually.isTrue(smartWallet.isInitialized());
+            expect(smartWallet.isInitialized()).to.eventually.be.true;
+        });
+
+        it('Should fail when owner does not have funds to pay', async () => {
+            const relayRequest = createRequest(
+                {
+                    from: ownerAddress,
+                    to: logicAddress,
+                    data: initParams,
+                    tokenContract: token.address,
+                    tokenAmount: '5000',
+                    tokenGas: '0',
+                    recoverer: recoverer,
+                    index: index,
+                    relayHub: worker
+                },
+                {
+                    callForwarder: factory.address
+                }
+            );
+
+            const { signature, suffixData } = signRequest(
+                ownerPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            expect(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                )
+            ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Unable to initialize SW'
+            );
+        });
+
+        it('Should fail when invalid caller(Not relayHub)', async () => {
+            const relayRequest = createRequest(
+                {
+                    from: ownerAddress,
+                    to: logicAddress,
+                    data: initParams,
+                    tokenContract: token.address,
+                    tokenAmount: '5000',
+                    tokenGas: '0',
+                    recoverer: recoverer,
+                    index: index,
+                    relayHub: otherAccount
+                },
+                {
+                    callForwarder: factory.address
+                }
+            );
+
+            const { signature, suffixData } = signRequest(
+                ownerPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            expect(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                )
+            ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Invalid caller'
+            );
+        });
+
+        it('Should fail when nonce does not match', async () => {
+            const relayRequest = createRequest(
+                {
+                    from: ownerAddress,
+                    to: logicAddress,
+                    data: initParams,
+                    tokenContract: token.address,
+                    tokenAmount: '5000',
+                    tokenGas: '0',
+                    recoverer: recoverer,
+                    index: index,
+                    relayHub: worker,
+                    nonce: '1'
+                },
+                {
+                    callForwarder: factory.address
+                }
+            );
+
+            const { signature, suffixData } = signRequest(
+                ownerPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            expect(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                )
+            ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert nonce mismatch'
+            );
+        });
+
+        it('Should fail when signature does not match', async () => {
+            const relayRequest = createRequest(
+                {
+                    from: ownerAddress,
+                    to: logicAddress,
+                    data: initParams,
+                    tokenContract: token.address,
+                    tokenAmount: '5000',
+                    tokenGas: '0',
+                    index: index,
+                    relayHub: worker
+                },
+                {
+                    callForwarder: factory.address
+                }
+            );
+
+            const { signature, suffixData } = signRequest(
+                ownerPrivateKey,
+                relayRequest,
+                chainId
+            );
+
+            relayRequest.request.from = otherAccount;
+
+            expect(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                )
+            ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Signature mismatch'
+            );
         });
     });
 });
