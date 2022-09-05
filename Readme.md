@@ -183,37 +183,54 @@ export {
 };
 ```
 
+### Testing
+
+Testing is done using hardhat (mocha), chai, chai-as-promised, hardhat-chai-matchers, and smock for faking and mocking.
+
+* `npm run test`: to run the test suite
+* `npm run tdd`: to run the testsuite in watch-mode for faster TDD
+* `npm run ci:test`: to compile and run test 
+
 ### Contract addresses
 
 During development, the smart contract addresses config file can be expected to be updated each time a migration is executed. 
 
 To automatically use these new addresses each time a change is made, use the `npm link` mechanism (https://docs.npmjs.com/cli/v8/commands/npm-link).
 
-#### Husky and linters
+### Husky and linters
 
 We use Husky to check linters and code style for every commit. If commiting changes fails on lint or prettier checks you can use these commands to check and fix the errors before trying again:
 
-* `npm run lint:ts`: to check linter bugs for typescript
-* `npm run lint:ts:fix`: to fix linter bugs for typescript
-* `npm run lint:sol`: to see bugs on solidity
-* `npm run prettier`: to check code style errors
-* `npm run prettier:fix`: to fix code style errors
-   
-#### Generating a new distributable version
+* `npm run lint`:  to check/fix all linter bugs
+* `npm run lint:ts`: to check/fix linter bugs for typescript
+* `npm run lint:sol`: to check/fix linter bugs for solidity
+* `npm run format`: to check/fix all code style errors
+* `npm run format:ts`: to check/fix code style errors for typescript
+* `npm run format`: to check/fix code style errors for solidity
+* `npm run ci:lint`: to check all linter bugs
+* `npm run ci:format`: to check all code style errors
 
-1. Run the `npm run dist` command to generate the `dist` folder with the distributable version inside.
+### Deploy to network
+
+1. Modify deployment scripts if needed
+2. Add configuration for your network
+3. Run `npm run deploy` to run deployment scripts
+
+### Generating a new distributable version
+
+1. Run the `npm run compile` command to delete all generated folders and recompile
 2. Bump the version on the `package.json` file (not strictly needed).
 3. Commit and push any changes, including the version bump.
 
-##### For GitHub
+### For GitHub
 
 1. Create a new tag with the new version (from `package.json`) and github actions will update npm 
 
-##### For NPM
+### For NPM
 
 1. Run `npm login` to login to your account on npm registry.
 2. Run `npm publish` to generate the distributable version for NodeJS.
 
-##### For direct use (no publishing)
+### For direct use (no publishing)
 
 No extra steps are needed beyond generating the `dist` folder and merging it to `master`.
