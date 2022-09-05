@@ -12,7 +12,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Addresses**](#addresses)
 - [**System usage**](#system-usage)
   - [**Allowing tokens**](#allowing-tokens)
-  - [**TestToken Minting**](#testtoken-minting)
+  - [**UtilToken Minting**](#UtilToken-minting)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
   - [**Development**](#development)
@@ -43,8 +43,8 @@ The project is ready to be used at this point.
 
 The contracts can be deployed in the following way:
 
-1. Configure the `truffle.js` file on the root of the project to set your network 
-2. Run `npx truffle migrate --network <NETWORK_NAME>` 
+1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
+2. Run `npm run deploy <NETWORK_NAME>` 
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
@@ -108,14 +108,14 @@ This file also is being exported on the distributable version to provide the con
 
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. There are some helpful commands for this:
 
-1. To allow a specific token, run `npm run allowTokens <TOKEN_ADDRESSES> <NETWORK_NAME>` where:
+1. To allow a specific token, run `npm run allow-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
-    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! This should be the same network name as the one used to deploy the contracts** 
-2. To query allowed tokens run `npm run allowedTokens <NETWORK_NAME>`. This will display them on the console.
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
+2. To query allowed tokens run `npm run allowed-tokens <NETWORK_NAME>`. This will display them on the console.
 
-### TestToken Minting
+### UtilToken Minting
 
-Once the smart contracts are deployed, [TestToken](./contracts/test/tokens/TestToken.sol)s can be minted and transferred by using the related script:
+Once the smart contracts are deployed, [UtilToken](./contracts/utils/UtilToken.sol)s can be minted and transferred by using the related script:
 ```bash
 npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc123> --amount <amount_in_wei>
 ```
@@ -183,37 +183,54 @@ export {
 };
 ```
 
+### Testing
+
+Testing is done using hardhat (mocha), chai, chai-as-promised, hardhat-chai-matchers, and smock for faking and mocking.
+
+* `npm run test`: to run the test suite
+* `npm run tdd`: to run the testsuite in watch-mode for faster TDD
+* `npm run ci:test`: to compile and run test 
+
 ### Contract addresses
 
 During development, the smart contract addresses config file can be expected to be updated each time a migration is executed. 
 
 To automatically use these new addresses each time a change is made, use the `npm link` mechanism (https://docs.npmjs.com/cli/v8/commands/npm-link).
 
-#### Husky and linters
+### Husky and linters
 
 We use Husky to check linters and code style for every commit. If commiting changes fails on lint or prettier checks you can use these commands to check and fix the errors before trying again:
 
-* `npm run lint:ts`: to check linter bugs for typescript
-* `npm run lint:ts:fix`: to fix linter bugs for typescript
-* `npm run lint:sol`: to see bugs on solidity
-* `npm run prettier`: to check code style errors
-* `npm run prettier:fix`: to fix code style errors
-   
-#### Generating a new distributable version
+* `npm run lint`:  to check/fix all linter bugs
+* `npm run lint:ts`: to check/fix linter bugs for typescript
+* `npm run lint:sol`: to check/fix linter bugs for solidity
+* `npm run format`: to check/fix all code style errors
+* `npm run format:ts`: to check/fix code style errors for typescript
+* `npm run format`: to check/fix code style errors for solidity
+* `npm run ci:lint`: to check all linter bugs
+* `npm run ci:format`: to check all code style errors
 
-1. Run the `npm run dist` command to generate the `dist` folder with the distributable version inside.
+### Deploy to network
+
+1. Modify deployment scripts if needed
+2. Add configuration for your network
+3. Run `npm run deploy` to run deployment scripts
+
+### Generating a new distributable version
+
+1. Run the `npm run compile` command to delete all generated folders and recompile
 2. Bump the version on the `package.json` file (not strictly needed).
 3. Commit and push any changes, including the version bump.
 
-##### For GitHub
+### For GitHub
 
 1. Create a new tag with the new version (from `package.json`) and github actions will update npm 
 
-##### For NPM
+### For NPM
 
 1. Run `npm login` to login to your account on npm registry.
 2. Run `npm publish` to generate the distributable version for NodeJS.
 
-##### For direct use (no publishing)
+### For direct use (no publishing)
 
 No extra steps are needed beyond generating the `dist` folder and merging it to `master`.
