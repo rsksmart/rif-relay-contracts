@@ -1,3 +1,4 @@
 node_modules
-dist
-types/truffle-contracts
+artifacts
+cache
+coverage

@@ -1,0 +1,5 @@
+coverage
+.gitignore
+!dist
+!typechain-types
+test

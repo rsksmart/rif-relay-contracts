@@ -20,42 +20,62 @@ import "../interfaces/EnvelopingTypes.sol";
 contract RelayVerifier is IRelayVerifier, ITokenHandler, Ownable {
     using SafeMath for uint256;
 
-    address private factory;
+    address private _factory;
 
     constructor(address walletFactory) public {
-        factory = walletFactory;
+        _factory = walletFactory;
     }
 
-    function versionVerifier() external override virtual view returns (string memory){
+    function versionVerifier()
+        external
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         return "rif.enveloping.token.iverifier@2.0.1";
     }
 
-    mapping (address => bool) public tokens;
+    mapping(address => bool) public tokens;
     address[] public acceptedTokens;
 
     /* solhint-disable no-unused-vars */
     function verifyRelayedCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
-    )
-    external
-    override
-    virtual
-    returns (bytes memory context) {
-        require(tokens[relayRequest.request.tokenContract], "Token contract not allowed");
+    ) external virtual override returns (bytes memory context) {
+        require(
+            tokens[relayRequest.request.tokenContract],
+            "Token contract not allowed"
+        );
 
         address payer = relayRequest.relayData.callForwarder;
-        if(relayRequest.request.tokenContract != address(0)){
-            require(relayRequest.request.tokenAmount <= IERC20(relayRequest.request.tokenContract).balanceOf(payer), "balance too low");
+        if (relayRequest.request.tokenContract != address(0)) {
+            require(
+                relayRequest.request.tokenAmount <=
+                    IERC20(relayRequest.request.tokenContract).balanceOf(payer),
+                "balance too low"
+            );
         }
 
         // Check for the codehash of the smart wallet sent
         bytes32 smartWalletCodeHash;
-        assembly { smartWalletCodeHash := extcodehash(payer) }
+        assembly {
+            smartWalletCodeHash := extcodehash(payer)
+        }
 
-        require(IWalletFactory(factory).runtimeCodeHash() == smartWalletCodeHash, "SW different to template");
+        require(
+            IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,
+            "SW different to template"
+        );
 
-        return (abi.encode(payer, relayRequest.request.tokenAmount, relayRequest.request.tokenContract));
+        return (
+            abi.encode(
+                payer,
+                relayRequest.request.tokenAmount,
+                relayRequest.request.tokenContract
+            )
+        );
     }
 
     function acceptToken(address token) external onlyOwner {
@@ -65,11 +85,16 @@ contract RelayVerifier is IRelayVerifier, ITokenHandler, Ownable {
         acceptedTokens.push(token);
     }
 
-    function getAcceptedTokens() external override view returns (address[] memory){
+    function getAcceptedTokens()
+        external
+        view
+        override
+        returns (address[] memory)
+    {
         return acceptedTokens;
     }
 
-    function acceptsToken(address token) external override view returns (bool){
+    function acceptsToken(address token) external view override returns (bool) {
         return tokens[token];
     }
 }
