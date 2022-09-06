@@ -1,4 +1,4 @@
-import { use, expect } from 'chai';
+import { use, expect, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { bufferToHex, privateToAddress, toBuffer } from 'ethereumjs-util';
 import { ethers } from 'ethers';
@@ -71,20 +71,20 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
     const ownerPrivateKey = toBuffer(generateBytes32(1));
     let ownerAddress: string;
 
-    beforeEach(async () => {
-        chainId = (await getTestingEnvironment()).chainId;
-        const smartWallet = await CustomSmartWallet.new();
-        factory = await CustomSmartWalletFactory.new(smartWallet.address);
-        ownerAddress = bufferToHex(
-            privateToAddress(ownerPrivateKey)
-        ).toLowerCase();
-    });
-
     describe('createUserSmartWallet', () => {
         const logicAddress = constants.ZERO_ADDRESS;
         const initParams = '0x';
         const recoverer = constants.ZERO_ADDRESS;
         const index = '0';
+
+        beforeEach(async () => {
+            chainId = (await getTestingEnvironment()).chainId;
+            const smartWallet = await CustomSmartWallet.new();
+            factory = await CustomSmartWalletFactory.new(smartWallet.address);
+            ownerAddress = bufferToHex(
+                privateToAddress(ownerPrivateKey)
+            ).toLowerCase();
+        });
 
         it('Should initiate the smart wallet in the expected address', async () => {
             const smartWalletAddress = await factory.getSmartWalletAddress(
@@ -95,7 +95,12 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 index
             );
 
-            expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
+            /*   expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
+                `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
+            ); */
+
+            await assert.isRejected(
+                CustomSmartWallet.at(smartWalletAddress),
                 `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
             );
 
@@ -137,7 +142,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 }
             );
 
-            expect(
+            /*  expect(
                 factory.createUserSmartWallet(
                     constants.ZERO_ADDRESS,
                     recoverer,
@@ -147,6 +152,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     signatureCollapsed
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Invalid signature'
+            ); */
+
+            await assert.isRejected(
+                factory.createUserSmartWallet(
+                    constants.ZERO_ADDRESS,
+                    recoverer,
+                    logicAddress,
+                    index,
+                    initParams,
+                    signatureCollapsed
+                ),
                 'Returned error: VM Exception while processing transaction: revert Invalid signature'
             );
         });
@@ -163,7 +180,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 }
             );
 
-            expect(
+            /* expect(
                 factory.createUserSmartWallet(
                     otherAccount,
                     recoverer,
@@ -173,6 +190,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     signatureCollapsed
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Invalid signature'
+            ); */
+
+            await assert.isRejected(
+                factory.createUserSmartWallet(
+                    otherAccount,
+                    recoverer,
+                    logicAddress,
+                    index,
+                    initParams,
+                    signatureCollapsed
+                ),
                 'Returned error: VM Exception while processing transaction: revert Invalid signature'
             );
         });
@@ -185,6 +214,15 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         const initParams = '0x';
         const recoverer = constants.ZERO_ADDRESS;
         const index = '0';
+
+        beforeEach(async () => {
+            chainId = (await getTestingEnvironment()).chainId;
+            const smartWallet = await CustomSmartWallet.new();
+            factory = await CustomSmartWalletFactory.new(smartWallet.address);
+            ownerAddress = bufferToHex(
+                privateToAddress(ownerPrivateKey)
+            ).toLowerCase();
+        });
 
         beforeEach(async () => {
             token = await TestToken.new();
@@ -201,7 +239,12 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             const initialWorkerBalance = await getTokenBalance(token, worker);
             expect(initialWorkerBalance.toString()).to.be.equal('0');
 
-            expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
+            /*   expect(CustomSmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
+                `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
+            ); */
+
+            await assert.isRejected(
+                CustomSmartWallet.at(smartWalletAddress),
                 `Cannot create instance of CustomSmartWallet; no code at address ${smartWalletAddress}`
             );
 
@@ -379,7 +422,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 chainId
             );
 
-            expect(
+            /* expect(
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
@@ -389,6 +432,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     }
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Unable to initialize SW'
+            ); */
+
+            await assert.isRejected(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                ),
                 'Returned error: VM Exception while processing transaction: revert Unable to initialize SW'
             );
         });
@@ -417,7 +472,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 chainId
             );
 
-            expect(
+            /*  expect(
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
@@ -427,6 +482,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     }
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Invalid caller'
+            ); */
+
+            await assert.isRejected(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                ),
                 'Returned error: VM Exception while processing transaction: revert Invalid caller'
             );
         });
@@ -456,7 +523,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 chainId
             );
 
-            expect(
+            /* expect(
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
@@ -466,6 +533,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     }
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert nonce mismatch'
+            ); */
+
+            await assert.isRejected(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                ),
                 'Returned error: VM Exception while processing transaction: revert nonce mismatch'
             );
         });
@@ -495,7 +574,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
 
             relayRequest.request.from = otherAccount;
 
-            expect(
+            /*  expect(
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
@@ -505,6 +584,18 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     }
                 )
             ).to.be.rejectedWith(
+                'Returned error: VM Exception while processing transaction: revert Signature mismatch'
+            ); */
+
+            await assert.isRejected(
+                factory.relayedUserSmartWalletCreation(
+                    relayRequest.request,
+                    suffixData,
+                    signature,
+                    {
+                        from: worker
+                    }
+                ),
                 'Returned error: VM Exception while processing transaction: revert Signature mismatch'
             );
         });
