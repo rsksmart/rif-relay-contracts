@@ -18,9 +18,12 @@ library Eip712Library {
 
             /* solhint-disable-next-line avoid-low-level-calls */
             (deploySuccess, ret) = relayRequest.relayData.callForwarder.call(
-                abi.encodeWithSelector(IWalletFactory.relayedUserSmartWalletCreation.selector,
-                relayRequest.request, 
-                hashRelayData(relayRequest.relayData), signature
+                abi.encodeWithSelector(
+                    IWalletFactory.relayedUserSmartWalletCreation.selector,
+                    relayRequest.request, 
+                    hashRelayData(relayRequest.relayData),
+                    relayRequest.relayData.feesReceiver, 
+                    signature
             ));
  
     }

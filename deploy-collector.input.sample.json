@@ -1,5 +1,5 @@
 {
-    "collectorOwner": "0xA58bBC3F790F40384fd76372f4Bc576ABAbf6Bd4",
+    "collectorOwner": "0x4E28f372BCe2d0Bf1B129b6A278F582558BF08a7",
     "partners": [
         {
             "beneficiary": "0x7986b3DF570230288501EEa3D890bd66948C9B79",
@@ -18,5 +18,5 @@
             "share": 32
         }
     ],
-    "tokenAddress": "0x5501F9dF7140fCD1E3091A6E8227E66C34d8913b"
+    "tokenAddress": "0x726ECC75d5D51356AA4d0a5B648790cC345985ED"
 }

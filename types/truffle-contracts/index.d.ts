@@ -1131,6 +1131,7 @@ export interface CustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -1149,6 +1150,7 @@ export interface CustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
@@ -1167,6 +1169,7 @@ export interface CustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -1185,6 +1188,7 @@ export interface CustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -1933,6 +1937,7 @@ export interface ICustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -1951,6 +1956,7 @@ export interface ICustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
@@ -1969,6 +1975,7 @@ export interface ICustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -1987,6 +1994,7 @@ export interface ICustomSmartWalletFactoryInstance
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -2909,6 +2917,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -2927,6 +2936,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
@@ -2945,6 +2955,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -2963,6 +2974,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -3209,6 +3221,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -3227,6 +3240,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
@@ -3245,6 +3259,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -3263,6 +3278,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -4945,6 +4961,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -4963,6 +4980,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
@@ -4981,6 +4999,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -4999,6 +5018,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         data: string;
       },
       suffixData: string | BN,
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
