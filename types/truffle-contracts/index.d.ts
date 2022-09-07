@@ -18,6 +18,7 @@ export interface CollectorContract extends Truffle.Contract<CollectorInstance> {
     _owner: string | BN,
     _token: string | BN,
     _partners: { beneficiary: string | BN; share: number | BN | string }[],
+    _remainderAddress: string | BN,
     meta?: Truffle.TransactionDetails
   ): Promise<CollectorInstance>;
 }
@@ -639,14 +640,26 @@ export interface CollectorInstance extends Truffle.ContractInstance {
     ): Promise<number>;
   };
 
-  getBalance: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<BN>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  updateRemainderAddress: {
+    (
+      _remainderAddress: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _remainderAddress: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _remainderAddress: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _remainderAddress: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
   };
+
+  getBalance(txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
   withdraw: {
     (txDetails?: Truffle.TransactionDetails): Promise<
