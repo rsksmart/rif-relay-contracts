@@ -1,12 +1,12 @@
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { BN, bufferToHex, toBuffer, privateToAddress } from 'ethereumjs-util';
+import { expectRevert } from '@openzeppelin/test-helpers';
 import {
     TestTokenInstance,
     SmartWalletInstance,
     TestForwarderTargetInstance
 } from '../../types/truffle-contracts';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { BN, bufferToHex, toBuffer, privateToAddress } from 'ethereumjs-util';
-import { expectRevert } from '@openzeppelin/test-helpers';
 import { RelayData } from '../../';
 import { constants } from '../constants';
 import {

@@ -1,6 +1,6 @@
+import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { bufferToHex, privateToAddress, toBuffer } from 'ethereumjs-util';
 import { ethers } from 'ethers';
 import { soliditySha3Raw } from 'web3-utils';
 import {
@@ -11,7 +11,7 @@ import {
 import { constants } from '../constants';
 import {
     createRequest,
-    generateBytes32,
+    getGaslessAccount,
     getTestingEnvironment,
     getTokenBalance,
     mintTokens,
@@ -34,7 +34,7 @@ type createUserSmartWalletParam = {
 
 /**
  * Function to get the actual token balance for an account
- * @param ownerAddress
+ * @param owner.address
  * @param ownerPrivateKey
  * @param recoverer
  * @param logicAddress
@@ -68,27 +68,24 @@ function createUserSmartWalletSignature(
 contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
     let chainId: number;
     let factory: CustomSmartWalletFactoryInstance;
-    const ownerPrivateKey = toBuffer(generateBytes32(1));
-    let ownerAddress: string;
+    let owner: AccountKeypair;
 
-    describe('createUserSmartWallet', () => {
+    describe('createUserSmartWallet', async () => {
         const logicAddress = constants.ZERO_ADDRESS;
         const initParams = '0x';
         const recoverer = constants.ZERO_ADDRESS;
         const index = '0';
 
         beforeEach(async () => {
+            owner = await getGaslessAccount();
             chainId = (await getTestingEnvironment()).chainId;
             const smartWallet = await CustomSmartWallet.new();
             factory = await CustomSmartWalletFactory.new(smartWallet.address);
-            ownerAddress = bufferToHex(
-                privateToAddress(ownerPrivateKey)
-            ).toLowerCase();
         });
 
         it('Should initiate the smart wallet in the expected address', async () => {
             const smartWalletAddress = await factory.getSmartWalletAddress(
-                ownerAddress,
+                owner.address,
                 recoverer,
                 logicAddress,
                 soliditySha3Raw({ t: 'bytes', v: initParams }),
@@ -102,9 +99,9 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const signatureCollapsed = createUserSmartWalletSignature(
-                ownerPrivateKey,
+                owner.privateKey,
                 {
-                    owner: ownerAddress,
+                    owner: owner.address,
                     recoverer,
                     logicAddress,
                     initParams,
@@ -113,7 +110,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             await factory.createUserSmartWallet(
-                ownerAddress,
+                owner.address,
                 recoverer,
                 logicAddress,
                 index,
@@ -129,7 +126,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
 
         it('Should fail with a ZERO owner address parameter', async () => {
             const signatureCollapsed = createUserSmartWalletSignature(
-                ownerPrivateKey,
+                owner.privateKey,
                 {
                     owner: constants.ZERO_ADDRESS,
                     recoverer,
@@ -155,9 +152,9 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
 
         it('Should fail when signature does not match', async () => {
             const signatureCollapsed = createUserSmartWalletSignature(
-                ownerPrivateKey,
+                owner.privateKey,
                 {
-                    owner: ownerAddress,
+                    owner: owner.address,
                     recoverer,
                     logicAddress,
                     initParams,
@@ -192,15 +189,12 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             chainId = (await getTestingEnvironment()).chainId;
             const smartWallet = await CustomSmartWallet.new();
             factory = await CustomSmartWalletFactory.new(smartWallet.address);
-            ownerAddress = bufferToHex(
-                privateToAddress(ownerPrivateKey)
-            ).toLowerCase();
         });
 
         beforeEach(async () => {
             token = await TestToken.new();
             smartWalletAddress = await factory.getSmartWalletAddress(
-                ownerAddress,
+                owner.address,
                 recoverer,
                 logicAddress,
                 soliditySha3Raw({ t: 'bytes', v: initParams }),
@@ -220,7 +214,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
 
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -236,7 +230,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -268,7 +262,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
 
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -284,7 +278,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -310,7 +304,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         it('Should fail with negative token amount', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -326,14 +320,14 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             expect(() =>
-                signRequest(ownerPrivateKey, relayRequest, chainId)
+                signRequest(owner.privateKey, relayRequest, chainId)
             ).to.throw('Supplied uint is negative');
         });
 
         it('Should fail with token as ZERO address parameter', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: constants.ZERO_ADDRESS,
@@ -349,7 +343,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -371,7 +365,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         it('Should fail when owner does not have funds to pay', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -387,7 +381,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -409,7 +403,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         it('Should fail when invalid caller(Not relayHub)', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -425,7 +419,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -447,7 +441,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         it('Should fail when nonce does not match', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -464,7 +458,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );
@@ -486,7 +480,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
         it('Should fail when signature does not match', async () => {
             const relayRequest = createRequest(
                 {
-                    from: ownerAddress,
+                    from: owner.address,
                     to: logicAddress,
                     data: initParams,
                     tokenContract: token.address,
@@ -501,7 +495,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             );
 
             const { signature, suffixData } = signRequest(
-                ownerPrivateKey,
+                owner.privateKey,
                 relayRequest,
                 chainId
             );

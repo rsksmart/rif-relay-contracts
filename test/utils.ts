@@ -1,3 +1,15 @@
+import sigUtil, {
+    // @ts-ignore
+    signTypedData_v4,
+    EIP712TypedData,
+    TypedDataUtils
+} from 'eth-sig-util';
+import { bufferToHex, privateToAddress } from 'ethereumjs-util';
+import { soliditySha3Raw } from 'web3-utils';
+import { PrefixedHexString } from 'ethereumjs-tx';
+import ethWallet from 'ethereumjs-wallet';
+import { AccountKeypair } from '@rsksmart/rif-relay-client';
+import { HttpProvider } from 'web3-core';
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 import {
     SmartWalletFactoryInstance,
@@ -20,18 +32,6 @@ import {
     TypedRequestData
 } from '../';
 import { constants } from './constants';
-import sigUtil, {
-    // @ts-ignore
-    signTypedData_v4,
-    EIP712TypedData,
-    TypedDataUtils
-} from 'eth-sig-util';
-import { bufferToHex, privateToAddress } from 'ethereumjs-util';
-import { soliditySha3Raw } from 'web3-utils';
-import { PrefixedHexString } from 'ethereumjs-tx';
-import ethWallet from 'ethereumjs-wallet';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
-import { HttpProvider } from 'web3-core';
 
 const RelayHub = artifacts.require('RelayHub');
 
