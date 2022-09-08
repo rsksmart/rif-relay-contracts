@@ -6,23 +6,25 @@ pragma solidity ^0.6.12;
 // will never be called through GSN, but still, if someone uses it,
 // it should work)
 contract PayableWithEmit {
-    string public versionRecipient =
-        '2.0.1+enveloping.payablewithemit.irelayrecipient';
 
-    event Received(address sender, uint256 value, uint256 gasleft);
+  string public versionRecipient = "2.0.1+enveloping.payablewithemit.irelayrecipient";
 
-    receive() external payable {
-        emit Received(msg.sender, msg.value, gasleft());
-    }
+  event Received(address sender, uint value, uint gasleft);
 
-    //helper: send value to another contract
-    function doSend(address payable target) public payable {
-        uint256 before = gasleft();
-        // solhint-disable-next-line check-send-result
-        bool success = target.send(msg.value);
-        uint256 gasAfter = gasleft();
-        emit GasUsed(before - gasAfter, success);
-    }
+  receive () external payable {
 
-    event GasUsed(uint256 gasUsed, bool success);
+    emit Received(msg.sender, msg.value, gasleft());
+  }
+
+
+  //helper: send value to another contract
+  function doSend(address payable target) public payable {
+
+    uint before = gasleft();
+    // solhint-disable-next-line check-send-result
+    bool success = target.send(msg.value);
+    uint gasAfter = gasleft();
+    emit GasUsed(before-gasAfter, success);
+  }
+  event GasUsed(uint gasUsed, bool success);
 }

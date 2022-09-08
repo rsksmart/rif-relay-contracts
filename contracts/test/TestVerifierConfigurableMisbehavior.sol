@@ -2,9 +2,10 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import './TestVerifierEverythingAccepted.sol';
+import "./TestVerifierEverythingAccepted.sol";
 
 contract TestVerifierConfigurableMisbehavior is TestVerifierEverythingAccepted {
+
     bool public withdrawDuringPostRelayedCall;
     bool public withdrawDuringPreRelayedCall;
     bool public returnInvalidErrorCode;
@@ -12,37 +13,31 @@ contract TestVerifierConfigurableMisbehavior is TestVerifierEverythingAccepted {
     bool public overspendAcceptGas;
     bool public revertPreRelayCall;
     bool public expensiveGasLimits;
-    int256 public expensiveGasLimitsIterations;
+    int public expensiveGasLimitsIterations;
+
 
     function setWithdrawDuringPostRelayedCall(bool val) public {
         withdrawDuringPostRelayedCall = val;
     }
-
     function setWithdrawDuringPreRelayedCall(bool val) public {
         withdrawDuringPreRelayedCall = val;
     }
-
     function setReturnInvalidErrorCode(bool val) public {
         returnInvalidErrorCode = val;
     }
-
     function setRevertPostRelayCall(bool val) public {
         revertPostRelayCall = val;
     }
-
     function setRevertPreRelayCall(bool val) public {
         revertPreRelayCall = val;
     }
-
     function setOverspendAcceptGas(bool val) public {
         overspendAcceptGas = val;
     }
-
     function setExpensiveGasLimits(bool val) public {
         expensiveGasLimits = val;
     }
-
-    function setExpensiveGasLimitsIterations(int256 val) public {
+    function setExpensiveGasLimitsIterations(int val) public {
         expensiveGasLimitsIterations = val;
     }
 
@@ -50,21 +45,24 @@ contract TestVerifierConfigurableMisbehavior is TestVerifierEverythingAccepted {
         /* solhint-disable-next-line no-unused-vars */
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
-    ) external override returns (bytes memory) {
+    )
+    external
+    override
+    returns (bytes memory) {
         (signature, relayRequest);
         if (overspendAcceptGas) {
-            uint256 i = 0;
+            uint i = 0;
             while (true) {
                 i++;
             }
         }
 
-        require(!returnInvalidErrorCode, 'invalid code');
+        require(!returnInvalidErrorCode, "invalid code");
 
         if (revertPreRelayCall) {
-            revert('revertPreRelayCall: Reverting');
+            revert("revertPreRelayCall: Reverting");
         }
-        return ('');
+        return ("");
     }
 
     // solhint-disable-next-line no-empty-blocks
