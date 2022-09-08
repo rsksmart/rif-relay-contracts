@@ -2,7 +2,7 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./EnvelopingTypes.sol";
+import './EnvelopingTypes.sol';
 
 interface IRelayVerifier {
     function versionVerifier() external view returns (string memory);

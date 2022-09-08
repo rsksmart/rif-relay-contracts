@@ -2,10 +2,9 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./IWalletFactory.sol";
+import './IWalletFactory.sol';
 
-interface ICustomSmartWalletFactory is IWalletFactory{
-
+interface ICustomSmartWalletFactory is IWalletFactory {
     function createUserSmartWallet(
         address owner,
         address recoverer,
@@ -22,5 +21,4 @@ interface ICustomSmartWalletFactory is IWalletFactory{
         bytes32 initParamsHash,
         uint256 index
     ) external view returns (address);
-    
 }

@@ -2,9 +2,9 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "../interfaces/ISmartWalletFactory.sol";
-import "../utils/RSKAddrValidator.sol";
+import '@openzeppelin/contracts/cryptography/ECDSA.sol';
+import '../interfaces/ISmartWalletFactory.sol';
+import '../utils/RSKAddrValidator.sol';
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -73,11 +73,11 @@ PC | OPCODE|   Mnemonic     |   Stack [top, bottom]                       | Comm
  */
 contract SmartWalletFactory is ISmartWalletFactory {
     using ECDSA for bytes32;
- 
-    bytes11 private constant RUNTIME_START = hex"363D3D373D3D3D3D363D73";
-    bytes14 private constant RUNTIME_END = hex"5AF43D923D90803E602B57FD5BF3";
+
+    bytes11 private constant RUNTIME_START = hex'363D3D373D3D3D3D363D73';
+    bytes14 private constant RUNTIME_END = hex'5AF43D923D90803E602B57FD5BF3';
     address public masterCopy; // this is the ForwarderProxy contract that will be proxied
-    bytes32 public constant DATA_VERSION_HASH = keccak256("2");
+    bytes32 public constant DATA_VERSION_HASH = keccak256('2');
     bytes32 public domainSeparator;
 
     // Nonces of senders, used to prevent replay attacks
@@ -96,22 +96,23 @@ contract SmartWalletFactory is ISmartWalletFactory {
     function buildDomainSeparator() internal {
         domainSeparator = keccak256(
             abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
-                keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
+                keccak256(
+                    'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'
+                ), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
+                keccak256('RSK Enveloping Transaction'), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
                 DATA_VERSION_HASH,
                 getChainID(),
                 address(this)
             )
         );
-    } 
-
-    function runtimeCodeHash() external override view returns (bytes32){
-        return keccak256(
-            abi.encodePacked(RUNTIME_START, masterCopy, RUNTIME_END)
-        );
     }
 
-    function nonce(address from) public override view returns (uint256) {
+    function runtimeCodeHash() external view override returns (bytes32) {
+        return
+            keccak256(abi.encodePacked(RUNTIME_START, masterCopy, RUNTIME_END));
+    }
+
+    function nonce(address from) public view override returns (uint256) {
         return nonces[from];
     }
 
@@ -122,17 +123,20 @@ contract SmartWalletFactory is ISmartWalletFactory {
         bytes calldata sig
     ) external override {
         bytes memory packed = abi.encodePacked(
-            "\x19\x10",
+            '\x19\x10',
             owner,
             recoverer,
             index
         );
 
-        require(RSKAddrValidator.safeEquals(keccak256(packed).recover(sig),owner), "Invalid signature");
+        require(
+            RSKAddrValidator.safeEquals(keccak256(packed).recover(sig), owner),
+            'Invalid signature'
+        );
 
-        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)  
+        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
         bytes memory initData = abi.encodeWithSelector(
-            hex"a6b63eb8",
+            hex'a6b63eb8',
             owner,
             address(0), // This "gas-funded" call does not pay with tokens
             address(0),
@@ -140,13 +144,13 @@ contract SmartWalletFactory is ISmartWalletFactory {
             0 //No token transfer
         );
 
-        deploy(getCreationBytecode(), keccak256(
-            abi.encodePacked(
-                owner,
-                recoverer,
-                index
-            ) // salt
-        ), initData);
+        deploy(
+            getCreationBytecode(),
+            keccak256(
+                abi.encodePacked(owner, recoverer, index) // salt
+            ),
+            initData
+        );
     }
 
     function relayedUserSmartWalletCreation(
@@ -155,28 +159,27 @@ contract SmartWalletFactory is ISmartWalletFactory {
         address feesReceiver,
         bytes calldata sig
     ) external override {
-
-        require(msg.sender == req.relayHub, "Invalid caller");
+        require(msg.sender == req.relayHub, 'Invalid caller');
         _verifySig(req, suffixData, sig);
         nonces[req.from]++;
 
-        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)  
+        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
         //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
         /* solhint-disable avoid-tx-origin */
-        deploy(getCreationBytecode(), keccak256(
-            abi.encodePacked(
+        deploy(
+            getCreationBytecode(),
+            keccak256(
+                abi.encodePacked(req.from, req.recoverer, req.index) // salt
+            ),
+            abi.encodeWithSelector(
+                hex'a6b63eb8',
                 req.from,
-                req.recoverer,
-                req.index
-            ) // salt
-        ), abi.encodeWithSelector(
-            hex"a6b63eb8",
-            req.from,
-            req.tokenContract,
-            feesReceiver,
-            req.tokenAmount,
-            req.tokenGas
-        ));
+                req.tokenContract,
+                feesReceiver,
+                req.tokenAmount,
+                req.tokenGas
+            )
+        );
     }
 
     /**
@@ -189,7 +192,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
         address owner,
         address recoverer,
         uint256 index
-    ) external override view returns (address) {
+    ) external view override returns (address) {
         return
             address(
                 uint160(
@@ -199,11 +202,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
                                 bytes1(0xff),
                                 address(this),
                                 keccak256(
-                                    abi.encodePacked(
-                                        owner,
-                                        recoverer,
-                                        index
-                                    )
+                                    abi.encodePacked(owner, recoverer, index)
                                 ), // salt
                                 keccak256(getCreationBytecode())
                             )
@@ -218,7 +217,6 @@ contract SmartWalletFactory is ISmartWalletFactory {
         bytes32 salt,
         bytes memory initdata
     ) internal returns (address addr) {
-
         //Deployment of the Smart Wallet
         /* solhint-disable-next-line no-inline-assembly */
         assembly {
@@ -235,16 +233,22 @@ contract SmartWalletFactory is ISmartWalletFactory {
         (bool success, ) = addr.call(initdata);
 
         /* solhint-disable-next-line reason-string */
-        require(success, "Unable to initialize SW");
+        require(success, 'Unable to initialize SW');
 
         //No info is returned, an event is emitted to inform the new deployment
         emit Deployed(addr, uint256(salt));
     }
 
     // Returns the proxy code to that is deployed on every Smart Wallet creation
-    function getCreationBytecode() public override view returns (bytes memory) {
+    function getCreationBytecode() public view override returns (bytes memory) {
         //The code to install:  constructor, runtime start, master copy, runtime end
-        return abi.encodePacked(hex"602D3D8160093D39F3", RUNTIME_START, masterCopy, RUNTIME_END);
+        return
+            abi.encodePacked(
+                hex'602D3D8160093D39F3',
+                RUNTIME_START,
+                masterCopy,
+                RUNTIME_END
+            );
     }
 
     function _getEncoded(
@@ -253,7 +257,9 @@ contract SmartWalletFactory is ISmartWalletFactory {
     ) public pure returns (bytes memory) {
         return
             abi.encodePacked(
-                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"),
+                keccak256(
+                    'RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)'
+                ),
                 abi.encode(
                     req.relayHub,
                     req.from,
@@ -265,7 +271,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
                     req.tokenAmount,
                     req.tokenGas,
                     req.index,
-                    keccak256(req.data)    
+                    keccak256(req.data)
                 ),
                 suffixData
             );
@@ -283,17 +289,21 @@ contract SmartWalletFactory is ISmartWalletFactory {
         bytes32 suffixData,
         bytes memory sig
     ) internal view {
-
         //Verify nonce
-        require(nonces[req.from] == req.nonce, "nonce mismatch");
+        require(nonces[req.from] == req.nonce, 'nonce mismatch');
 
         require(
             RSKAddrValidator.safeEquals(
-                keccak256(abi.encodePacked(
-                    "\x19\x01",
-                    domainSeparator,
-                    keccak256(_getEncoded(req, suffixData)))
-                ).recover(sig), req.from),"signature mismatch"
+                keccak256(
+                    abi.encodePacked(
+                        '\x19\x01',
+                        domainSeparator,
+                        keccak256(_getEncoded(req, suffixData))
+                    )
+                ).recover(sig),
+                req.from
+            ),
+            'signature mismatch'
         );
     }
 }

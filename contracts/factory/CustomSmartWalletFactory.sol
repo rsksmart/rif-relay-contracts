@@ -2,9 +2,9 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "../interfaces/ICustomSmartWalletFactory.sol";
-import "../utils/RSKAddrValidator.sol";
+import '@openzeppelin/contracts/cryptography/ECDSA.sol';
+import '../interfaces/ICustomSmartWalletFactory.sol';
+import '../utils/RSKAddrValidator.sol';
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -73,11 +73,11 @@ PC | OPCODE|   Mnemonic     |   Stack [top, bottom]                       | Comm
 The Forwarder itself is a Template with portions delegated to a custom logic (it is also a proxy) */
 contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
     using ECDSA for bytes32;
- 
-    bytes11 private constant RUNTIME_START = hex"363D3D373D3D3D3D363D73";
-    bytes14 private constant RUNTIME_END = hex"5AF43D923D90803E602B57FD5BF3";
+
+    bytes11 private constant RUNTIME_START = hex'363D3D373D3D3D3D363D73';
+    bytes14 private constant RUNTIME_END = hex'5AF43D923D90803E602B57FD5BF3';
     address public masterCopy; // this is the ForwarderProxy contract that will be proxied
-    bytes32 public constant DATA_VERSION_HASH = keccak256("2");
+    bytes32 public constant DATA_VERSION_HASH = keccak256('2');
     bytes32 public domainSeparator;
 
     // Nonces of senders, used to prevent replay attacks
@@ -97,20 +97,20 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
     function buildDomainSeparator() internal {
         domainSeparator = keccak256(
             abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
-                keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
+                keccak256(
+                    'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'
+                ), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
+                keccak256('RSK Enveloping Transaction'), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
                 DATA_VERSION_HASH,
                 getChainID(),
                 address(this)
             )
         );
-    } 
+    }
 
-
-    function runtimeCodeHash() external override view returns (bytes32){
-        return keccak256(
-            abi.encodePacked(RUNTIME_START, masterCopy, RUNTIME_END)
-        );
+    function runtimeCodeHash() external view override returns (bytes32) {
+        return
+            keccak256(abi.encodePacked(RUNTIME_START, masterCopy, RUNTIME_END));
     }
 
     function nonce(address from) public view override returns (uint256) {
@@ -125,33 +125,31 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         bytes calldata initParams,
         bytes calldata sig
     ) external override {
-        bytes memory packed =
-            abi.encodePacked(
-                "\x19\x10",
-                owner,
-                recoverer,
-                logic,
-                index,
-                initParams
-            );
+        bytes memory packed = abi.encodePacked(
+            '\x19\x10',
+            owner,
+            recoverer,
+            logic,
+            index,
+            initParams
+        );
         (sig);
         require(
             RSKAddrValidator.safeEquals(keccak256(packed).recover(sig), owner),
-            "Invalid signature"
+            'Invalid signature'
         );
 
         //e6ddc71a  =>  initialize(address owner,address logic,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,bytes initParams)
-        bytes memory initData =
-            abi.encodeWithSelector(
-                hex"e6ddc71a",
-                owner,
-                logic,
-                address(0), // This "gas-funded" call does not pay with tokens
-                address(0),
-                0,
-                0, //No token transfer
-                initParams
-            );
+        bytes memory initData = abi.encodeWithSelector(
+            hex'e6ddc71a',
+            owner,
+            logic,
+            address(0), // This "gas-funded" call does not pay with tokens
+            address(0),
+            0,
+            0, //No token transfer
+            initParams
+        );
 
         deploy(
             getCreationBytecode(),
@@ -175,7 +173,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         bytes calldata sig
     ) external override {
         (sig);
-        require(msg.sender == req.relayHub, "Invalid caller");
+        require(msg.sender == req.relayHub, 'Invalid caller');
         _verifySig(req, suffixData, sig);
         nonces[req.from]++;
 
@@ -195,7 +193,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
                 )
             ),
             abi.encodeWithSelector(
-                hex"e6ddc71a",
+                hex'e6ddc71a',
                 req.from,
                 req.to,
                 req.tokenContract,
@@ -267,7 +265,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         /* solhint-disable-next-line avoid-low-level-calls */
         (bool success, ) = addr.call(initdata);
 
-        require(success, "Unable to initialize SW");
+        require(success, 'Unable to initialize SW');
 
         //No info is returned, an event is emitted to inform the new deployment
         emit Deployed(addr, uint256(salt));
@@ -278,7 +276,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         //The code to install:  constructor, runtime start, master copy, runtime end
         return
             abi.encodePacked(
-                hex"602D3D8160093D39F3",
+                hex'602D3D8160093D39F3',
                 RUNTIME_START,
                 masterCopy,
                 RUNTIME_END
@@ -292,7 +290,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"
+                    'RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)'
                 ),
                 abi.encode(
                     req.relayHub,
@@ -324,21 +322,20 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         bytes memory sig
     ) internal view {
         //Verify nonce
-        require(nonces[req.from] == req.nonce, "nonce mismatch");
+        require(nonces[req.from] == req.nonce, 'nonce mismatch');
 
         require(
             RSKAddrValidator.safeEquals(
                 keccak256(
                     abi.encodePacked(
-                        "\x19\x01",
+                        '\x19\x01',
                         domainSeparator,
                         keccak256(_getEncoded(req, suffixData))
                     )
-                )
-                    .recover(sig),
+                ).recover(sig),
                 req.from
             ),
-            "Signature mismatch"
+            'Signature mismatch'
         );
     }
 }
