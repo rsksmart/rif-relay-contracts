@@ -1,5 +1,4 @@
 package-lock.json
-.npmignore
 .eslintcache
 
 node_modules

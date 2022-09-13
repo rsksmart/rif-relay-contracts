@@ -60,11 +60,11 @@
     "format": "npm run format:sol && npm run format:ts",
     "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
     "format:ts": "prettier -c -w --no-editorconfig **/*.ts",
-    "postinstall": "npm run compile",
+    "postinstall": "npm run compile && tsc",
     "lint": "npm run lint:sol && npm run lint:ts",
     "lint:sol": "solhint --fix 'contracts/**/*.sol'",
     "lint:ts": "eslint test --ext .ts --fix",
-    "prepare": "tsc; node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
     "tdd": "npm run compile && REPORT_GAS=true hardhat watch tdd",
     "test": "REPORT_GAS=true hardhat test"
   },
