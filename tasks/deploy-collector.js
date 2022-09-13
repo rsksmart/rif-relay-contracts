@@ -76,7 +76,7 @@ module.exports = async (callback) => {
         `| Collector Token                             | ${await collectorInstance.token.call()}       |`
     );
     console.log(
-        `| Collector Remainder                         | ${await collectorInstance.token.call()}       |`
+        `| Collector Remainder                         | ${remainderAddress}       |`
     );
     console.log(
         '|=============================================|==================================================|\n'
@@ -100,7 +100,7 @@ module.exports = async (callback) => {
         collectorContract: collectorInstance.address,
         collectorOwner: await collectorInstance.owner.call(),
         collectorToken: await collectorInstance.token.call(),
-        remainderAddress: await collectorInstance.remainderAddress.call()
+        remainderAddress: remainderAddress
     };
 
     revenueSharingPartners.forEach(function (partner, i) {

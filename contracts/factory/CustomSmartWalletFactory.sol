@@ -171,6 +171,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,
+        address feesReceiver,
         bytes calldata sig
     ) external override {
         (sig);
@@ -198,7 +199,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
                 req.from,
                 req.to,
                 req.tokenContract,
-                tx.origin,
+                feesReceiver,
                 req.tokenAmount,
                 req.tokenGas,
                 req.data

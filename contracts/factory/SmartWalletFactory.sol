@@ -152,6 +152,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,
+        address feesReceiver,
         bytes calldata sig
     ) external override {
 
@@ -172,7 +173,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
             hex"a6b63eb8",
             req.from,
             req.tokenContract,
-            tx.origin,
+            feesReceiver,
             req.tokenAmount,
             req.tokenGas
         ));
@@ -252,7 +253,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
     ) public pure returns (bytes memory) {
         return
             abi.encodePacked(
-                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"),
+                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"),
                 abi.encode(
                     req.relayHub,
                     req.from,

@@ -4,6 +4,52 @@
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
   "private": false,
+  "contributors": [
+    {
+      "name": "Raúl Laprida",
+      "url": "https://github.com/raullaprida"
+    },
+    {
+      "name": "Marcelo Ortelli",
+      "url": "https://github.com/mortelli"
+    },
+    {
+      "name": "Julian Len",
+      "url": "https://github.com/julianlen"
+    },
+    {
+      "name": "Wilson Hamilton",
+      "url": "https://github.com/wilsoniovlabs"
+    },
+    {
+      "name": "Antonio Morrone",
+      "url": "https://github.com/antomor"
+    },
+    {
+      "name": "Jose Jimenez",
+      "url": "https://github.com/jd-iov"
+    },
+    {
+      "name": "David Ugbero",
+      "url": "https://github.com/david-iov"
+    },
+    {
+      "name": "Juraj Piar",
+      "url": "https://github.com/jurajpiar"
+    },
+    {
+      "name": "Andrés Quijano",
+      "url": "https://github.com/AndresQuijano"
+    },
+    {
+      "name": "Francisco Tobar",
+      "url": "https://github.com/franciscotobar"
+    },
+    {
+      "name": "Christos Otárola",
+      "url": "https://github.com/ironfe93"
+    }
+  ],
   "scripts": {
     "dist": "scripts/dist",
     "deploy": "scripts/deploy",

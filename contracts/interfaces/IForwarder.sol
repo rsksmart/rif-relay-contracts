@@ -9,7 +9,6 @@ interface IForwarder {
         address from;
         address to;
         address tokenContract;
-        address collectorContract;
         uint256 value;
         uint256 gas;
         uint256 nonce;
@@ -63,6 +62,7 @@ interface IForwarder {
     function execute(
         bytes32 suffixData,
         ForwardRequest calldata forwardRequest,
+        address feesReceiver,
         bytes calldata signature
     )
     external payable
