@@ -79,13 +79,13 @@
     ]
   },
   "dependencies": {
-    "eth-sig-util": "2.5.2",
-    "ethereumjs-tx": "~2.1.2",
-    "ethereumjs-util": "~6.2.1",
     "@openzeppelin/contracts": "~3.2.0",
     "@truffle/contract": "4.2.23",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.6.0",
+    "eth-sig-util": "2.5.2",
+    "ethereumjs-tx": "~2.1.2",
+    "ethereumjs-util": "~6.2.1",
     "chai": "^4.3.6",
     "npmignore": "^0.3.0",
     "patch-package": "~6.4.6",
@@ -93,6 +93,8 @@
   },
   "devDependencies": {
     "@openeth/truffle-typings": "0.0.6",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@rsksmart/rif-relay-client": "^0.0.2-alpha.7",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.2.4",
     "@trufflesuite/web3-provider-engine": "^15.0.13-1",
@@ -112,6 +114,7 @@
     "chai-as-promised": "^7.1.1",
     "eslint": "~7.30.0",
     "eth-gas-reporter": "^0.2.25",
+    "ethereumjs-wallet": "^1.0.2",
     "ethereum-waffle": "^3.4.4",
     "husky": "~6.0.0",
     "prettier": "^2.3.0",
