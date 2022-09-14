@@ -3,8 +3,14 @@ import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
 import 'hardhat-watcher';
 import { HardhatUserConfig } from 'hardhat/config';
+import 'hardhat-dependency-compiler';
 
 const config: HardhatUserConfig = {
+  dependencyCompiler: {
+    paths: [
+      '@openzeppelin/contracts/token/ERC20/ERC20.sol'
+    ]
+  },
   solidity: {
     compilers: [
       {
