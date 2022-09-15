@@ -3,9 +3,14 @@ import chai, { expect} from 'chai';
 import { FakeContract, /*MockContract,*/ smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { EnvelopingTypes } from 'typechain-types/contracts/RelayHub';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
+
+type RelayRequest = EnvelopingTypes.RelayRequestStruct;
+// type FordwardRequest = IForwarder.ForwardRequestStruct;
+// type RelayData = EnvelopingTypes.RelayDataStruct;
 
 const ZERO_ADDRESS = ethers.constants.AddressZero ;
 
@@ -133,6 +138,83 @@ describe('SmartWallet', function(){
 
         afterEach(function(){
             fakeToken = undefined as unknown as FakeContract;
+        });
+    });
+
+    describe('Function verify()', function(){
+        async function prepareFixture(){
+            const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
+            const smartWallet = await smartWalletFactory.deploy();
+            const [owner, worker, utilSigner] = await ethers.getSigners();
+        
+            return {smartWallet, owner, worker, utilSigner};
+        }
+
+        function createRequest(): RelayRequest {
+            return {
+                request: {
+                    relayHub: ZERO_ADDRESS,
+                    from: ZERO_ADDRESS,
+                    to: ZERO_ADDRESS,
+                    tokenContract: ZERO_ADDRESS,
+                    value: '0',
+                    gas: '1000000',
+                    nonce: '0',
+                    tokenAmount: '1',
+                    tokenGas: '50000',
+                    data: '0X'
+                },
+                relayData: {
+                    gasPrice:'0',
+                    relayWorker: ZERO_ADDRESS,
+                    callForwarder: ZERO_ADDRESS,
+                    callVerifier: ZERO_ADDRESS
+                }
+            } as RelayRequest
+        }
+
+        it.skip('Should fail if not called by the owner', async function(){
+            const {owner} = await loadFixture(prepareFixture);
+            const request = createRequest();
+            console.log('smartWallet.test181');
+            // const signer = new ethers.Wallet(owner.);
+            console.log('smartWallet.test183');
+            const domain = {
+                name: "name",
+                version: "1.0.0",
+                chainId: 33,
+                verifyingContract: ""              
+            };
+
+            const types = {
+                request: [
+                    {name: 'relayHub', type: 'string'},
+                    {name: 'from', type: 'string'},
+                    {name: 'to', type: 'string'},
+                    {name: 'tokenContract', type: 'string'},
+                    {name: 'value', type: 'string'},
+                    {name: 'gas', type: 'string'},
+                    {name: 'nonce', type: 'string'},
+                    {name: 'tokenAmount', type: 'string'},
+                    {name: 'tokenGas', type: 'string'},
+                    {name: 'data', type: 'string'}
+
+                ],
+                relayData: [
+                    {name: 'gasPrice', type: 'string'},
+                    {name: 'relayWorker', type: 'string'},
+                    {name: 'callForwarder', type: 'string'},
+                    {name: 'callVerifier', type: 'string'}
+                ]
+            };
+
+            console.log('smartWallet.test209');
+            const signature = await owner._signTypedData(domain, types, request);
+
+            console.log('smartWallet.test212');
+            console.log('Signature: ', signature);
+
+            // smartwallet.verify(, request, signature);
         });
     });
 });
