@@ -83,7 +83,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
                                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
                                 keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
                                 DATA_VERSION_HASH,
-                                getChainID(),
+                                _getChainID(),
                                 address(this)
                             ));
 
@@ -102,7 +102,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
 
     function runtimeCodeHash() external override view returns (bytes32){
         return keccak256(
-            abi.encodePacked(RUNTIME_START, masterCopy, RUNTIME_END)
+            abi.encodePacked(_RUNTIME_START, masterCopy, _RUNTIME_END)
         );
     }
 

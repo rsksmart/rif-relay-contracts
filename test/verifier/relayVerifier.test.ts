@@ -1,242 +1,256 @@
-// import {
-//     RelayVerifierInstance,
-//     TestTokenInstance,
-//     SmartWalletFactoryInstance,
-//     SmartWalletInstance
-// } from '../../types/truffle-contracts';
-// import { RelayRequest } from '../../';
-// import { constants } from '../constants';
-// import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
-// import {
-//     generateBytes32,
-//     createSmartWalletFactory,
-//     createSmartWallet,
-//     getTestingEnvironment
-// } from '../utils';
+import { ethers } from 'hardhat';
+import { FakeContract, MockContract, MockContractFactory, smock } from '@defi-wonderland/smock';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { BigNumber, constants } from 'ethers';
+import {
+  ERC20,
+  RelayVerifier,
+  RelayVerifier__factory,
+  SmartWallet,
+  SmartWalletFactory,
+} from 'typechain-types';
+import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-// import { use, assert } from 'chai';
-// import chaiAsPromised from 'chai-as-promised';
-// use(chaiAsPromised);
+chai.use(smock.matchers);
+chai.use(chaiAsPromised);
 
-// const TestToken = artifacts.require('TestToken');
-// const SmartWallet = artifacts.require('SmartWallet');
-// const RelayVerifier = artifacts.require('RelayVerifier');
-// const TestRecipient = artifacts.require('TestRecipient');
+describe('RelayVerifier Contract', function () {
+  let fakeToken: FakeContract<ERC20>;
+  let fakeWalletFactory: FakeContract<SmartWalletFactory>;
+  let relayVerifierFactoryMock: MockContractFactory<RelayVerifier__factory>;
+  let relayVerifierMock: MockContract<RelayVerifier>;
+  
+  beforeEach(async function() {
+    fakeToken = await smock.fake<ERC20>('ERC20');
+    fakeWalletFactory = await smock.fake<SmartWalletFactory>(
+      'SmartWalletFactory'
+    );
+    relayVerifierFactoryMock = await smock.mock<RelayVerifier__factory>(
+      'RelayVerifier'
+    );
+    relayVerifierMock = await relayVerifierFactoryMock.deploy(
+      fakeWalletFactory.address
+    );
+  })
 
-// const gasPrice = '10';
-// const senderNonce = '0';
-// const tokensPaid = 1;
 
-// contract('Testing Tokens - RelayVerifier contract', () => {
-//     let token: TestTokenInstance;
-//     let smartWallet: SmartWalletInstance;
-//     let factory: SmartWalletFactoryInstance;
-//     let contractVerifier: RelayVerifierInstance;
-//     describe('Testing tokens acceptance', () => {
-//         beforeEach('', async () => {
-//             token = await TestToken.new();
-//             smartWallet = await SmartWallet.new();
-//             factory = await createSmartWalletFactory(smartWallet);
-//             contractVerifier = await RelayVerifier.new(factory.address);
-//         });
-//         it('Should verify the contract accepts test tokens', async () => {
-//             await contractVerifier.acceptToken(token.address);
-//             assert.isTrue(
-//                 await contractVerifier.acceptsToken(token.address),
-//                 'Contract does not accepts token'
-//             );
-//         });
+  describe('constructor', function () {
+    it('Should deploy', async function () {
+      const relayVerifier = relayVerifierFactoryMock.deploy(
+        fakeWalletFactory.address
+      );
 
-//         it('Should verify the contract accepts more than one test tokens and verify tokens added are listed', async () => {
-//             //Creating tokens
-//             const tokens = [token];
-//             tokens.push(await TestToken.new());
-//             tokens.push(await TestToken.new());
+      await expect(relayVerifier).to.not.be.reverted;
+    });
+  });
 
-//             //Adding tokens to contract list
-//             for (const tkn of tokens) {
-//                 const rspToken = await contractVerifier.acceptToken(
-//                     tkn.address
-//                 );
-//                 assert.isEmpty(
-//                     rspToken.logs,
-//                     'Log found for txn, token not accepted'
-//                 );
-//             }
+  describe('acceptToken', function () {
+    it('should accept a token', async function () {
+      await relayVerifierMock.acceptToken(fakeToken.address);
 
-//             //Verifying contract tokens list
-//             const accepted_Tokens = await contractVerifier.getAcceptedTokens();
-//             assert.isTrue(
-//                 tokens.some((tkn) =>
-//                     accepted_Tokens.includes(tkn.address.toString())
-//                 )
-//             );
-//         });
+      const acceptsToken = await relayVerifierMock.acceptsToken(fakeToken.address);
 
-//         it('Should verify the contract does not accept a duplicated test token', async () => {
-//             //Adding first token
-//             const rspToken = await contractVerifier.acceptToken(token.address);
-//             assert.isEmpty(
-//                 rspToken.logs,
-//                 'Log found for txn, token not accepted'
-//             );
+      expect(acceptsToken).to.be.true;
+    });
 
-//             //Adding second token
-//             const token2 = await TestToken.new();
-//             const rspToken2 = await contractVerifier.acceptToken(
-//                 token2.address
-//             );
-//             assert.isEmpty(
-//                 rspToken2.logs,
-//                 'Log found for txn, token not accepted'
-//             );
+    it('should revert if token is already accepted', async function () {
+      await relayVerifierMock.setVariable('tokens', {
+        [fakeToken.address]: true
+      })
+      const result = relayVerifierMock.acceptToken(fakeToken.address);
 
-//             await assert.isRejected(
-//                 contractVerifier.acceptToken(token.address),
-//                 'Token is already accepted',
-//                 'A duplicated token was accepted'
-//             );
-//         });
+      await expect(result).to.be.revertedWith('Token is already accepted');
+    });
 
-//         it('Should verify the contract does not accepts an invalid test token address', async () => {
-//             const invalid_address = web3.eth.accounts.create();
-//             await assert.isRejected(
-//                 contractVerifier.acceptToken(
-//                     invalid_address.address.toUpperCase()
-//                 ),
-//                 'invalid address',
-//                 'Contract does not accept this token: ' + invalid_address
-//             );
-//         });
+    it('should revert if token is ZERO ADDRESS', async function () {
+      const result = relayVerifierMock.acceptToken(constants.AddressZero);
 
-//         it('Should verify the contract version', async () => {
-//             const version = await contractVerifier.versionVerifier();
-//             assert.isString(version, 'Version not properly retrieved');
-//         });
-//     });
-// });
+      await expect(result).to.be
+        .revertedWith('Token cannot be zero address');
+    });
 
-// contract(
-//     'Testing verifyRelayedCall - RelayVerifier contract',
-//     ([relayHub, relayWorker]) => {
-//         let relayRequestData: RelayRequest;
-//         let token: TestTokenInstance;
-//         let smartWallet: SmartWalletInstance;
-//         let sw: SmartWalletInstance;
-//         let factory: SmartWalletFactoryInstance;
-//         let contractVerifier: RelayVerifierInstance;
-//         let expectedAddress: string;
+    it('should revert if caller is not the owner', async function () {
+      const [, other] = await ethers.getSigners();
 
-//         const senderPrivateKey = toBuffer(generateBytes32(1));
-//         let senderAddress: string;
+      await expect(
+        relayVerifierMock.connect(other).acceptToken(fakeToken.address)
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+  });
 
-//         describe('Testing call to verifyRelayedCall method', () => {
-//             const ownerPrivateKey = toBuffer(generateBytes32(1));
-//             let ownerAddress: string;
+  describe('getAcceptedTokens()', function () {
+    it('should get all the accepted tokens', async function () {
+      const fakeTokenList = [fakeToken.address];
 
-//             const recoverer = constants.ZERO_ADDRESS;
-//             const index = '0';
-//             const gasLimit = '1000000';
+      await relayVerifierMock.setVariable('acceptedTokens', fakeTokenList);
 
-//             beforeEach(
-//                 'Creating instances to be used by every test',
-//                 async () => {
-//                     ownerAddress = bufferToHex(
-//                         privateToAddress(ownerPrivateKey)
-//                     ).toLowerCase();
-//                     senderAddress = bufferToHex(
-//                         privateToAddress(senderPrivateKey)
-//                     ).toLowerCase();
+      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+      expect(acceptedTokens).to.deep.equal(fakeTokenList);
+    });
+  });
 
-//                     const env = await getTestingEnvironment();
-//                     const chainId = env.chainId;
+  describe('acceptsToken()', function () {
+    beforeEach(async function(){
+      const { address } = fakeToken;
+      await relayVerifierMock.setVariable('tokens', {
+          [address]: true
+      })
+    })
 
-//                     token = await TestToken.new();
-//                     smartWallet = await SmartWallet.new();
-//                     factory = await createSmartWalletFactory(smartWallet);
+    it('should return true if token is accepted', async function () {
+      const acceptsToken = await relayVerifierMock.acceptsToken(fakeToken.address);
+      expect(acceptsToken).to.be.true;
+    });
 
-//                     contractVerifier = await RelayVerifier.new(factory.address);
-//                     sw = await createSmartWallet(
-//                         relayHub,
-//                         senderAddress,
-//                         factory,
-//                         senderPrivateKey,
-//                         chainId
-//                     );
-//                     const recipientContract = await TestRecipient.new();
+    it('should return false if token is not accepted', async function () {
+      const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
 
-//                     relayRequestData = {
-//                         request: {
-//                             relayHub: relayHub,
-//                             to: recipientContract.address,
-//                             data: '0x00',
-//                             from: senderAddress,
-//                             nonce: senderNonce,
-//                             value: '0',
-//                             gas: gasLimit,
-//                             tokenContract: token.address,
-//                             tokenAmount: tokensPaid.toString(),
-//                             tokenGas: '50000'
-//                         },
-//                         relayData: {
-//                             gasPrice,
-//                             feesReceiver: relayWorker,
-//                             callForwarder: sw.address,
-//                             callVerifier: contractVerifier.address
-//                         }
-//                     };
+      const acceptsToken = await relayVerifierMock.acceptsToken(fakeTokenUnaccepted.address);
+      expect(acceptsToken).to.be.false;
+    });
+  });
 
-//                     // Minting tokens to the smart wallet
-//                     expectedAddress = await factory.getSmartWalletAddress(
-//                         ownerAddress,
-//                         recoverer,
-//                         index
-//                     );
-//                     await token.mint(tokensPaid + 5, expectedAddress);
-//                 }
-//             );
+  describe('versionVerifier()', function () {
+    it('should get the current version', async function () {
 
-//             it('Should fail on Token contract not allowed of preRelayCall', async () => {
-//                 await assert.isRejected(
-//                     contractVerifier.verifyRelayedCall(
-//                         relayRequestData,
-//                         '0x00',
-//                         { from: relayHub }
-//                     ),
-//                     'Token contract not allowed'
-//                 );
-//             });
+      const version = await relayVerifierMock.versionVerifier();
+      expect(version).to.eq('rif.enveloping.token.iverifier@2.0.1');
+    });
+  });
 
-//             it('Should fail on Balance too low of preRelayCall', async () => {
-//                 //Changing the initial params so the smart wallet address will be different to force NO balance
-//                 relayRequestData.request.data = '0x01';
-//                 relayRequestData.request.tokenAmount = (
-//                     tokensPaid + 100
-//                 ).toString();
+  describe('verifyRelayedCall()', function () {
+    let owner: SignerWithAddress;
+    let recipient: SignerWithAddress;
+    let relayWorker: SignerWithAddress;
+    let fakeSmartWallet: FakeContract<SmartWallet>;
+    let fakeRelayHub: FakeContract<RelayHub>;
 
-//                 await contractVerifier.acceptToken(token.address);
+    beforeEach(async function() {
+      [owner, recipient, relayWorker] = await ethers.getSigners();
+      fakeSmartWallet = await smock.fake<SmartWallet>('SmartWallet');
+      fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
+    })
 
-//                 await assert.isRejected(
-//                     contractVerifier.verifyRelayedCall(
-//                         relayRequestData,
-//                         '0x00',
-//                         { from: relayHub }
-//                     ),
-//                     'balance too low',
-//                     'Failed assert'
-//                 );
-//             });
+    it('should not revert', async function () {
+      fakeWalletFactory.runtimeCodeHash.returns(
+        '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
+      );
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+      
 
-//             it('Should not fail on checks of preRelayCall', async () => {
-//                 await contractVerifier.acceptToken(token.address);
+      await relayVerifierMock.acceptToken(fakeToken.address);
 
-//                 const rspSuccess = await contractVerifier.verifyRelayedCall(
-//                     relayRequestData,
-//                     '0x',
-//                     { from: relayHub }
-//                 );
-//                 assert.isEmpty(rspSuccess.logs, 'Call was NOT successful');
-//             });
-//         });
-//     }
-// );
+      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+        relayData: {
+          callForwarder: fakeSmartWallet.address,
+          callVerifier: relayVerifierMock.address,
+          gasPrice: '10',
+          relayWorker: relayWorker.address,
+        },
+        request: {
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          gas: '1000000',
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      await expect(result).to.not.be.reverted;
+    });
+
+    it('should revert if token contract is not allowed', async function () {
+      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+        relayData: {
+          callForwarder: fakeSmartWallet.address,
+          callVerifier: relayVerifierMock.address,
+          gasPrice: '10',
+          relayWorker: relayWorker.address,
+        },
+        request: {
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          gas: '1000000',
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      await expect(result).to.be.revertedWith('Token contract not allowed');
+    });
+
+    it('should revert if token balance is too low', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('10'));
+
+      await relayVerifierMock.acceptToken(fakeToken.address);
+
+      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+        relayData: {
+          callForwarder: fakeSmartWallet.address,
+          callVerifier: relayVerifierMock.address,
+          gasPrice: '10',
+          relayWorker: relayWorker.address,
+        },
+        request: {
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          gas: '1000000',
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      await expect(result).to.be.revertedWith('balance too low');
+    });
+
+    it('should revert if smart wallet template is different than smart wallet factory', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+      await relayVerifierMock.acceptToken(fakeToken.address);
+
+      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+        relayData: {
+          callForwarder: fakeSmartWallet.address,
+          callVerifier: relayVerifierMock.address,
+          gasPrice: '10',
+          relayWorker: relayWorker.address,
+        },
+        request: {
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          gas: '1000000',
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      await expect(result).to.be.revertedWith("SW different to template");
+    });
+  });
+});

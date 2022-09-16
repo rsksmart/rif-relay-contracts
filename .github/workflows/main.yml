@@ -1,31 +1,31 @@
 name: CI for RIF-Relay-Contract
 on: [push]
 jobs:
-    lint&test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - name: Use Node.js
-              uses: actions/setup-node@v2
-              with:
-                  node-version: '16.x'
+  lint_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16.x"
 
-            - name: Install dependencies
-              run: npm install
+      - name: Install dependencies
+        run: npm install
 
-            - name: Check Codestyles errors
-              run: npm run ci:format
+      - name: Check Codestyles errors
+        run: npm run ci:format
 
-            - name: Check Linter bugs for Typescript
-              run: npm run ci:lint
+      - name: Check Linter bugs for Typescript
+        run: npm run ci:lint
 
-            - name: Download rif-relay node configuration
-              run: |
-                  wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/node.conf
-                  wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/logback.xml
+      - name: Download rif-relay node configuration
+        run: |
+          wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/node.conf
+          wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/logback.xml
 
-            - name: Run docker image
-              run: docker run -d -p 127.0.0.1:4444:4444 -p 127.0.0.1:4445:4445 --name enveloping-rskj -it -v $PWD/logback.xml:/etc/rsk/logback.xml -v $PWD/node.conf:/etc/rsk/node.conf rsksmart/rskj:IRIS-3 --regtest
+      - name: Run docker image
+        run: docker run -d -p 127.0.0.1:4444:4444 -p 127.0.0.1:4445:4445 --name enveloping-rskj -it -v $PWD/logback.xml:/etc/rsk/logback.xml -v $PWD/node.conf:/etc/rsk/node.conf rsksmart/rskj:IRIS-3 --regtest
 
-            - name: Run tests
-              run: npm run ci:test
+      - name: Run tests
+        run: npm run ci:test

@@ -2,7 +2,10 @@ import '@nomicfoundation/hardhat-toolbox';
 import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
 import 'hardhat-watcher';
-import { HardhatUserConfig } from 'hardhat/config';
+import '@nomiclabs/hardhat-ethers';
+import { allowTokens } from './scripts/allowTokens';
+import { deploy } from './scripts/deploy';
+import { HardhatUserConfig, task } from 'hardhat/config';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -26,6 +29,7 @@ const config: HardhatUserConfig = {
   networks: {
     regtest: {
       url: 'http://localhost:4444',
+      chainId: 33,
     },
   },
   typechain: {
@@ -66,6 +70,22 @@ const config: HardhatUserConfig = {
     clear: true,
     runOnCompile: false,
   },
+  mocha: {
+    timeout: 20000,
+  },
 };
+
+task('deploy', 'Deploys rif-relay contracts to selected network')
+  .setAction(async (args, hre) => {
+    await deploy(hre);
+  }
+);
+
+task('allow-tokens', 'allows a list of tokens')
+  .addPositionalParam('tokenlist', 'list of tokens')
+  .setAction(async (taskArgs: { tokenlist: string }, hre) => {
+    await allowTokens(taskArgs, hre);
+  }
+);
 
 export default config;
