@@ -73,6 +73,7 @@
     "package.json": "npx sort-package-json"
   },
   "dependencies": {
+    "@metamask/eth-sig-util": "^4.0.1",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.1.1",
     "@openzeppelin/contracts": "^3.4.0",
