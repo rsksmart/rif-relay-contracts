@@ -615,6 +615,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -659,6 +660,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -704,6 +706,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -749,6 +752,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )
@@ -805,6 +809,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )
@@ -882,6 +887,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )

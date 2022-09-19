@@ -292,7 +292,7 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ),
                 abi.encode(
                     req.relayHub,

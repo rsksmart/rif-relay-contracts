@@ -144,7 +144,7 @@ export async function createSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
+            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
@@ -167,6 +167,7 @@ export async function createSmartWallet(
     const txResult = await factory.relayedUserSmartWalletCreation(
         rReq.request,
         suffixData,
+        constants.ZERO_ADDRESS,
         deploySignature
     );
 
@@ -225,7 +226,7 @@ export async function createCustomSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
+            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
@@ -248,6 +249,7 @@ export async function createCustomSmartWallet(
     const txResult = await factory.relayedUserSmartWalletCreation(
         rReq.request,
         suffixData,
+        constants.ZERO_ADDRESS,
         deploySignature,
         { from: relayHub }
     );
@@ -411,7 +413,7 @@ export function signRequest(
 
 const baseRelayData: RelayData = {
     gasPrice: '1',
-    relayWorker: constants.ZERO_ADDRESS,
+    feesReceiver: constants.ZERO_ADDRESS,
     callForwarder: constants.ZERO_ADDRESS,
     callVerifier: constants.ZERO_ADDRESS
 };

@@ -808,7 +808,7 @@ contract(
                     },
                     relayData: {
                         gasPrice,
-                        relayWorker,
+                        feesReceiver: relayWorker,
                         callForwarder: forwarder,
                         callVerifier: verifier
                     }
@@ -1001,7 +1001,7 @@ contract(
                     },
                     relayData: {
                         gasPrice,
-                        relayWorker,
+                        feesReceiver: relayWorker,
                         callForwarder: factory.address,
                         callVerifier: deployVerifierContract.address
                     }

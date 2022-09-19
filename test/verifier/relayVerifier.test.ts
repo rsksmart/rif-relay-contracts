@@ -182,7 +182,7 @@ contract(
                         },
                         relayData: {
                             gasPrice,
-                            relayWorker,
+                            feesReceiver: relayWorker,
                             callForwarder: sw.address,
                             callVerifier: contractVerifier.address
                         }
