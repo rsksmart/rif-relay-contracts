@@ -1,4 +1,4 @@
-import {Environment, ERR_NOT_OWNER, getTestingEnvironment, oneRBTC} from "../utils";
+import {Environment, ERR_NOT_OWNER, ERR_UNSTAKED, getTestingEnvironment, oneRBTC, TypedRequestData} from "../utils";
 import chai, {assert, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {mine} from "@nomicfoundation/hardhat-network-helpers";
@@ -8,6 +8,7 @@ import {Penalizer, RelayHub, SmartWalletFactory} from "../../typechain-types";
 import {IForwarderInterface} from "../../typechain-types/contracts/interfaces/IForwarder";
 import {createContractDeployer} from "./utils";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {Signature} from "ethers/lib/ethers";
 
 
 chai.use(smock.matchers);
@@ -78,15 +79,15 @@ describe('RelayHub contract - Manager related scenarios', function () {
         from: relayOwnerAddr,
       });
       const [anotherRelayManager] = otherUsers;
-      // console.log(anotherRelayManager);
-      //   await assert.isRejected(
-      //     mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-      //       value: oneRBTC,
-      //       from: anotherRelayManager.address,
-      //     }),
-      //     ERR_NOT_OWNER,
-      //     'Stake was not made by the owner account'
-      //   );
+      await assert.isRejected(
+        mockRelayHub
+          .connect(relayManager)
+          .stakeForAddress(relayManagerAddr, 1000, {
+            value: oneRBTC,
+          }),
+        ERR_NOT_OWNER,
+        'Stake was not made by the owner account'
+      );
     });
 
     it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async () => {
@@ -263,16 +264,16 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    // it('Should fail when stake is less than minimum stake value', async () => {
-    //   await assert.isRejected(
-    //     mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-    //       value: ethers.utils.parseEther("0.0005"),
-    //       from: relayOwnerAddr,
-    //     }),
-    //     'Insufficient intitial stake',
-    //     'Stake was made with less value than the minimum'
-    //   );
-    // });
+    it('Should fail when stake is less than minimum stake value', async () => {
+      await assert.isRejected(
+        mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
+          value: ethers.BigNumber.from("1"),
+          from: relayOwnerAddr,
+        }),
+        'Insufficient intitial stake',
+        'Stake was made with less value than the minimum'
+      );
+    });
 
     it('Should fail when sender is a RelayManager', async () => {
       mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
@@ -391,15 +392,16 @@ describe('RelayHub contract - Manager related scenarios', function () {
       };
       relayRequest.request.data = '0xdeadbeef';
 
-//         const dataToSign = new TypedRequestData(
-//           chainId,
-//           forwarder,
-//           relayRequest
-//         );
-//         signature = getLocalEip712Signature(
-//           dataToSign,
-//           gaslessAccount.privateKey
-//         );
+        const dataToSign = new TypedRequestData(
+          chainId,
+          forwarder,
+          relayRequest
+        );
+        // signature = new Signature();
+        // signature = getLocalEip712Signature(
+        //   dataToSign,
+        //   gaslessAccount.privateKey
+        // );
     });
 
     it('Should fail a relayRequest if the manager is unstaked', async () => {
@@ -477,8 +479,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
 
       // await assert.isRejected(
-      //   mockRelayHub.relayCall(relayRequest, signature, {
-      //     from: relayWorker,
+      //   mockRelayHub.relayCall(relayRequest, null, {
+      //     from: relayWorkerAddr,
       //     gas,
       //   }),
       //   ERR_UNSTAKED,
@@ -513,10 +515,10 @@ describe('RelayHub contract - Manager related scenarios', function () {
   });
 
   describe('Manager - DeployRequest scenarios', async () => {
-//       let min = 0;
-//       let max = 1000000000;
-//       min = Math.ceil(min);
-//       max = Math.floor(max);
+      let min = 0;
+      let max = 1000000000;
+      min = Math.ceil(min);
+      max = Math.floor(max);
     let nextWalletIndex = Math.floor(Math.random() * (max - min + 1) + min);
 
     const gas = 4e6;
@@ -524,8 +526,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
 //       let deployRequest: DeployRequest;
 
     beforeEach(async () => {
-//         env = await getTestingEnvironment();
-//         chainId = env.chainId;
+        let env = await getTestingEnvironment();
+        chainId = env.chainId;
 
 //         penalizer = await Penalizer.new();
 //         mockRelayHub = await deployHub(penalizer.address);
@@ -588,11 +590,11 @@ describe('RelayHub contract - Manager related scenarios', function () {
       relayRequestMisbehavingVerifier.relayData.callVerifier = null;
       // misbehavingVerifier.address;
 
-//         const dataToSign = new TypedDeployRequestData(
-//           chainId,
-//           factory.address,
-//           relayRequestMisbehavingVerifier
-//         );
+        const dataToSign = new TypedDeployRequestData(
+          chainId,
+          factory.address,
+          relayRequestMisbehavingVerifier
+        );
 //         signatureWithMisbehavingVerifier = getLocalEip712Signature(
 //           dataToSign,
 //           gaslessAccount.privateKey

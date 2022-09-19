@@ -479,16 +479,16 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        // it('Should fail when stake is less than minimum stake value', async () => {
-        //   await assert.isRejected(
-        //     mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
-        //       value: ethers.utils.parseEther('0.0005'),
-        //       from: relayOwnerAddr,
-        //     }),
-        //     'Insufficient intitial stake',
-        //     'Stake was made with less value than the minimum'
-        //   );
-        // });
+        it('Should fail when stake is less than minimum stake value', async () => {
+          await assert.isRejected(
+            mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
+              value: ethers.utils.parseEther('0.0005'),
+              from: relayOwnerAddr,
+            }),
+            'Insufficient intitial stake',
+            'Stake was made with less value than the minimum'
+          );
+        });
 
         it('Should fail when sender is a RelayManager', async () => {
 
