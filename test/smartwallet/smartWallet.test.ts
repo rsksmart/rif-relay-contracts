@@ -5,7 +5,7 @@ import { FakeContract, /*MockContract,*/ smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 // import { EnvelopingTypes } from 'typechain-types/contracts/RelayHub';
-import { TypedDataUtils, MessageTypeProperty } from '@metamask/eth-sig-util';
+import { TypedDataUtils } from '@metamask/eth-sig-util';
 import {
     getLocalEip712Signature,
     TypedRequestData,
@@ -153,6 +153,7 @@ describe('SmartWallet', function(){
 
     describe('Function verify()', function(){
         let fakeToken: FakeContract;
+
         async function prepareFixture(){
             const smartWalletFactory =await hardhat.getContractFactory('SmartWallet');
             const smartWallet = await smartWalletFactory.deploy();
@@ -161,8 +162,11 @@ describe('SmartWallet', function(){
             return {smartWallet, owner, worker, utilSigner};
         }
 
-        function createRequest(): RelayRequest {
-            return {
+        function createRequest(
+            request: Partial<ForwardRequest>,
+            relayData: Partial<RelayData>
+            ): RelayRequest {
+            const baseRequest: RelayRequest = {
                 request:{
                     relayHub: ZERO_ADDRESS,
                     from: ZERO_ADDRESS,
@@ -173,7 +177,7 @@ describe('SmartWallet', function(){
                     nonce: '0',
                     tokenAmount: '1',
                     tokenGas: '50000',
-                    data: '0x0'
+                    data: '0x'
                 } as ForwardRequest,            
                 relayData:{
                     gasPrice: '1',
@@ -182,6 +186,17 @@ describe('SmartWallet', function(){
                     callVerifier: ZERO_ADDRESS
                 } as RelayData
             } as RelayRequest
+
+            return {
+                request: {
+                  ...baseRequest.request,
+                  ...request,
+                },
+                relayData: {
+                  ...baseRequest.relayData,
+                  ...relayData,
+                },
+              };
         }
 
         beforeEach(async function(){
@@ -189,88 +204,48 @@ describe('SmartWallet', function(){
             fakeToken.transfer.returns(true);
         });
 
-        it('Should fail if not called by the owner', async function(){
-            const {smartWallet, worker, utilSigner} = await loadFixture(prepareFixture);
-            const request = createRequest();
+        it.skip('Should fail if not called by the owner', async function(){
+            const {smartWallet, worker} = await loadFixture(prepareFixture);
+            const request = createRequest({},{});
+
             const wallet = ethers.Wallet.createRandom();
             const provider = hardhat.getDefaultProvider();
-            const signer = wallet.connect(provider);
+            /*const signer = */wallet.connect(provider);
+            request.request.from = wallet.address;
+            request.relayData.callForwarder = smartWallet.address;
 
             console.log('smartWalletTest188');
 
-            const data = new TypedRequestData(33, wallet.address, request);
+            const data = new TypedRequestData(33, smartWallet.address, request);
 
             console.log('smartWalletTest192');
-            const privateKey = Buffer.from(signer.privateKey.substring(2,66), 'hex');
+            const privateKey = Buffer.from(wallet.privateKey.substring(2, 66), 'hex');
 
             console.log('smartWalletTest195');
             const signature = getLocalEip712Signature(data, privateKey);
 
             console.log('SignatureNew', signature);
 
-            await smartWallet.initialize(signer.address, fakeToken.address, worker.address, 10, 400000);
+            await smartWallet.initialize(wallet.address, fakeToken.address, worker.address, 10, 400000);
             expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;            
         
             console.log('smartWalletTest214');
 
-            const types = {
-                'request': [
-                    {name: 'relayHub', type: 'string'},
-                    {name: 'from', type: 'string'},
-                    {name: 'to', type: 'string'},
-                    {name: 'tokenContract', type: 'string'},
-                    {name: 'value', type: 'string'},
-                    {name: 'gas', type: 'string'},
-                    {name: 'nonce', type: 'string'},
-                    {name: 'tokenAmount', type: 'string'},
-                    {name: 'tokenGas', type: 'string'},
-                    {name: 'data', type: 'string'}
+            const encoded =TypedDataUtils.encodeData(
+                data.primaryType,
+                data.message,
+                data.types,
+                SignTypedDataVersion.V4
+            );
 
-                ] as MessageTypeProperty[],
-                'relayData': [
-                    {name: 'gasPrice', type: 'string'},
-                    {name: 'relayWorker', type: 'string'},
-                    {name: 'callForwarder', type: 'string'},
-                    {name: 'callVerifier', type: 'string'}
-                ] as MessageTypeProperty[]
-            } as Record<string, MessageTypeProperty[]>;
+            console.log('smartWallet.test269 encoded: ', encoded);
 
-            console.log('smartWalletTest238');
+            const suffixData = '0x'+(encoded.slice(11 * 32)).toString('hex');
 
-            const request2 ={
-                'request':{
-                    relayHub: utilSigner.address,
-                    from: ZERO_ADDRESS,
-                    to: ZERO_ADDRESS,
-                    tokenContract: ZERO_ADDRESS,
-                    value: '0',
-                    gas: '10000',
-                    nonce: '0',
-                    tokenAmount: '1',
-                    tokenGas: '50000',
-                    data: '0x0'
-                },           
-                'relayData':{
-                    'gasPrice': '1',
-                    relayWorker: ZERO_ADDRESS,
-                    callForwarder: ZERO_ADDRESS,
-                    callVerifier: ZERO_ADDRESS
-                } 
-            } 
+            console.log('smartWallet.test244 suffixData: ', suffixData);
 
-            const suffixData = //bufferToHex(
-                TypedDataUtils.encodeData(
-                  'request',
-                  request2.request,
-                  types,
-                  SignTypedDataVersion.V4
-                )//.slice((1 + ForwardRequest.length) * 32)
-              //);
-
-              console.log('smartWalletTest249');
-
-              console.log('smartWallet.test244 suffixData: ', suffixData);
-            // const signatureOld = sigUtil.signTypedData_v4(privateKey, { data });
+            console.log('request ', request);
+            await smartWallet.verify(suffixData, request.request, signature);
         });
     });
 });
