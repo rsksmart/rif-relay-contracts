@@ -1030,7 +1030,7 @@ contract(
                 );
             });
 
-            it('Should faild a deployRequest if SmartWallet has already been initialized', async () => {
+            it('Should fail a deployRequest if SmartWallet has already been initialized', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('2'),
                     from: relayOwner
@@ -1044,15 +1044,6 @@ contract(
 
                 const smartWalletTemplate: SmartWalletInstance =
                     await SmartWallet.new();
-                const senderAccount = web3.eth.accounts.create();
-
-                smartWalletTemplate.initialize(
-                    senderAccount.address,
-                    token.address,
-                    relayWorker,
-                    '0',
-                    '400000'
-                );
                 factory = await createSmartWalletFactory(smartWalletTemplate);
 
                 const calculatedAddr = await factory.getSmartWalletAddress(
@@ -1073,7 +1064,7 @@ contract(
                 );
             });
 
-            it('Should faild a deployRequest if Manager is unstaked', async () => {
+            it('Should fail a deployRequest if Manager is unstaked', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
