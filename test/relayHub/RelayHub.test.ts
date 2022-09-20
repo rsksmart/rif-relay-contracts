@@ -482,7 +482,7 @@ describe('RelayHub Contract', function () {
         it('Should fail when stake is less than minimum stake value', async () => {
           await assert.isRejected(
             mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-              value: ethers.utils.parseEther('0.0005'),
+              value: ethers.utils.parseEther('0'),
               from: relayOwnerAddr,
             }),
             'Insufficient intitial stake',

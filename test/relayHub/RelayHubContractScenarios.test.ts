@@ -4,11 +4,13 @@ import chaiAsPromised from 'chai-as-promised';
 import {mine} from "@nomicfoundation/hardhat-network-helpers";
 import {ethers} from "hardhat";
 import {FakeContract, MockContract, smock} from "@defi-wonderland/smock";
-import {Penalizer, RelayHub, SmartWalletFactory} from "../../typechain-types";
+import {Penalizer, RelayHub, SmartWallet, SmartWalletFactory} from "../../typechain-types";
 import {IForwarderInterface} from "../../typechain-types/contracts/interfaces/IForwarder";
 import {createContractDeployer} from "./utils";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {Signature} from "ethers/lib/ethers";
+import {IForwarder} from "../../typechain-types/contracts/RelayHub";
+import DeployRequestStruct = IForwarder.DeployRequestStruct;
 
 
 chai.use(smock.matchers);
@@ -43,12 +45,12 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
 //     let env: Environment;
 //     let token: TestTokenInstance;
-//     let factory: SmartWalletFactoryInstance;
+  let factory: MockContract<SmartWalletFactory>;
 //     let relayRequest: RelayRequest;
 
 //     let misbehavingVerifier: TestDeployVerifierConfigurableMisbehaviorInstance;
 //     let signatureWithMisbehavingVerifier: string;
-//     let relayRequestMisbehavingVerifier: DeployRequest;
+  let relayRequestMisbehavingVerifier: DeployRequestStruct;
 
   beforeEach(async function () {
     [relayOwner, relayManager, relayWorker, ...otherUsers] =
@@ -62,6 +64,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
     deployRelayHubContract = createContractDeployer(fakePenalizer.address);
 
     mockRelayHub = await deployRelayHubContract();
+
+    factory = createContractDeployer()
   });
 
   afterEach(function () {
@@ -267,7 +271,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
     it('Should fail when stake is less than minimum stake value', async () => {
       await assert.isRejected(
         mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-          value: ethers.BigNumber.from("1"),
+          value: ethers.BigNumber.from("0"),
           from: relayOwnerAddr,
         }),
         'Insufficient intitial stake',
@@ -392,16 +396,16 @@ describe('RelayHub contract - Manager related scenarios', function () {
       };
       relayRequest.request.data = '0xdeadbeef';
 
-        const dataToSign = new TypedRequestData(
-          chainId,
-          forwarder,
-          relayRequest
-        );
-        // signature = new Signature();
-        // signature = getLocalEip712Signature(
-        //   dataToSign,
-        //   gaslessAccount.privateKey
-        // );
+      const dataToSign = new TypedRequestData(
+        chainId,
+        forwarder,
+        relayRequest
+      );
+      // signature = new Signature();
+      // signature = getLocalEip712Signature(
+      //   dataToSign,
+      //   gaslessAccount.privateKey
+      // );
     });
 
     it('Should fail a relayRequest if the manager is unstaked', async () => {
@@ -515,10 +519,10 @@ describe('RelayHub contract - Manager related scenarios', function () {
   });
 
   describe('Manager - DeployRequest scenarios', async () => {
-      let min = 0;
-      let max = 1000000000;
-      min = Math.ceil(min);
-      max = Math.floor(max);
+    let min = 0;
+    let max = 1000000000;
+    min = Math.ceil(min);
+    max = Math.floor(max);
     let nextWalletIndex = Math.floor(Math.random() * (max - min + 1) + min);
 
     const gas = 4e6;
@@ -526,19 +530,18 @@ describe('RelayHub contract - Manager related scenarios', function () {
 //       let deployRequest: DeployRequest;
 
     beforeEach(async () => {
-        let env = await getTestingEnvironment();
-        chainId = env.chainId;
+      let env = await getTestingEnvironment();
+      chainId = env.chainId;
 
 //         penalizer = await Penalizer.new();
 //         mockRelayHub = await deployHub(penalizer.address);
 //         verifierContract = await TestVerifierEverythingAccepted.new();
 //         deployVerifierContract =
 //           await TestDeployVerifierEverythingAccepted.new();
-//         gaslessAccount = await getGaslessAccount();
+      const gaslessAccount = ethers.Wallet.createRandom().connect(ethers.provider);
 
-//         const smartWalletTemplate: SmartWalletInstance =
-//           await SmartWallet.new();
-//         factory = await createSmartWalletFactory(smartWalletTemplate);
+      // const smartWalletTemplate: SmartWallet = await SmartWallet.new();
+      // factory = await createSmartWalletFactory(smartWalletTemplate);
 //         recipientContract = await TestRecipient.new();
 
 //         const testToken = artifacts.require('TestToken');
@@ -590,11 +593,11 @@ describe('RelayHub contract - Manager related scenarios', function () {
       relayRequestMisbehavingVerifier.relayData.callVerifier = null;
       // misbehavingVerifier.address;
 
-        const dataToSign = new TypedDeployRequestData(
-          chainId,
-          factory.address,
-          relayRequestMisbehavingVerifier
-        );
+      // const dataToSign = new TypedDeployRequestData(
+      //   chainId,
+      //   factory.address,
+      //   relayRequestMisbehavingVerifier
+      // );
 //         signatureWithMisbehavingVerifier = getLocalEip712Signature(
 //           dataToSign,
 //           gaslessAccount.privateKey
@@ -603,27 +606,23 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
     it('Should failed a deployRequest if SmartWallet has already been initialized', async () => {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: ethers.BigNumber.from('2'),
+        value: oneRBTC,
         from: relayOwnerAddr,
       });
-      await mockRelayHub.addRelayWorkers([relayWorkerAddr], {
-        from: relayManagerAddr,
-      });
-      await mockRelayHub.registerRelayServer(url, {
-        from: relayManagerAddr,
-      });
 
-      // const smartWalletTemplate: SmartWalletInstance =
-      //   await SmartWallet.new();
-      // const senderAccount = web3.eth.accounts.create();
+      await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr]);
+      await mockRelayHub.connect(relayManager).registerRelayServer(url);
 
-//         smartWalletTemplate.initialize(
-//           senderAccount.address,
-//           token.address,
-//           relayWorker,
-//           '0',
-//           '400000'
-//         );
+      // const smartWalletTemplate: SmartWalletInstance = await SmartWallet.new();
+      const senderAccount = ethers.Wallet.createRandom().connect(ethers.provider);
+
+      // smartWalletTemplate.initialize(
+      //   senderAccount.address,
+      //   token.address,
+      //   relayWorker,
+      //   '0',
+      //   '400000'
+      // );
 //         factory = await createSmartWalletFactory(smartWalletTemplate);
 
 //         const calculatedAddr = await factory.getSmartWalletAddress(
@@ -653,15 +652,17 @@ describe('RelayHub contract - Manager related scenarios', function () {
       let relayWorkersBefore = await mockRelayHub.workerCount(
         relayManagerAddr
       );
+
       assert.equal(
         relayWorkersBefore.toNumber(),
         0,
         `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
       );
 
-      await mockRelayHub.addRelayWorkers([relayWorkerAddr], {
+      await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr], {
         from: relayManagerAddr,
       });
+
       await mockRelayHub.workerToManager(relayWorkerAddr);
 
       await mockRelayHub.unlockStake(relayManagerAddr, {
@@ -716,7 +717,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       // const calculatedAddr = await factory.getSmartWalletAddress(
       //   gaslessAccount.address,
-      //   constants.ZERO_ADDRESS,
+      //   "0x000000000000000000000000000000",
       //   relayRequestMisbehavingVerifier.request.index
       // );
       // await token.mint('1', calculatedAddr);
@@ -741,6 +742,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       const relayWorkersBefore = await mockRelayHub.workerCount(
         relayManagerAddr
       );
+
       assert.equal(
         relayWorkersBefore.toNumber(),
         0,
@@ -748,8 +750,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
 
       await assert.isRejected(
-        mockRelayHub.registerRelayServer(url, {
-          from: relayManagerAddr,
+        mockRelayHub.connect(relayManager).registerRelayServer(url, {
+          from: relayManagerAddr
         }),
         'no relay workers',
         'Relay Server was successfully registered'
