@@ -127,7 +127,5 @@ export function getLocalEip712Signature(
     typedRequestData: TypedMessage<Types>,
     privateKey: Buffer
 ): string {
-    console.log('EIPUtils130 privateKey: ', privateKey.toString());
-
     return signTypedData({ privateKey: privateKey, data: typedRequestData, version: SignTypedDataVersion.V4 });
 }
