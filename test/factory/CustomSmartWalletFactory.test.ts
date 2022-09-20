@@ -238,6 +238,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -286,6 +287,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -351,6 +353,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -390,6 +393,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -428,6 +432,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -467,6 +472,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -506,6 +512,7 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
