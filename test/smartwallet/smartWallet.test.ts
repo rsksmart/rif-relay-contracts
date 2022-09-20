@@ -9,7 +9,6 @@ import {
     SmartWalletFactoryInstance
 } from '../../types/truffle-contracts';
 import { RelayData } from '../../';
-import { constants } from '../constants';
 import {
     createRequest,
     createSmartWallet,
@@ -84,7 +83,7 @@ contract(
                         token.address,
                         worker,
                         '0',
-                        '400000',
+                        '400000'
                     ),
                     'already initialized',
                     'Error while validating data'
@@ -111,9 +110,7 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                 privateToAddress(senderPrivateKey)
             ).toLowerCase();
             const smartWalletTemplate = await SmartWallet.new();
-            const factory = await createSmartWalletFactory(
-                smartWalletTemplate
-            );
+            const factory = await createSmartWalletFactory(smartWalletTemplate);
             smartWallet = await createSmartWallet(
                 worker,
                 senderAddress,
