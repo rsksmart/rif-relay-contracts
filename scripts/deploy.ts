@@ -85,17 +85,17 @@ const main = async () => {
     jsonConfig = {};
   }
 
-  const { network  } = hardhatArguments;
-  if(!network) {
+  const { network } = hardhatArguments;
+  if (!network) {
     throw new Error('Unknown Network');
   }
-  const { chainId } = config.networks[network]
+  const { chainId } = config.networks[network];
 
-  if(!chainId) {
+  if (!chainId) {
     throw new Error('Unknown Chain Id');
   }
-  
-  jsonConfig[chainId] = contractAddresses
+
+  jsonConfig[chainId] = contractAddresses;
 
   fs.writeFileSync('contract-addresses.json', JSON.stringify(jsonConfig));
 };
