@@ -100,36 +100,7 @@ describe('SmartWallet', function(){
             expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;            
         });
 
-        //TODO: not working as expected
-        it.skip('Should fail with zero address as owner', async function () {
-            const {smartWallet, worker} = await loadFixture(prepareFixture);
-
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.false;
-
-            await smartWallet.initialize(ZERO_ADDRESS, fakeToken.address, worker.address, 10, 400000);
-
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.false;
-        });
-
-        //TODO: Really?
-        it.skip('Should initialize the contract with 0x as token address', async function(){
-            const {smartWallet, owner, worker} = await loadFixture(prepareFixture);
-            await smartWallet.initialize(owner.address, ZERO_ADDRESS, worker.address, 10, 400000);
-
-            expect(await smartWallet.isInitialized()).to.be.true;
-        });
-
-        //TODO: not working as expected
-        it.skip('Should fail in sponsored transaction when the worker is zero', async function () {
-            const  {smartWallet, owner} = await loadFixture(prepareFixture);
-
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
-            await smartWallet.initialize(owner.address, fakeToken.address, ZERO_ADDRESS, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.false;            
-        });
-
-        it('Should call transfer on NOT sponsored deployment', async function(){
+        it('Should call transfer on not sponsored deployment', async function(){
             const {smartWallet, owner, worker} = await loadFixture(prepareFixture);
 
             expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
@@ -146,29 +117,6 @@ describe('SmartWallet', function(){
             await smartWallet.initialize(utilSigner.address, fakeToken.address, worker.address, 0, 0);
 
             expect(fakeToken.transfer).not.to.be.called;
-        });
-
-        //TODO: Not working as expected
-        it.skip('Should revert not sponsored deployment transaction if gas fee is 0', async function(){
-            const {smartWallet, owner, worker} = await loadFixture(prepareFixture);
-
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
-            await expect(
-                smartWallet.initialize(owner.address, fakeToken.address, worker.address, 100, 0)
-            ).to.be.revertedWith('Unable to pay for deployment');
-            
-        });
-
-        //TODO: Not working as expected
-        it.skip('Should revert not sponsored deployment transaction if no worker was specified', async function(){
-            const {smartWallet, owner} = await loadFixture(prepareFixture);
-
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
-            await expect(
-                smartWallet.initialize(owner.address, fakeToken.address, ZERO_ADDRESS, 10, 400000)
-            ).to.be.revertedWith('Unable to pay for deployment');
         });
 
         it('Should fail to initialize a contract when it is already initialized', async function(){
