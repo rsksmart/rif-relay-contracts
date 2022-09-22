@@ -525,4 +525,89 @@ describe('SmartWallet', function(){
             ).to.be.rejectedWith('Not enough gas left');
         });
     });
+
+    describe('Function directExecute()', function(){
+        let fakeToken: FakeContract;
+        let recipient: FakeContract;
+        let smartWallet: SmartWallet;
+        let worker: SignerWithAddress;
+        let externalWallet: Wallet;
+        let owner: SignerWithAddress;
+        let recipientFunction: string;
+        let provider: BaseProvider;
+        let utilWallet: SignerWithAddress;
+
+        async function prepareFixture(){
+            const smartWalletFactory = await hardhat.getContractFactory('SmartWallet');
+            smartWallet = await smartWalletFactory.deploy();
+            [owner, worker, utilWallet] = await hardhat.getSigners();
+
+            const ABI = ['function isInitialized()'];
+            const abiInterface = new hardhat.utils.Interface(ABI);
+            recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
+        }
+
+        beforeEach(async function(){            
+            await loadFixture(prepareFixture);
+
+            recipient = await smock.fake('SmartWallet');
+            recipient.isInitialized.returns(true);
+
+            fakeToken = await smock.fake('ERC20');
+            fakeToken.transfer.returns(true);
+        });
+
+        it('Should execute a valid transaction', async function(){
+            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
+
+            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
+
+            await expect(
+                smartWallet.directExecute(recipient.address, recipientFunction),
+                'Execution failed'
+            ).not.to.be.rejected;
+        });
+
+        it('Should failed when not called by the owner', async function(){
+            provider = hardhat.getDefaultProvider();
+            externalWallet =  hardhat.Wallet.createRandom();
+            externalWallet.connect(provider);
+
+            await smartWallet.initialize(externalWallet.address, fakeToken.address, worker.address, 0, 0);
+
+            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
+
+            await expect(
+                smartWallet.directExecute(recipient.address, recipientFunction),
+                'Execution should be rejected'
+            ).to.be.rejectedWith('Not the owner of the SmartWallet');
+        });
+
+        it('Should send balance back to owner', async function(){
+            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
+
+            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
+
+            provider = hardhat.getDefaultProvider();
+            const amountToTransfer = hardhat.utils.parseEther('1000');
+
+            await utilWallet.sendTransaction({
+                to: smartWallet.address,
+                value: amountToTransfer
+            });
+            
+            const ownerBalanceBefore = await owner.getBalance();
+
+            await expect(
+                smartWallet.directExecute(recipient.address, recipientFunction),
+                'Execution failed'
+            ).not.to.be.rejected;
+
+            const ownerBalanceAfter = await owner.getBalance();
+            const difference = Number(hardhat.utils.formatEther(ownerBalanceAfter.sub(ownerBalanceBefore)));
+            const amountToTransferAsNumber = Number(hardhat.utils.formatEther(amountToTransfer));
+
+            expect(difference).approximately(amountToTransferAsNumber, 2);
+        });
+    })
 });
