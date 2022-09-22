@@ -26,6 +26,7 @@ const config: HardhatUserConfig = {
   networks: {
     regtest: {
       url: 'http://localhost:4444',
+      chainId: 33
     },
   },
   typechain: {

@@ -45,6 +45,10 @@
     {
       "name": "Francisco Tobar",
       "url": "https://github.com/franciscotobar"
+    },
+    {
+      "name": "Christos Otarola",
+      "url": "https://github/ironFe93"
     }
   ],
   "main": "dist/index.js",
