@@ -16,7 +16,7 @@ describe('Deploy Script', function () {
   describe('deployContracts', function () {
     const testAddress = '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7';
     beforeEach(function () {
-      const contractStub = sinon.createStubInstance(Contract, { address: testAddress });
+      const contractStub = sinon.createStubInstance(Contract);
       const contractFactoryStub = sinon.createStubInstance(ContractFactory);
       sinon.stub(ethers, 'getContractFactory').resolves(contractFactoryStub);
       contractFactoryStub.deploy.resolves(contractStub);

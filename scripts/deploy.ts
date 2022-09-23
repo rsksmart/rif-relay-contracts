@@ -1,4 +1,4 @@
-import { deployContracts, generateJsonConfig } from './modules/deploy'
+import { deployContracts, generateJsonConfig } from './modules/deploy';
 
 const main = async () => {
   const contractAddresses = await deployContracts();
