@@ -9,7 +9,6 @@ import { constants } from '../constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { generateBytes32, createSmartWalletFactory } from '../utils';
 
-
 import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 

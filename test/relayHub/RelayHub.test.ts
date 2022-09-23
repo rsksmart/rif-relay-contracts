@@ -913,10 +913,15 @@ contract(
                 );
 
                 await assert.isRejected(
-                    relayHubInstance.relayCall(relayRequest, relayWorker, signature, {
-                        gas,
-                        from: relayWorker
-                    }),
+                    relayHubInstance.relayCall(
+                        relayRequest,
+                        relayWorker,
+                        signature,
+                        {
+                            gas,
+                            from: relayWorker
+                        }
+                    ),
                     'RelayManager not staked',
                     'Relay request was properly processed'
                 );
@@ -938,15 +943,21 @@ contract(
                 });
 
                 await assert.isRejected(
-                    relayHubInstance.relayCall(relayRequest, relayWorker, signature, {
-                        gas, from: relayWorker
-                    }),
+                    relayHubInstance.relayCall(
+                        relayRequest,
+                        relayWorker,
+                        signature,
+                        {
+                            gas,
+                            from: relayWorker
+                        }
+                    ),
                     'RelayManager not staked',
                     'Relay request was properly processed'
                 );
             });
 
-            it('should success a relayRequest without paying fee', async () =>{
+            it('should success a relayRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -956,12 +967,17 @@ contract(
                     from: relayManager
                 });
                 await relayHubInstance.workerToManager(relayWorker);
-                
-                const result = relayHubInstance.relayCall(relayRequest, relayWorker, signature, { from: relayWorker, gas });
+
+                const result = relayHubInstance.relayCall(
+                    relayRequest,
+                    relayWorker,
+                    signature,
+                    { from: relayWorker, gas }
+                );
                 await assert.isFulfilled(result);
             });
 
-            it('should success a relayRequest paying fee', async () =>{
+            it('should success a relayRequest paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -975,20 +991,27 @@ contract(
                 const fee = '1';
 
                 relayRequest.request.tokenAmount = fee;
-       
-                await mintTokens(token, relayRequest.relayData.callForwarder, fee);
+
+                await mintTokens(
+                    token,
+                    relayRequest.relayData.callForwarder,
+                    fee
+                );
 
                 const workerBefore = await getTokenBalance(token, relayWorker);
                 assert.equal(workerBefore.toString(), '0');
 
-                const result = relayHubInstance.relayCall(relayRequest, relayWorker, signature, { from: relayWorker, gas });
+                const result = relayHubInstance.relayCall(
+                    relayRequest,
+                    relayWorker,
+                    signature,
+                    { from: relayWorker, gas }
+                );
                 await assert.isFulfilled(result);
 
                 const workerAfter = await getTokenBalance(token, relayWorker);
 
                 assert.equal(workerAfter.toString(), fee.toString());
-                
-                
             });
         });
 
@@ -1218,7 +1241,7 @@ contract(
                 );
             });
 
-            it('should success a deployRequest without paying fee', async () =>{
+            it('should success a deployRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1228,7 +1251,7 @@ contract(
                     from: relayManager
                 });
                 await relayHubInstance.workerToManager(relayWorker);
-                
+
                 deployRequest.request.tokenAmount = '0';
 
                 const dataToSign = new TypedDeployRequestData(
@@ -1241,11 +1264,16 @@ contract(
                     gaslessAccount.privateKey
                 );
 
-                const result = relayHubInstance.deployCall(deployRequest, relayWorker, signature, { from: relayWorker, gas });
+                const result = relayHubInstance.deployCall(
+                    deployRequest,
+                    relayWorker,
+                    signature,
+                    { from: relayWorker, gas }
+                );
                 await assert.isFulfilled(result);
             });
 
-            it('should success a deployRequest paying fee', async () =>{
+            it('should success a deployRequest paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1255,7 +1283,7 @@ contract(
                     from: relayManager
                 });
                 await relayHubInstance.workerToManager(relayWorker);
-                
+
                 const fee = '1';
 
                 deployRequest.request.tokenAmount = fee;
@@ -1265,9 +1293,9 @@ contract(
                     constants.ZERO_ADDRESS,
                     deployRequest.request.index
                 );
-       
+
                 await mintTokens(token, calculatedAddr, fee);
-                
+
                 const dataToSign = new TypedDeployRequestData(
                     chainId,
                     factory.address,
@@ -1281,7 +1309,12 @@ contract(
                 const workerBefore = await getTokenBalance(token, relayWorker);
                 assert.equal(workerBefore.toString(), '0');
 
-                const result = relayHubInstance.deployCall(deployRequest, relayWorker, signature, { from: relayWorker, gas });
+                const result = relayHubInstance.deployCall(
+                    deployRequest,
+                    relayWorker,
+                    signature,
+                    { from: relayWorker, gas }
+                );
                 await assert.isFulfilled(result);
 
                 const workerAfter = await getTokenBalance(token, relayWorker);

@@ -33,8 +33,8 @@ type createUserSmartWalletParam = {
 
 /**
  * Function to create a SmartWallet signature
-* @param ownerPrivateKey 
-* @param owner.address
+ * @param ownerPrivateKey
+ * @param owner.address
  * @param recoverer
  * @param logicAddress
  * @param index

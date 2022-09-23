@@ -229,7 +229,7 @@ export async function createCustomSmartWallet(
             callVerifier: constants.ZERO_ADDRESS
         }
     };
-    
+
     const createdataToSign = new TypedDeployRequestData(
         chainId,
         factory.address,
