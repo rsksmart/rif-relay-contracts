@@ -10,7 +10,7 @@ import "./MinLibBytes.sol";
  * Bridge Library to map Enveloping RelayRequest into a call of a SmartWallet
  */
 library Eip712Library {
-    function deploy(EnvelopingTypes.DeployRequest calldata relayRequest, bytes calldata signature) internal returns (bool deploySuccess, bytes memory ret) {
+    function deploy(EnvelopingTypes.DeployRequest calldata relayRequest, address feesReceiver, bytes calldata signature) internal returns (bool deploySuccess, bytes memory ret) {
 
             // The gas limit for the deploy creation is injected here, since the gasCalculation
             // estimate is done against the whole relayedUserSmartWalletCreation function in
@@ -22,7 +22,7 @@ library Eip712Library {
                     IWalletFactory.relayedUserSmartWalletCreation.selector,
                     relayRequest.request, 
                     hashRelayData(relayRequest.relayData),
-                    relayRequest.relayData.feesReceiver, 
+                    feesReceiver, 
                     signature
             ));
  
@@ -32,11 +32,11 @@ library Eip712Library {
     //relaySuccess = Did the destination-contract call revert or not?
     //ret = if !forwarderSuccess it is the revert reason of IForwarder, otherwise it is the destination-contract return data, wich might be
     // a revert reason if !relaySuccess
-    function execute(EnvelopingTypes.RelayRequest calldata relayRequest, bytes calldata signature) internal returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret) {
+    function execute(EnvelopingTypes.RelayRequest calldata relayRequest, address feesReceiver, bytes calldata signature) internal returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret) {
             /* solhint-disable-next-line avoid-low-level-calls */
             (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
                 abi.encodeWithSelector(IForwarder.execute.selector,
-                hashRelayData(relayRequest.relayData), relayRequest.request, relayRequest.relayData.feesReceiver, signature
+                hashRelayData(relayRequest.relayData), relayRequest.request, feesReceiver, signature
                 ));
             
             if ( forwarderSuccess ) {
@@ -48,9 +48,8 @@ library Eip712Library {
 
     function hashRelayData(EnvelopingTypes.RelayData calldata req) internal pure returns (bytes32) {
         return keccak256(abi.encode(
-                keccak256("RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"), // RELAYDATA_TYPEHASH
+                keccak256("RelayData(uint256 gasPrice,address callForwarder,address callVerifier)"), // RELAYDATA_TYPEHASH
                 req.gasPrice,
-                req.feesReceiver,
                 req.callForwarder,
                 req.callVerifier
             ));

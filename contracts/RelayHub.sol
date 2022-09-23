@@ -150,6 +150,7 @@ contract RelayHub is IRelayHub {
 
     function deployCall(
         EnvelopingTypes.DeployRequest calldata deployRequest,
+        address feesReceiver,
         bytes calldata signature
     ) external override {
         (signature);
@@ -176,7 +177,7 @@ contract RelayHub is IRelayHub {
 
         bool deploySuccess;
         bytes memory ret;
-        ( deploySuccess, ret) = Eip712Library.deploy(deployRequest, signature);
+        ( deploySuccess, ret) = Eip712Library.deploy(deployRequest, feesReceiver, signature);
 
         if (!deploySuccess) {
             assembly {
@@ -190,6 +191,7 @@ contract RelayHub is IRelayHub {
 
     function relayCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
+        address feesReceiver,
         bytes calldata signature
     ) external override returns (bool destinationCallSuccess){
         (signature);
@@ -217,7 +219,7 @@ contract RelayHub is IRelayHub {
         bytes memory relayedCallReturnValue;
         //use succ as relay call success variable
         (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
-            .execute(relayRequest, signature);
+            .execute(relayRequest, feesReceiver, signature);
 
         if (!forwarderSuccess) {
             assembly {

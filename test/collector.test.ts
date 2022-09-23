@@ -83,7 +83,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should not let deploy if the array of partners is empty', async () => {
@@ -100,7 +100,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should not let deploy if a share is 0', async () => {
@@ -196,7 +196,7 @@ describe('Collector', () => {
 
             await expect(
                 collector.updateShares(newPartners)
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should fail if a share is 0', async () => {

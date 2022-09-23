@@ -3,12 +3,8 @@ import {
     EIP712Domain,
     EIP712TypedData,
     EIP712TypeProperty,
-    EIP712Types,
-    TypedDataUtils
+    EIP712Types
 } from 'eth-sig-util';
-
-import { bufferToHex } from 'ethereumjs-util';
-import { PrefixedHexString } from 'ethereumjs-tx';
 
 //@ts-ignore
 import sourceMapSupport from 'source-map-support';
@@ -24,7 +20,6 @@ export const EIP712DomainType = [
 
 const RelayDataType = [
     { name: 'gasPrice', type: 'uint256' },
-    { name: 'feesReceiver', type: 'address' },
     { name: 'callForwarder', type: 'address' },
     { name: 'callVerifier', type: 'address' }
 ];
@@ -91,19 +86,6 @@ export function getDomainSeparator(
     };
 }
 
-export function getDomainSeparatorHash(
-    verifier: string,
-    chainId: number
-): PrefixedHexString {
-    return bufferToHex(
-        TypedDataUtils.hashStruct(
-            'EIP712Domain',
-            getDomainSeparator(verifier, chainId),
-            { EIP712Domain: EIP712DomainType }
-        )
-    );
-}
-
 export default class TypedRequestData implements EIP712TypedData {
     readonly types: Types;
     readonly domain: EIP712Domain;
@@ -153,14 +135,3 @@ export class TypedDeployRequestData implements EIP712TypedData {
         };
     }
 }
-
-export const ENVELOPING_PARAMS =
-    'address relayHub,address from,address to,address tokenContract,address collectorContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data';
-export const DEPLOY_PARAMS =
-    'address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data';
-
-export const RequestType = {
-    typeName: 'RelayRequest',
-    typeSuffix:
-        'RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)'
-};

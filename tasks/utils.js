@@ -65,9 +65,9 @@ const signWithAddress = async (web3, safeSdk, safeTransaction, owner) => {
     return await getTransactionReceipt(web3, approveTxResponse.hash);
 };
 
-const safeProxyFactoryAddress = '0x79bbC6403708C6578B0896bF1d1a91D2BB2AAa1c';
-const multiSendAddress = '0x20804b7317D2F4d0d2123f30c2D3A6B0E33DfB37';
-const safeMasterCopyAddress = '0x463F29B11503e198f6EbeC9903b4e5AaEddf6D29';
+const safeProxyFactoryAddress = '0x463F29B11503e198f6EbeC9903b4e5AaEddf6D29';
+const multiSendAddress = '0x14f6504A7ca4e574868cf8b49e85187d3Da9FA70';
+const safeMasterCopyAddress = '0xfD1dda8C3BC734Bc1C8e71F69F25BFBEe9cE9535';
 const contractNetworks = {
     33: {
         multiSendAddress,

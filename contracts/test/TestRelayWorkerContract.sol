@@ -10,18 +10,20 @@ contract TestRelayWorkerContract {
     function relayCall(
         IRelayHub hub,
         EnvelopingTypes.RelayRequest memory relayRequest,
+        address feesReceiver,
         bytes memory signature)
     public
     {
-        hub.relayCall(relayRequest, signature);
+        hub.relayCall(relayRequest, feesReceiver, signature);
     }
 
     function deployCall(
         IRelayHub hub,
         EnvelopingTypes.DeployRequest memory deployRequest,
+        address feesReceiver,
         bytes memory signature)
     public
     {
-        hub.deployCall(deployRequest, signature);
+        hub.deployCall(deployRequest, feesReceiver, signature);
     }
 }

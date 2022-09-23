@@ -78,12 +78,14 @@ interface IRelayHub {
     /// is can be false when TransactionRelayedButRevertedByRecipient is emitted.
     function relayCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
+        address feesReceiver,
         bytes calldata signature
     )
     external returns (bool destinationCallSuccess);
 
     function deployCall(
         EnvelopingTypes.DeployRequest calldata deployRequest,
+        address feesReceiver,
         bytes calldata signature    )
     external;
 

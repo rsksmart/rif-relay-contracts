@@ -10,11 +10,10 @@ import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { generateBytes32, createCustomSmartWalletFactory } from '../utils';
 import { soliditySha3Raw } from 'web3-utils';
 
-import chai from 'chai';
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const CustomSmartWalletDeployVerifier = artifacts.require(
     'CustomSmartWalletDeployVerifier'
@@ -119,7 +118,7 @@ contract('Testing Tokens - CustomSmartWalletDeployVerifier contract', () => {
 
 contract(
     'Testing verifyRelayedCall - CustomSmartWalletDeployVerifier contract',
-    ([relayHub, relayWorker]) => {
+    ([relayHub]) => {
         let deployRequestData: DeployRequest;
         let token: TestTokenInstance;
         let smartWallet: CustomSmartWalletInstance;
@@ -167,7 +166,6 @@ contract(
                         },
                         relayData: {
                             gasPrice,
-                            feesReceiver: relayWorker,
                             callForwarder: factory.address,
                             callVerifier: contractVerifier.address
                         }

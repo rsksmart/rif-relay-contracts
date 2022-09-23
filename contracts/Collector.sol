@@ -16,11 +16,11 @@ contract Collector is ICollector{
         uint256 totalShares;
 
         for(uint256 i = 0; i < _partners.length; i++){
-            totalShares = totalShares + _partners[i].share;
             require(_partners[i].share > 0, "0 is not a valid share");
+            totalShares = totalShares + _partners[i].share;
         }
 
-        require(totalShares == 100, "Total shares must add up to 100%");
+        require(totalShares == 100, "Shares must add up to 100%");
         _;
     }
 
@@ -30,10 +30,7 @@ contract Collector is ICollector{
     }
 
     modifier noBalanceToShare(){
-        uint256 balance = token.balanceOf(address(this));
-
-        require(balance < partners.length, "There is balance to share");
-
+        require(token.balanceOf(address(this)) < partners.length, "There is balance to share");
         _;
     }
 
@@ -72,14 +69,14 @@ contract Collector is ICollector{
     onlyOwner
     noBalanceToShare
     {
-        address oldRemainderAddress = remainderAddress;
-        remainderAddress = _remainderAddress;
-
         uint256 balance = token.balanceOf(address(this));
 
         if(balance != 0) {
-            token.transfer(oldRemainderAddress, balance);
+            token.transfer(remainderAddress, balance);
         }
+        
+        // solhint-disable-next-line
+        remainderAddress = _remainderAddress;
     }
 
     function getBalance()
@@ -95,7 +92,7 @@ contract Collector is ICollector{
     onlyOwner
     {
         uint256 balance = token.balanceOf(address(this));
-        require(balance > partners.length, "Not enough balance to split");
+        require(balance >= partners.length, "Not enough balance to split");
 
         for(uint256 i = 0; i < partners.length; i++)
             token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));

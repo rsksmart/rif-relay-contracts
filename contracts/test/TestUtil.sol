@@ -30,6 +30,7 @@ contract TestUtil {
 
     function callForwarderVerifyAndCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
+        address feesReceiver,
         bytes calldata signature
     )
     external
@@ -39,7 +40,7 @@ contract TestUtil {
     ) {
         bool forwarderSuccess;
 
-        (forwarderSuccess, success, ret) = Eip712Library.execute(relayRequest, signature);
+        (forwarderSuccess, success, ret) = Eip712Library.execute(relayRequest, feesReceiver, signature);
         
        if (!forwarderSuccess) {
            revertWithData(ret);

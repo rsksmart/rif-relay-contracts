@@ -1,4 +1,3 @@
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ethers } from 'ethers';
@@ -33,9 +32,9 @@ type createUserSmartWalletParam = {
 };
 
 /**
- * Function to get the actual token balance for an account
- * @param owner.address
- * @param ownerPrivateKey
+ * Function to create a SmartWallet signature
+* @param ownerPrivateKey 
+* @param owner.address
  * @param recoverer
  * @param logicAddress
  * @param index
@@ -68,7 +67,7 @@ function createUserSmartWalletSignature(
 contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
     let chainId: number;
     let factory: CustomSmartWalletFactoryInstance;
-    let owner: AccountKeypair;
+    let owner;
 
     describe('createUserSmartWallet', async () => {
         const logicAddress = constants.ZERO_ADDRESS;

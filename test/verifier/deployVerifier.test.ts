@@ -9,11 +9,11 @@ import { constants } from '../constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { generateBytes32, createSmartWalletFactory } from '../utils';
 
-import chai from 'chai';
+
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const TestToken = artifacts.require('TestToken');
 const SmartWallet = artifacts.require('SmartWallet');
@@ -114,7 +114,7 @@ contract('Testing Tokens - DeployVerifier contract', () => {
 
 contract(
     'Testing verifyRelayedCall - DeployVerifier contract',
-    ([relayHub, relayWorker, verifierOwner]) => {
+    ([relayHub, verifierOwner]) => {
         let deployRequestData: DeployRequest;
         let token: TestTokenInstance;
         let smartWallet: SmartWalletInstance;
@@ -162,7 +162,6 @@ contract(
                         },
                         relayData: {
                             gasPrice,
-                            feesReceiver: relayWorker,
                             callForwarder: factory.address,
                             callVerifier: contractVerifier.address
                         }

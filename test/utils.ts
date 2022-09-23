@@ -8,7 +8,7 @@ import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
 import ethWallet from 'ethereumjs-wallet';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
+//import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { HttpProvider } from 'web3-core';
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 import {
@@ -48,7 +48,7 @@ export interface Environment {
 const defaultRelayHubConfiguration: RelayHubConfiguration = {
     maxWorkerCount: 10,
     minimumStake: (1e18).toString(),
-    minimumUnstakeDelay: 1000,
+    minimumUnstakeDelay: 15,
     minimumEntryDepositValue: (1e18).toString()
 };
 
@@ -144,7 +144,6 @@ export async function createSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
@@ -226,12 +225,11 @@ export async function createCustomSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
     };
-
+    
     const createdataToSign = new TypedDeployRequestData(
         chainId,
         factory.address,
@@ -301,7 +299,7 @@ export async function deployHub(
     );
 }
 
-export async function getGaslessAccount(): Promise<AccountKeypair> {
+export async function getGaslessAccount() {
     const randomWallet = ethWallet.generate();
     const gaslessAccount = {
         privateKey: randomWallet.getPrivateKey(),
@@ -326,7 +324,7 @@ export async function evmMine(): Promise<any> {
                 jsonrpc: '2.0',
                 method: 'evm_mine',
                 params: [],
-                id: Date.now()
+                id: new Date().getTime()
             },
             (e: Error | null, r: any) => {
                 if (e) {
@@ -413,7 +411,6 @@ export function signRequest(
 
 const baseRelayData: RelayData = {
     gasPrice: '1',
-    feesReceiver: constants.ZERO_ADDRESS,
     callForwarder: constants.ZERO_ADDRESS,
     callVerifier: constants.ZERO_ADDRESS
 };

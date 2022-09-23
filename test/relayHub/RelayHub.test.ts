@@ -17,7 +17,9 @@ import {
     createSmartWallet,
     getGaslessAccount,
     createSmartWalletFactory,
-    evmMineMany
+    evmMineMany,
+    mintTokens,
+    getTokenBalance
 } from '../utils';
 
 import { constants } from '../constants';
@@ -37,7 +39,7 @@ import {
     TestDeployVerifierEverythingAcceptedInstance
 } from '../../types/truffle-contracts';
 import chaiAsPromised from 'chai-as-promised';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
+//import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { toBN } from 'web3-utils';
 
 import chai from 'chai';
@@ -494,7 +496,7 @@ contract(
         let target: string;
         let verifier: string;
         let forwarder: string;
-        let gaslessAccount: AccountKeypair;
+        let gaslessAccount;
         const gasLimit = '3000000';
         const gasPrice = '1';
         let sharedRelayRequestData: RelayRequest;
@@ -808,7 +810,6 @@ contract(
                     },
                     relayData: {
                         gasPrice,
-                        feesReceiver: relayWorker,
                         callForwarder: forwarder,
                         callVerifier: verifier
                     }
@@ -912,9 +913,9 @@ contract(
                 );
 
                 await assert.isRejected(
-                    relayHubInstance.relayCall(relayRequest, signature, {
-                        from: relayWorker,
-                        gas
+                    relayHubInstance.relayCall(relayRequest, relayWorker, signature, {
+                        gas,
+                        from: relayWorker
                     }),
                     'RelayManager not staked',
                     'Relay request was properly processed'
@@ -937,13 +938,57 @@ contract(
                 });
 
                 await assert.isRejected(
-                    relayHubInstance.relayCall(relayRequest, signature, {
-                        from: relayWorker,
-                        gas
+                    relayHubInstance.relayCall(relayRequest, relayWorker, signature, {
+                        gas, from: relayWorker
                     }),
                     'RelayManager not staked',
                     'Relay request was properly processed'
                 );
+            });
+
+            it('should success a relayRequest without paying fee', async () =>{
+                await relayHubInstance.stakeForAddress(relayManager, 1000, {
+                    value: ether('1'),
+                    from: relayOwner
+                });
+
+                await relayHubInstance.addRelayWorkers([relayWorker], {
+                    from: relayManager
+                });
+                await relayHubInstance.workerToManager(relayWorker);
+                
+                const result = relayHubInstance.relayCall(relayRequest, relayWorker, signature, { from: relayWorker, gas });
+                await assert.isFulfilled(result);
+            });
+
+            it('should success a relayRequest paying fee', async () =>{
+                await relayHubInstance.stakeForAddress(relayManager, 1000, {
+                    value: ether('1'),
+                    from: relayOwner
+                });
+
+                await relayHubInstance.addRelayWorkers([relayWorker], {
+                    from: relayManager
+                });
+                await relayHubInstance.workerToManager(relayWorker);
+
+                const fee = '1';
+
+                relayRequest.request.tokenAmount = fee;
+       
+                await mintTokens(token, relayRequest.relayData.callForwarder, fee);
+
+                const workerBefore = await getTokenBalance(token, relayWorker);
+                assert.equal(workerBefore.toString(), '0');
+
+                const result = relayHubInstance.relayCall(relayRequest, relayWorker, signature, { from: relayWorker, gas });
+                await assert.isFulfilled(result);
+
+                const workerAfter = await getTokenBalance(token, relayWorker);
+
+                assert.equal(workerAfter.toString(), fee.toString());
+                
+                
             });
         });
 
@@ -1001,7 +1046,6 @@ contract(
                     },
                     relayData: {
                         gasPrice,
-                        feesReceiver: relayWorker,
                         callForwarder: factory.address,
                         callVerifier: deployVerifierContract.address
                     }
@@ -1030,7 +1074,7 @@ contract(
                 );
             });
 
-            it('Should faild a deployRequest if SmartWallet has already been initialized', async () => {
+            it('Should fail a deployRequest if SmartWallet has already been initialized', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('2'),
                     from: relayOwner
@@ -1065,15 +1109,16 @@ contract(
                 await assert.isRejected(
                     relayHubInstance.deployCall(
                         relayRequestMisbehavingVerifier,
+                        relayWorker,
                         signatureWithMisbehavingVerifier,
-                        { from: relayWorker, gas, gasPrice }
+                        { gas, gasPrice, from: relayWorker }
                     ),
                     'Unable to initialize SW',
                     'SW was deployed and initialized'
                 );
             });
 
-            it('Should faild a deployRequest if Manager is unstaked', async () => {
+            it('Should fail a deployRequest if Manager is unstaked', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1164,12 +1209,84 @@ contract(
                 await assert.isRejected(
                     relayHubInstance.deployCall(
                         relayRequestMisbehavingVerifier,
+                        relayWorker,
                         signatureWithMisbehavingVerifier,
-                        { from: relayWorker, gas, gasPrice }
+                        { gas, gasPrice, from: relayWorker }
                     ),
                     'RelayManager not staked',
                     'Deploy was processed successfully'
                 );
+            });
+
+            it('should success a deployRequest without paying fee', async () =>{
+                await relayHubInstance.stakeForAddress(relayManager, 1000, {
+                    value: ether('1'),
+                    from: relayOwner
+                });
+
+                await relayHubInstance.addRelayWorkers([relayWorker], {
+                    from: relayManager
+                });
+                await relayHubInstance.workerToManager(relayWorker);
+                
+                deployRequest.request.tokenAmount = '0';
+
+                const dataToSign = new TypedDeployRequestData(
+                    chainId,
+                    factory.address,
+                    deployRequest
+                );
+                const signature = getLocalEip712Signature(
+                    dataToSign,
+                    gaslessAccount.privateKey
+                );
+
+                const result = relayHubInstance.deployCall(deployRequest, relayWorker, signature, { from: relayWorker, gas });
+                await assert.isFulfilled(result);
+            });
+
+            it('should success a deployRequest paying fee', async () =>{
+                await relayHubInstance.stakeForAddress(relayManager, 1000, {
+                    value: ether('1'),
+                    from: relayOwner
+                });
+
+                await relayHubInstance.addRelayWorkers([relayWorker], {
+                    from: relayManager
+                });
+                await relayHubInstance.workerToManager(relayWorker);
+                
+                const fee = '1';
+
+                deployRequest.request.tokenAmount = fee;
+
+                const calculatedAddr = await factory.getSmartWalletAddress(
+                    gaslessAccount.address,
+                    constants.ZERO_ADDRESS,
+                    deployRequest.request.index
+                );
+       
+                await mintTokens(token, calculatedAddr, fee);
+                
+                const dataToSign = new TypedDeployRequestData(
+                    chainId,
+                    factory.address,
+                    deployRequest
+                );
+                const signature = getLocalEip712Signature(
+                    dataToSign,
+                    gaslessAccount.privateKey
+                );
+
+                const workerBefore = await getTokenBalance(token, relayWorker);
+                assert.equal(workerBefore.toString(), '0');
+
+                const result = relayHubInstance.deployCall(deployRequest, relayWorker, signature, { from: relayWorker, gas });
+                await assert.isFulfilled(result);
+
+                const workerAfter = await getTokenBalance(token, relayWorker);
+
+                assert.equal(workerAfter.toString(), fee.toString());
             });
 
             it('Should fail when registering with no workers assigned to the Manager', async () => {
