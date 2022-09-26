@@ -1,5 +1,4 @@
 import { ethers as hardhat } from 'hardhat';
-// import {ethers} from 'ethers';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai, { expect} from 'chai';
 import { FakeContract, smock } from '@defi-wonderland/smock';
@@ -16,7 +15,6 @@ import { SignTypedDataVersion } from '@metamask/eth-sig-util';
 import { Wallet } from 'ethers';
 import { SmartWallet } from 'typechain-types';
 import { BaseProvider } from '@ethersproject/providers';
-// import { AbiCoder } from 'ethers/lib/utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -94,8 +92,6 @@ describe('SmartWallet', function(){
         it('Should initialize with the correct parameters', async function () {
             const  {smartWallet, owner, worker} = await loadFixture(prepareFixture);
 
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
             expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;            
         });
@@ -103,16 +99,12 @@ describe('SmartWallet', function(){
         it('Should call transfer on not sponsored deployment', async function(){
             const {smartWallet, owner, worker} = await loadFixture(prepareFixture);
 
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
             expect(fakeToken.transfer).to.be.called;
         });
 
         it('Should not call transfer on sponsored deployment', async function(){
             const {smartWallet, utilSigner, worker} = await loadFixture(prepareFixture);
-
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
 
             await smartWallet.initialize(utilSigner.address, fakeToken.address, worker.address, 0, 0);
 
@@ -122,26 +114,31 @@ describe('SmartWallet', function(){
         it('Should fail to initialize a contract when it is already initialized', async function(){
             const {smartWallet, owner, worker} = await loadFixture(prepareFixture);
 
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;   
+            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);  
 
             await expect(
                 smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000),
                 'Second initialization not rejected'
             ).to.be.revertedWith('already initialized');
-
         });
 
         it('Should create the domainSeparator', async function () {
             const  {smartWallet, owner, worker} = await loadFixture(prepareFixture);
 
-            expect(await smartWallet.isInitialized(), 'Contract already initialized').to.be.false;
-
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);        
 
             expect(await smartWallet.domainSeparator()).to.be.properHex(64);
+        });
+
+        it('Should fail when the token transfer method fails', async function () {
+            const  {smartWallet, owner, worker} = await loadFixture(prepareFixture);
+
+            fakeToken.transfer.returns(false);
+
+            await expect(
+                smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000),
+                'Deployment should be reverted'
+            ).to.be.revertedWith('Unable to pay for deployment');
         });
     });
 
@@ -179,8 +176,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should verify a valid transaction', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const relayRequest = createRequest({
                 from: externalWallet.address,
                 tokenContract: fakeToken.address
@@ -206,7 +201,6 @@ describe('SmartWallet', function(){
             wallet.connect(provider);
 
             await smartWallet.initialize(wallet.address, fakeToken.address, worker.address, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
 
             const relayRequest = createRequest({
                 from: notTheOwner.address,
@@ -233,7 +227,6 @@ describe('SmartWallet', function(){
             wallet.connect(provider);
 
             await smartWallet.initialize(wallet.address, fakeToken.address, worker.address, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
 
             const relayRequest = createRequest({
                 from: wallet.address,
@@ -261,7 +254,6 @@ describe('SmartWallet', function(){
             wallet.connect(provider);
 
             await smartWallet.initialize(wallet.address, fakeToken.address, worker.address, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
 
             const relayRequest = createRequest({
                 from: wallet.address,
@@ -325,8 +317,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should execute a sponsored transaction', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
                 from: externalWallet.address,
@@ -355,8 +345,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should execute a not sponsored transaction', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
                 from: externalWallet.address,
@@ -385,8 +373,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should increment nonce', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const initialNonce = 0;
 
             const relayRequest = createRequest({
@@ -417,8 +403,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should fail if not called by the relayHub', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const notTheRelayHub =  hardhat.Wallet.createRandom();
             notTheRelayHub.connect(provider);
 
@@ -447,8 +431,6 @@ describe('SmartWallet', function(){
         });
 
         it('Should fail when gas is not enough', async function(){
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
                 from: externalWallet.address,
@@ -508,8 +490,6 @@ describe('SmartWallet', function(){
         it('Should execute a valid transaction', async function(){
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
 
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             await expect(
                 smartWallet.directExecute(recipient.address, recipientFunction),
                 'Execution failed'
@@ -523,8 +503,6 @@ describe('SmartWallet', function(){
 
             await smartWallet.initialize(externalWallet.address, fakeToken.address, worker.address, 0, 0);
 
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
-
             await expect(
                 smartWallet.directExecute(recipient.address, recipientFunction),
                 'Execution should be rejected'
@@ -533,8 +511,6 @@ describe('SmartWallet', function(){
 
         it('Should send balance back to owner', async function(){
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
-
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;
 
             provider = hardhat.getDefaultProvider();
             const amountToTransfer = hardhat.utils.parseEther('1000');
