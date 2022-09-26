@@ -7,7 +7,6 @@ import {FakeContract, MockContract, smock} from "@defi-wonderland/smock";
 import {Penalizer, RelayHub, SmartWallet, SmartWalletFactory} from "../../typechain-types";
 import {createContractDeployer} from "./utils";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {loadFixture} from '@nomicfoundation/hardhat-network-helpers';
 import {
   getLocalEip712Signature,
   TypedRequestData,
@@ -16,7 +15,6 @@ import {
   RelayData, DeployRequest
 } from '../utils/EIP712Utils';
 import {Wallet} from "ethers";
-import {SignTypedDataVersion, TypedDataUtils} from "@metamask/eth-sig-util";
 
 
 chai.use(smock.matchers);
@@ -403,7 +401,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       //Verifying stake is now unlocked
       let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      // console.log(stakeInfo);
       const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
       assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
@@ -471,11 +468,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
-      // const suffixData = getSuffixData(typedRequestData);
-
-      // const [anotherRelayManager] = otherUsers;
-
-
       await assert.isRejected(
         mockRelayHub.connect(relayWorker).relayCall(relayRequest, signature),
         ERR_UNSTAKED,
@@ -486,18 +478,13 @@ describe('RelayHub contract - Manager related scenarios', function () {
   });
 
   describe('Manager - DeployRequest scenarios', function() {
-    // const min = 0;
-    // const max = 1000000000;
-    // let nextWalletIndex = Math.floor(Math.random() * (max - min + 1) + min);
-    let nextWalletIndex = 50000000;
-
-    const gas = 4e6;
     const url = 'http://relay.com';
 
     const HARDHAT_CHAIN_ID = 31337;
     let token: FakeContract;
     let smartWallet: SmartWallet;
     let externalWallet: Wallet;
+    const nextWalletIndex = 500;
 
     function createRequest(
       request: Partial<ForwardRequest>,
@@ -538,7 +525,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
     }
 
     beforeEach(async function() {
-
       token = await smock.fake('ERC20');
       token.transfer.returns(true);
 
@@ -548,88 +534,13 @@ describe('RelayHub contract - Manager related scenarios', function () {
       smartWallet = await smock.fake('SmartWallet');
       externalWallet = ethers.Wallet.createRandom();
       externalWallet.connect(ethers.provider);
-//         verifierContract = await TestVerifierEverythingAccepted.new();
-//         deployVerifierContract =
-//           await TestDeployVerifierEverythingAccepted.new();
-//       const gaslessAccount = ethers.Wallet.createRandom().connect(ethers.provider);
-
-      // const smartWalletTemplate: SmartWallet = await SmartWallet.new();
-      // factory = await createSmartWalletFactory(smartWalletTemplate);
-//         recipientContract = await TestRecipient.new();
-
-//         target = recipientContract.address;
-//         verifier = verifierContract.address;
-//         relayHub = mockRelayHub.address;
-
-
-      const sharedDeployRequestData = {
-        request: {
-          relayHub: mockRelayHub,
-          to: '0x000000000000000000000000000000',
-          data: '0x',
-          from: relayOwnerAddr,
-          nonce: 330799,
-          value: '0',
-          tokenContract: token.address,
-          tokenAmount: '1',
-          tokenGas: '50000',
-          recoverer: '0x000000000000000000000000000000',
-          index: '0',
-        },
-        relayData: {
-          gas,
-          relayWorker,
-          callForwarder: null,
-          callVerifier: null,
-          domainSeparator: null,
-        },
-      };
-
-      const deployRequest = {
-        request: {...sharedDeployRequestData.request},
-        relayData: {...sharedDeployRequestData.relayData}
-      };
-      deployRequest.request.index = nextWalletIndex.toString();
-//         misbehavingVerifier =
-//           await TestDeployVerifierConfigurableMisbehavior.new();
-      deployRequest.request.index = nextWalletIndex.toString();
-      nextWalletIndex++;
-
-      const relayRequestMisbehavingVerifier = {
-        request: {...deployRequest.request},
-        relayData: {...deployRequest.relayData}
-      };
-      relayRequestMisbehavingVerifier.relayData.callVerifier = null;
-      // misbehavingVerifier.address;
     });
 
     afterEach(function () {
       mockRelayHub = undefined as unknown as MockContract<RelayHub>;
     });
 
-    // async function prepareFixture(){
-    //   const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
-    //   const smartWallet = await smartWalletFactory.deployAt;
-    //   const [owner, worker, utilSigner] = await ethers.getSigners();
-    //
-    //   return {smartWallet, owner, worker, utilSigner};
-    // }
-
-    const ONE_FIELD_IN_BYTES = 32;
-    function getSuffixData(typedRequestData: TypedRequestData):string{
-      const encoded =TypedDataUtils.encodeData(
-        typedRequestData.primaryType,
-        typedRequestData.message,
-        typedRequestData.types,
-        SignTypedDataVersion.V4
-      );
-
-      const messageSize = Object.keys(typedRequestData.message).length;
-
-      return '0x'+(encoded.slice(messageSize * ONE_FIELD_IN_BYTES)).toString('hex');
-    }
-
-    it.only('Should failed a deployRequest if SmartWallet has already been initialized', async function() {
+    it('Should failed a deployRequest if SmartWallet has already been initialized', async function() {
 
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: ethers.BigNumber.from(2),
@@ -639,13 +550,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
       await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr]);
       await mockRelayHub.connect(relayManager).registerRelayServer(url);
 
-      // const smartWalletTemplate: SmartWalletInstance = await SmartWallet.new();
-      // const senderAccount = ethers.Wallet.createRandom().connect(ethers.provider);
-
-      // const factory: FakeContract<SmartWallet> = await smock.fake('SmartWallet');
-
       const smartWalletFactory: FakeContract<SmartWalletFactory> = await smock.fake<SmartWalletFactory>("SmartWalletFactory");
-      smartWalletFactory.relayedUserSmartWalletCreation.reverts("Unable to initialize SW");
+      smartWalletFactory.relayedUserSmartWalletCreation.reverts();
 
       const relayRequestMisbehavingVerifier = createRequest({
         from: externalWallet.address,
@@ -670,19 +576,14 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
-      await  mockRelayHub.connect(relayWorker).deployCall(
-        relayRequestMisbehavingVerifier,
-        signature
+      await assert.isRejected(
+          mockRelayHub.connect(relayWorker).deployCall(
+              relayRequestMisbehavingVerifier,
+              signature
+          ),
+          'Transaction reverted without a reason string',
+          'SW was deployed and initialized'
       );
-
-      // await assert.isRejected(
-      //     mockRelayHub.connect(relayWorker).deployCall(
-      //         relayRequestMisbehavingVerifier,
-      //         signature
-      //     ),
-      //     'Unable to initialize SW',
-      //     'SW was deployed and initialized'
-      // );
     });
 
     it('Should faild a deployRequest if Manager is unstaked', async function() {
