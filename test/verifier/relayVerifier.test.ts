@@ -120,7 +120,7 @@ describe('RelayVerifier Contract', function () {
     });
   });
 
-  describe('verifyRelayCall()', function () {
+  describe('verifyRelayedCall()', function () {
     let owner: SignerWithAddress;
     let recipient: SignerWithAddress;
     let relayWorker: SignerWithAddress;
