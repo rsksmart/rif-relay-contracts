@@ -17,6 +17,8 @@ export interface ForwardRequest {
   tokenAmount: string;
   tokenGas: string;
   data: string;
+  recoverer: string;
+  index: string;
 }
 
 export interface RelayData {
@@ -27,6 +29,11 @@ export interface RelayData {
 }
 
 export interface RelayRequest {
+  request: ForwardRequest;
+  relayData: RelayData;
+}
+
+export interface DeployRequest {
   request: ForwardRequest;
   relayData: RelayData;
 }

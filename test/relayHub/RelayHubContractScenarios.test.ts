@@ -1,29 +1,27 @@
-import {Environment, ERR_NOT_OWNER, ERR_UNSTAKED, getTestingEnvironment, oneRBTC} from "../utils";
+import {ERR_NOT_OWNER, ERR_UNSTAKED, oneRBTC} from "../utils";
 import chai, {assert, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {mine} from "@nomicfoundation/hardhat-network-helpers";
 import {ethers} from "hardhat";
 import {FakeContract, MockContract, smock} from "@defi-wonderland/smock";
-import {Penalizer, RelayHub, SmartWallet, SmartWalletFactory} from "../../typechain-types";
-import {IForwarderInterface} from "../../typechain-types/contracts/interfaces/IForwarder";
+import {Penalizer, RelayHub, SmartWallet} from "../../typechain-types";
 import {createContractDeployer} from "./utils";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {IForwarder} from "../../typechain-types/contracts/RelayHub";
-import DeployRequestStruct = IForwarder.DeployRequestStruct;
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import {loadFixture} from '@nomicfoundation/hardhat-network-helpers';
 import {
   getLocalEip712Signature,
   TypedRequestData,
   RelayRequest,
   ForwardRequest,
-  RelayData} from '../utils/EIP712Utils';
-import {SignTypedDataVersion, TypedDataUtils} from "@metamask/eth-sig-util";
+  RelayData, DeployRequest
+} from '../utils/EIP712Utils';
 import {Wallet} from "ethers";
+
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-const ZERO_ADDRESS = ethers.constants.AddressZero ;
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 describe('RelayHub contract - Manager related scenarios', function () {
   let deployRelayHubContract: ReturnType<typeof createContractDeployer>;
@@ -35,7 +33,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
   let fakePenalizer: FakeContract<Penalizer>;
   let mockRelayHub: MockContract<RelayHub>;
 
-  let chainId: number;
 
   beforeEach(async function () {
     [relayOwner, relayManager, relayWorker, ...otherUsers] = await ethers.getSigners();
@@ -44,28 +41,23 @@ describe('RelayHub contract - Manager related scenarios', function () {
     relayOwnerAddr = relayOwner.address;
 
     fakePenalizer = await smock.fake('Penalizer');
-
-    deployRelayHubContract = createContractDeployer(fakePenalizer.address);
-
-    mockRelayHub = await deployRelayHubContract();
-
   });
 
   afterEach(function () {
     mockRelayHub = undefined as unknown as MockContract<RelayHub>;
   });
 
-  describe('Manager tests - Stake related scenarios', async () => {
+  describe('Manager tests - Stake related scenarios', function() {
     beforeEach(async function () {
       deployRelayHubContract = createContractDeployer(fakePenalizer.address);
+      mockRelayHub = await deployRelayHubContract();
     });
 
-    it('Should stake only from owner account', async () => {
+    it('Should stake only from owner account', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
       });
-      const [anotherRelayManager] = otherUsers;
       await assert.isRejected(
         mockRelayHub
           .connect(relayManager)
@@ -77,7 +69,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async () => {
+    it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
@@ -109,7 +101,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async () => {
+    it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
@@ -165,7 +157,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
     });
 
-    it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async () => {
+    it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async function() {
       let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
       assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
 
@@ -205,7 +197,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async () => {
+    it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
@@ -240,7 +232,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should fail when staking Manager and Owner account are the same when staking', async () => {
+    it('Should fail when staking Manager and Owner account are the same when staking', async function() {
       await assert.isRejected(
         mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
           value: oneRBTC,
@@ -251,7 +243,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should fail when stake is less than minimum stake value', async () => {
+    it('Should fail when stake is less than minimum stake value', async function() {
       await assert.isRejected(
         mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
           value: ethers.BigNumber.from("0"),
@@ -262,8 +254,8 @@ describe('RelayHub contract - Manager related scenarios', function () {
       );
     });
 
-    it('Should fail when sender is a RelayManager', async () => {
-      mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
+    it('Should fail when sender is a RelayManager', async function() {
+      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
       });
@@ -281,31 +273,19 @@ describe('RelayHub contract - Manager related scenarios', function () {
     });
   });
 
-  describe.only('Manager - RelayRequest scenarios', async () => {
-
+  describe('Manager - RelayRequest scenarios', function() {
 
     const HARDHAT_CHAIN_ID = 31337;
-    const ONE_FIELD_IN_BYTES = 32;
-    const FAKE_PRIVATE_KEY = 'da1294b386f1c04cd3276ef3298ef122f226472a55f241d22f924bdc19f92379';
     let token: FakeContract;
-    let smartWallet: SmartWallet;
-    let worker: SignerWithAddress;
+    let smartWallet: FakeContract<SmartWallet>;
     let externalWallet: Wallet;
-
-    async function prepareFixture(){
-      const smartWalletFactory = await ethers.getContractFactory('SmartWallet');
-      const smartWallet = await smartWalletFactory.deploy();
-      const [owner, worker, utilSigner] = await ethers.getSigners();
-
-      return {smartWallet, owner, worker, utilSigner};
-    }
 
     function createRequest(
       request: Partial<ForwardRequest>,
       relayData: Partial<RelayData>
     ): RelayRequest {
       const baseRequest: RelayRequest = {
-        request:{
+        request: {
           relayHub: ZERO_ADDRESS,
           from: ZERO_ADDRESS,
           to: ZERO_ADDRESS,
@@ -317,7 +297,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
           tokenGas: '50000',
           data: '0x'
         } as ForwardRequest,
-        relayData:{
+        relayData: {
           gasPrice: '1',
           relayWorker: ZERO_ADDRESS,
           callForwarder: ZERO_ADDRESS,
@@ -337,43 +317,26 @@ describe('RelayHub contract - Manager related scenarios', function () {
       };
     }
 
-    function getSuffixData(typedRequestData: TypedRequestData):string{
-      const encoded =TypedDataUtils.encodeData(
-        typedRequestData.primaryType,
-        typedRequestData.message,
-        typedRequestData.types,
-        SignTypedDataVersion.V4
-      );
 
-      const messageSize = Object.keys(typedRequestData.message).length;
-
-      return '0x'+(encoded.slice(messageSize * ONE_FIELD_IN_BYTES)).toString('hex');
-    }
-
-
-    beforeEach(async () => {
+    beforeEach(async function() {
+      deployRelayHubContract = createContractDeployer(fakePenalizer.address);
       mockRelayHub = await deployRelayHubContract();
       token = await smock.fake('ERC20');
       token.transfer.returns(true);
 
-      ({smartWallet, worker} = await loadFixture(prepareFixture));
-      externalWallet =  ethers.Wallet.createRandom();
+      smartWallet = await smock.fake('SmartWallet');
+      externalWallet = ethers.Wallet.createRandom();
       externalWallet.connect(ethers.provider);
-
-      await smartWallet.initialize(externalWallet.address, token.address, worker.address, 10, 400000);
     });
 
     afterEach(function () {
       mockRelayHub = undefined as unknown as MockContract<RelayHub>;
-      token = undefined as unknown as FakeContract;
-      smartWallet = undefined as unknown as SmartWallet;
-      externalWallet = undefined as unknown as Wallet;
     });
 
 
-    it('Should fail a relayRequest if the manager is in the last block of delay blocks', async () => {
-
-      const {smartWallet} = await loadFixture(prepareFixture);
+    it('Should fail a relayRequest if the manager is in the last block of delay blocks', async function() {
+      // let mockRelayHub = await createContractDeployer([fakePenalizer.address]);
+      // const {smartWallet} = await loadFixture(prepareFixture);
 
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
@@ -393,7 +356,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         relayHub: mockRelayHub.address,
         tokenAmount: '1',
         tokenGas: '50000'
-      },{
+      }, {
         relayWorker: relayWorkerAddr
       });
 
@@ -403,25 +366,16 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       const signature = getLocalEip712Signature(typedRequestData, privateKey);
       //
-      mockRelayHub = await mockRelayHub.connect(relayWorker);
-      // const result =  await assert.isRejected(
-      //     mockRelayHub.relayCall(relayRequest, signature),
-      //     ERR_UNSTAKED,
-      //     'Relay request was properly processed'
-      // );
+      mockRelayHub = mockRelayHub.connect(relayWorker);
       await expect(
         mockRelayHub.relayCall(relayRequest, signature)
       ).to.be.rejectedWith(
-          ERR_UNSTAKED
+        ERR_UNSTAKED
       );
     });
 
-    it('Should fail a relayRequest if the manager is unstaked', async () => {
-      console.log('test1')
-      // const {smartWallet} = await loadFixture(prepareFixture);
-      console.log(relayManagerAddr);
-      console.log(oneRBTC.toString());
-      console.log(relayOwnerAddr);
+    it('Should fail a relayRequest if the manager is unstaked', async function() {
+
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr
@@ -448,121 +402,108 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
       //Verifying stake is now unlocked
       let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      console.log(stakeInfo);
+      // console.log(stakeInfo);
       const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
       assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
       //Moving blocks to be able to unstake
-      console.log('TESTESTSETEWST');
       await mine(Number(stakeInfo.unstakeDelay));
-      // await ethers.provider.send("evm_increaseTime", [Number(stakeInfo.unstakeDelay)]);
-      // await ethers.provider.send("evm_mine", []);
+      await ethers.provider.send("evm_increaseTime", [Number(stakeInfo.unstakeDelay)]);
+      await ethers.provider.send("evm_mine", []);
 
-      // stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      // const stakeBalanceBefore = ethers.BigNumber.from(stakeInfo.stake);
-      //
-      // const relayOwnerBalanceBefore = ethers.BigNumber.from(
-      //   await ethers.provider.getBalance(relayOwnerAddr)
-      // );
-      //
-      // const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
-      //   from: relayOwnerAddr,
-      // });
-      //
-      // //Getting the gas used in order to calculate the original balance of the account
-      //
-      // const txReceipt = await ethers.provider.getTransactionReceipt(txResponse.hash);
-      // const rbtcUsed = ethers.BigNumber.from(txReceipt.cumulativeGasUsed).mul(gasPrice);
-      //
-      // const relayOwnerBalanceAfter = ethers.BigNumber.from(
-      //   await ethers.provider.getBalance(relayOwnerAddr)
-      // );
-      // assert.isTrue(
-      //   relayOwnerBalanceAfter.eq(
-      //     relayOwnerBalanceBefore.sub(rbtcUsed).add(stakeBalanceBefore)
-      //   ),
-      //   'Withdraw/unstake process have failed'
-      // );
-      //
-      // stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      // const stakeAfterWithdraw = ethers.BigNumber.from(stakeInfo.stake);
-      //
-      // //Verifying there are no more stake balance for the manager
-      // assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
-      //
-      // relayWorkersBefore = await mockRelayHub.workerCount(relayManagerAddr);
-      // assert.equal(
-      //   relayWorkersBefore.toNumber(),
-      //   1,
-      //   `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
-      // );
-      //
-      // const relayRequest = createRequest({
-      //   from: externalWallet.address,
-      //   tokenContract: token.address,
-      //   relayHub: mockRelayHub.address,
-      //   tokenAmount: '1',
-      //   tokenGas: '60000000'
-      // },{
-      //   relayWorker: relayWorkerAddr
-      // });
-      //
-      // relayRequest.request.data = '0xdeadbeef';
-      //
-      // const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
-      //
-      // const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
-      //
-      // const signature = getLocalEip712Signature(typedRequestData, privateKey);
-      //
-      // // const suffixData = getSuffixData(typedRequestData);
-      //
+      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
+      const stakeBalanceBefore = ethers.BigNumber.from(stakeInfo.stake);
+
+      const relayOwnerBalanceBefore = ethers.BigNumber.from(
+        await ethers.provider.getBalance(relayOwnerAddr)
+      );
+
+      const gasPrice = ethers.BigNumber.from('60000000');
+      const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
+        from: relayOwnerAddr,
+        gasPrice
+      });
+
+      //Getting the gas used in order to calculate the original balance of the account
+
+      const txReceipt = await ethers.provider.getTransactionReceipt(txResponse.hash);
+      const rbtcUsed = ethers.BigNumber.from(txReceipt.cumulativeGasUsed).mul(gasPrice);
+
+      const relayOwnerBalanceAfter = ethers.BigNumber.from(
+        await ethers.provider.getBalance(relayOwnerAddr)
+      );
+      assert.isTrue(
+        relayOwnerBalanceAfter.eq(
+          relayOwnerBalanceBefore.sub(rbtcUsed).add(stakeBalanceBefore)
+        ),
+        'Withdraw/unstake process have failed'
+      );
+
+      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
+      const stakeAfterWithdraw = ethers.BigNumber.from(stakeInfo.stake);
+
+      //Verifying there are no more stake balance for the manager
+      assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
+
+      relayWorkersBefore = await mockRelayHub.workerCount(relayManagerAddr);
+      assert.equal(
+        relayWorkersBefore.toNumber(),
+        1,
+        `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
+      );
+
+      const relayRequest = createRequest({
+        from: externalWallet.address,
+        tokenContract: token.address,
+        relayHub: mockRelayHub.address,
+        tokenAmount: '1',
+        tokenGas: '60000000'
+      }, {
+        relayWorker: relayWorkerAddr
+      });
+
+      relayRequest.request.data = '0xdeadbeef';
+
+      const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
+
+      const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      // const suffixData = getSuffixData(typedRequestData);
+
       // const [anotherRelayManager] = otherUsers;
-      //
-      // let new_worker = await mockRelayHub.connect(relayWorker);
-      // await assert.isRejected(
-      //   new_worker.relayCall(relayRequest, signature),
-      //   ERR_UNSTAKED,
-      //   'Relay request was properly processed'
-      // );
+
+
+      await assert.isRejected(
+        mockRelayHub.connect(relayWorker).relayCall(relayRequest, signature),
+        ERR_UNSTAKED,
+        'Relay request was properly processed'
+      );
     });
 
   });
 
-  describe('Manager - DeployRequest scenarios', async () => {
-    let min = 0;
-    let max = 1000000000;
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    let nextWalletIndex = Math.floor(Math.random() * (max - min + 1) + min);
+  describe('Manager - DeployRequest scenarios', function() {
+    // const min = 0;
+    // const max = 1000000000;
+    // let nextWalletIndex = Math.floor(Math.random() * (max - min + 1) + min);
+    let nextWalletIndex = 50000000;
 
     const gas = 4e6;
     const url = 'http://relay.com';
-//       let deployRequest: DeployRequest;
-
 
     const HARDHAT_CHAIN_ID = 31337;
-    const ONE_FIELD_IN_BYTES = 32;
-    const FAKE_PRIVATE_KEY = 'da1294b386f1c04cd3276ef3298ef122f226472a55f241d22f924bdc19f92379';
     let token: FakeContract;
     let smartWallet: SmartWallet;
-    let worker: SignerWithAddress;
     let externalWallet: Wallet;
-
-    async function prepareFixture(){
-      const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
-      const smartWallet = await smartWalletFactory.deploy();
-      const [owner, worker, utilSigner] = await ethers.getSigners();
-
-      return {smartWallet, owner, worker, utilSigner};
-    }
 
     function createRequest(
       request: Partial<ForwardRequest>,
       relayData: Partial<RelayData>
-    ): RelayRequest {
-      const baseRequest: RelayRequest = {
-        request:{
+    ): DeployRequest {
+      const baseRequest: DeployRequest = {
+        request: {
           relayHub: ZERO_ADDRESS,
           from: ZERO_ADDRESS,
           to: ZERO_ADDRESS,
@@ -572,15 +513,16 @@ describe('RelayHub contract - Manager related scenarios', function () {
           nonce: '0',
           tokenAmount: '1',
           tokenGas: '50000',
-          data: '0x'
+          data: '0x',
+          recoverer: '0',
         } as ForwardRequest,
-        relayData:{
+        relayData: {
           gasPrice: '1',
           relayWorker: ZERO_ADDRESS,
           callForwarder: ZERO_ADDRESS,
           callVerifier: ZERO_ADDRESS
         } as RelayData
-      } as RelayRequest
+      } as DeployRequest
 
       return {
         request: {
@@ -594,46 +536,32 @@ describe('RelayHub contract - Manager related scenarios', function () {
       };
     }
 
-    function getSuffixData(typedRequestData: TypedRequestData):string{
-      const encoded =TypedDataUtils.encodeData(
-        typedRequestData.primaryType,
-        typedRequestData.message,
-        typedRequestData.types,
-        SignTypedDataVersion.V4
-      );
-
-      const messageSize = Object.keys(typedRequestData.message).length;
-
-      return '0x'+(encoded.slice(messageSize * ONE_FIELD_IN_BYTES)).toString('hex');
-    }
-
-    beforeEach(async () => {
-      let env = await getTestingEnvironment();
+    beforeEach(async function() {
 
       token = await smock.fake('ERC20');
       token.transfer.returns(true);
-      chainId = env.chainId;
 
-//         penalizer = await Penalizer.new();
-//         mockRelayHub = await deployHub(penalizer.address);
+      deployRelayHubContract = createContractDeployer(fakePenalizer.address);
+      mockRelayHub = await deployRelayHubContract();
+
+      smartWallet = await smock.fake('SmartWallet');
+      externalWallet = ethers.Wallet.createRandom();
+      externalWallet.connect(ethers.provider);
 //         verifierContract = await TestVerifierEverythingAccepted.new();
 //         deployVerifierContract =
 //           await TestDeployVerifierEverythingAccepted.new();
-      const gaslessAccount = ethers.Wallet.createRandom().connect(ethers.provider);
+//       const gaslessAccount = ethers.Wallet.createRandom().connect(ethers.provider);
 
       // const smartWalletTemplate: SmartWallet = await SmartWallet.new();
       // factory = await createSmartWalletFactory(smartWalletTemplate);
 //         recipientContract = await TestRecipient.new();
-
-//         const testToken = artifacts.require('TestToken');
-//         token = await testToken.new();
 
 //         target = recipientContract.address;
 //         verifier = verifierContract.address;
 //         relayHub = mockRelayHub.address;
 
 
-      let sharedDeployRequestData = {
+      const sharedDeployRequestData = {
         request: {
           relayHub: mockRelayHub,
           to: '0x000000000000000000000000000000',
@@ -656,7 +584,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         },
       };
 
-      let deployRequest = {
+      const deployRequest = {
         request: {...sharedDeployRequestData.request},
         relayData: {...sharedDeployRequestData.relayData}
       };
@@ -666,34 +594,30 @@ describe('RelayHub contract - Manager related scenarios', function () {
       deployRequest.request.index = nextWalletIndex.toString();
       nextWalletIndex++;
 
-      let relayRequestMisbehavingVerifier = {
+      const relayRequestMisbehavingVerifier = {
         request: {...deployRequest.request},
         relayData: {...deployRequest.relayData}
       };
       relayRequestMisbehavingVerifier.relayData.callVerifier = null;
       // misbehavingVerifier.address;
-
-      // const dataToSign = new TypedDeployRequestData(
-      //   chainId,
-      //   factory.address,
-      //   relayRequestMisbehavingVerifier
-      // );
-//         signatureWithMisbehavingVerifier = getLocalEip712Signature(
-//           dataToSign,
-//           gaslessAccount.privateKey
-//         );
     });
 
     afterEach(function () {
       mockRelayHub = undefined as unknown as MockContract<RelayHub>;
     });
 
-    it('Should failed a deployRequest if SmartWallet has already been initialized', async () => {
+    async function prepareFixture(){
+      const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
+      const smartWallet = await smartWalletFactory.deploy();
+      const [owner, worker, utilSigner] = await ethers.getSigners();
 
-      const {smartWallet} = await loadFixture(prepareFixture);
+      return {smartWallet, owner, worker, utilSigner};
+    }
+
+    it('Should failed a deployRequest if SmartWallet has already been initialized', async function() {
 
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
+        value: ethers.BigNumber.from(2),
         from: relayOwnerAddr,
       });
 
@@ -703,36 +627,56 @@ describe('RelayHub contract - Manager related scenarios', function () {
       // const smartWalletTemplate: SmartWalletInstance = await SmartWallet.new();
       const senderAccount = ethers.Wallet.createRandom().connect(ethers.provider);
 
-      // smartWalletTemplate.initialize(
-      //   senderAccount.address,
-      //   token.address,
-      //   relayWorker,
-      //   '0',
-      //   '400000'
-      // );
-//         factory = await createSmartWalletFactory(smartWalletTemplate);
+      const factory: FakeContract<SmartWallet> = await smock.fake('SmartWallet');
 
-      const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
-        let calculatedAddr: SmartWallet = await smartWalletFactory.deploy();
-        // const calculatedAddr = await factory.getSmartWalletAddress(
-//           gaslessAccount.address,
-//           constants.ZERO_ADDRESS,
-//           relayRequestMisbehavingVerifier.request.index
-//         );
-        await token.mint('1', calculatedAddr.address);
+      await token.mint('1', factory.address);
 
-      // await assert.isRejected(
-      //     mockRelayHub.deployCall(
-      //         relayRequestMisbehavingVerifier,
-      //         signatureWithMisbehavingVerifier,
-      //         {from: relayWorker, gas, gasPrice}
-      //     ),
-      //     'Unable to initialize SW',
-      //     'SW was deployed and initialized'
-      // );
+      const relayRequestMisbehavingVerifier = createRequest({
+        from: externalWallet.address,
+        to: ZERO_ADDRESS,
+        data: '0x',
+        tokenContract: token.address,
+        relayHub: mockRelayHub.address,
+        tokenAmount: '1',
+        tokenGas: '50000',
+        recoverer: ZERO_ADDRESS,
+        index: '0',
+      }, {
+        relayWorker: relayWorkerAddr,
+        callForwarder: factory.address
+      });
+
+      relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
+//         misbehavingVerifier =
+//           await TestDeployVerifierConfigurableMisbehavior.new();
+//       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
+//         nextWalletIndex++;
+
+      const {smartWallet} = await loadFixture(prepareFixture);
+
+      await smartWallet.initialize( senderAccount.address,
+        token.address,
+        relayWorkerAddr,
+        '0',
+        '400000');
+
+      const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequestMisbehavingVerifier);
+
+      const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await assert.isRejected(
+          mockRelayHub.connect(relayWorker).deployCall(
+              relayRequestMisbehavingVerifier,
+              signature
+          ),
+          'Unable to initialize SW',
+          'SW was deployed and initialized'
+      );
     });
 
-    it('Should faild a deployRequest if Manager is unstaked', async () => {
+    it('Should faild a deployRequest if Manager is unstaked', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
@@ -771,7 +715,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         await ethers.provider.getBalance(relayOwnerAddr)
       );
 
-      const gasPrice = ethers.BigNumber.from('60000000');
+      const gasPrice = ethers.BigNumber.from('351981441');
       const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
         from: relayOwnerAddr,
         gasPrice,
@@ -810,22 +754,48 @@ describe('RelayHub contract - Manager related scenarios', function () {
       //   relayRequestMisbehavingVerifier.request.index
       // );
 
-      const smartWalletFactory =await ethers.getContractFactory('SmartWallet');
-      let calculatedAddr: SmartWallet = await smartWalletFactory.deploy();
-      await token.mint('1', calculatedAddr);
+      // const smartWalletFactory = await ethers.getContractFactory('SmartWallet');
+      // let calculatedAddr: SmartWallet = await smartWalletFactory.deploy();
+      // await token.mint('1', calculatedAddr);
 
-//         await assert.isRejected(
-//           mockRelayHub.deployCall(
-//             relayRequestMisbehavingVerifier,
-//             signatureWithMisbehavingVerifier,
-//             { from: relayWorker, gas, gasPrice }
-//           ),
-//           ERR_UNSTAKED,
-//           'Deploy was processed successfully'
-//         );
+      const relayRequestMisbehavingVerifier = createRequest({
+        from: externalWallet.address,
+        to: ZERO_ADDRESS,
+        data: '0x',
+        tokenContract: token.address,
+        relayHub: mockRelayHub.address,
+        tokenAmount: '1',
+        tokenGas: '50000',
+        recoverer: ZERO_ADDRESS,
+        index: '0',
+      }, {
+        relayWorker: relayWorkerAddr
+      });
+
+      relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
+//         misbehavingVerifier =
+//           await TestDeployVerifierConfigurableMisbehavior.new();
+//       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
+//         nextWalletIndex++;
+
+      const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequestMisbehavingVerifier);
+
+      const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+
+      await assert.isRejected(
+          mockRelayHub.connect(relayWorker).deployCall(
+            relayRequestMisbehavingVerifier,
+            signature
+          ),
+          ERR_UNSTAKED,
+          'Deploy was processed successfully'
+        );
     });
 
-    it('Should fail when registering with no workers assigned to the Manager', async () => {
+    it('Should fail when registering with no workers assigned to the Manager', async function() {
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,

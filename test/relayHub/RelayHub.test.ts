@@ -339,7 +339,7 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async () => {
+        it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async function() {
           await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
             value: oneRBTC,
             from: relayOwnerAddr,
@@ -394,7 +394,7 @@ describe('RelayHub Contract', function () {
           assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
         });
 
-        it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async () => {
+        it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async function() {
           let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
           assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
 
@@ -434,7 +434,7 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async () => {
+        it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async function() {
           await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
             value: oneRBTC,
             from: relayOwnerAddr,
@@ -468,7 +468,7 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        it('Should fail when staking Manager and Owner account are the same when staking', async () => {
+        it('Should fail when staking Manager and Owner account are the same when staking', async function() {
           await assert.isRejected(
             mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
               value: oneRBTC,
@@ -479,7 +479,7 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        it('Should fail when stake is less than minimum stake value', async () => {
+        it('Should fail when stake is less than minimum stake value', async function() {
           await assert.isRejected(
             mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
               value: ethers.utils.parseEther('0'),
@@ -490,7 +490,7 @@ describe('RelayHub Contract', function () {
           );
         });
 
-        it('Should fail when sender is a RelayManager', async () => {
+        it('Should fail when sender is a RelayManager', async function() {
 
           await assert.isRejected(
             mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
