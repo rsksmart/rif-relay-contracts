@@ -6,30 +6,11 @@ import {
     SignTypedDataVersion
 } from '@metamask/eth-sig-util';
 
-export interface ForwardRequest {
-    relayHub: string;
-    from: string;
-    to: string;
-    tokenContract: string;
-    value: string;
-    gas: string;
-    nonce: string;
-    tokenAmount: string;
-    tokenGas: string;
-    data: string;
-}
+import { EnvelopingTypes, IForwarder } from 'typechain-types/contracts/RelayHub';
 
-export interface RelayData {
-    gasPrice: string;
-    relayWorker: string;
-    callForwarder: string;
-    callVerifier: string;
-}
-
-export interface RelayRequest {
-    request: ForwardRequest;
-    relayData: RelayData;
-}
+export type ForwardRequest = IForwarder.ForwardRequestStruct;
+export type RelayData = EnvelopingTypes.RelayDataStruct;
+export type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 
 
 const eIP712DomainType: MessageTypeProperty[] = [
