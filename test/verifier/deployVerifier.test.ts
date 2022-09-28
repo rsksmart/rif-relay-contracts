@@ -9,11 +9,9 @@ import { constants } from '../constants';
 import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { generateBytes32, createSmartWalletFactory } from '../utils';
 
-import chai from 'chai';
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const TestToken = artifacts.require('TestToken');
 const SmartWallet = artifacts.require('SmartWallet');

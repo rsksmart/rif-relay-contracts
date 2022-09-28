@@ -10,11 +10,9 @@ import { toBuffer, bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { generateBytes32, createCustomSmartWalletFactory } from '../utils';
 import { soliditySha3Raw } from 'web3-utils';
 
-import chai from 'chai';
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const CustomSmartWalletDeployVerifier = artifacts.require(
     'CustomSmartWalletDeployVerifier'

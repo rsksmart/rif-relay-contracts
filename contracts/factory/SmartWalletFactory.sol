@@ -78,7 +78,14 @@ contract SmartWalletFactory is ISmartWalletFactory {
     bytes14 private constant RUNTIME_END = hex"5AF43D923D90803E602B57FD5BF3";
     address public masterCopy; // this is the ForwarderProxy contract that will be proxied
     bytes32 public constant DATA_VERSION_HASH = keccak256("2");
-    bytes32 public domainSeparator;
+    bytes32 public domainSeparator = keccak256(
+                            abi.encode(
+                                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
+                                keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
+                                DATA_VERSION_HASH,
+                                getChainID(),
+                                address(this)
+                            ));
 
     // Nonces of senders, used to prevent replay attacks
     mapping(address => uint256) private nonces;
@@ -90,20 +97,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
      */
     constructor(address forwarderTemplate) public {
         masterCopy = forwarderTemplate;
-        buildDomainSeparator();
     }
-
-    function buildDomainSeparator() internal {
-        domainSeparator = keccak256(
-            abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), //hex"8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f",
-                keccak256("RSK Enveloping Transaction"), //DOMAIN_NAME hex"d41b7f69f4d7734774d21b5548d74704ad02f9f1545db63927a1d58479c576c8"
-                DATA_VERSION_HASH,
-                getChainID(),
-                address(this)
-            )
-        );
-    } 
 
     function runtimeCodeHash() external override view returns (bytes32){
         return keccak256(
