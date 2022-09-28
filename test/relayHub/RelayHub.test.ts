@@ -947,7 +947,7 @@ contract(
                 );
             });
 
-            it.only('Should success a relayRequest without paying fee', async () => {
+            it('Should success a relayRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1228,7 +1228,7 @@ contract(
                 );
             });
 
-            it.only('Should success a deployRequest without paying fee', async () => {
+            it('Should success a deployRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
