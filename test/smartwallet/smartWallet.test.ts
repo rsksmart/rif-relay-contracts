@@ -27,7 +27,7 @@ type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 describe('SmartWallet', function(){
     function createRequest(
         request: Partial<ForwardRequest>,
-        relayData: Partial<RelayData>
+        relayData?: Partial<RelayData>
     ): RelayRequest {
         const baseRequest: RelayRequest = {
             request:{
@@ -183,7 +183,7 @@ describe('SmartWallet', function(){
             const relayRequest = createRequest({
                 from: externalWallet.address,
                 tokenContract: fakeToken.address
-            },{});
+            });
 
             const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
 
@@ -220,7 +220,7 @@ describe('SmartWallet', function(){
                 from: externalWallet.address,
                 nonce: '1',
                 tokenContract: fakeToken.address
-            },{});
+            });
 
             const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
 
@@ -238,7 +238,7 @@ describe('SmartWallet', function(){
             const relayRequest = createRequest({
                 from: externalWallet.address,
                 tokenContract: fakeToken.address
-            },{});
+            });
 
             const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
 
@@ -516,4 +516,11 @@ describe('SmartWallet', function(){
             expect(difference).approximately(amountToTransferAsNumber, 2);
         });
     })
+
+    describe.skip('Function recover()', function(){
+        //TODO: This function is not implemented. Create test cases when it is.
+        it('Should recover founds....', function () {
+            console.log('Not implemented yet')
+        });
+    });
 });
