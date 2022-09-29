@@ -89,7 +89,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       //Moving blocks to be able to unstake
       await mine(Number(stakeInfo.unstakeDelay));
 
-      const gasPrice = ethers.BigNumber.from('60000000');
+      const gasPrice = ethers.BigNumber.from('6000000000000');
       await assert.isRejected(
         mockRelayHub.withdrawStake(relayWorkerAddr, {
           from: relayOwnerAddr,
@@ -129,7 +129,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         await ethers.provider.getBalance(relayOwnerAddr)
       );
 
-      const gasPrice = ethers.BigNumber.from('60000000');
+      const gasPrice = ethers.BigNumber.from('6000000000000');
       const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
         from: relayOwnerAddr,
         gasPrice,
@@ -208,7 +208,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
       });
       await mockRelayHub.workerToManager(relayWorkerAddr);
 
-      const gasPrice = ethers.BigNumber.from('60000000');
+      const gasPrice = ethers.BigNumber.from('6000000000000');
       await assert.isRejected(
         mockRelayHub.withdrawStake(relayManagerAddr, {
           from: relayOwnerAddr,
@@ -416,7 +416,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         await ethers.provider.getBalance(relayOwnerAddr)
       );
 
-      const gasPrice = ethers.BigNumber.from('60000000');
+      const gasPrice = ethers.BigNumber.from('6000000000000');
       const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
         from: relayOwnerAddr,
         gasPrice
@@ -455,7 +455,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         tokenContract: token.address,
         relayHub: mockRelayHub.address,
         tokenAmount: '1',
-        tokenGas: '60000000'
+        tokenGas: '6000000000000'
       }, {
         relayWorker: relayWorkerAddr
       });
@@ -482,7 +482,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
     const HARDHAT_CHAIN_ID = 31337;
     let token: FakeContract;
-    let smartWallet: SmartWallet;
+    let smartWallet: FakeContract<SmartWallet>;
     let externalWallet: Wallet;
     const nextWalletIndex = 500;
 
