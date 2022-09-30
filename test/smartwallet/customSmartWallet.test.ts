@@ -99,6 +99,97 @@ function signRequest(
 
 describe('Custom SmartWallet', function () {
 
+    describe('Unit testing on methods isInitialize and initialize', function () {
+        let fakeToken: FakeContract<BaseContract>;
+        let relayWorker: SignerWithAddress;
+        const senderPrivateKey = toBuffer(generateBytes32(1));
+        let senderAddress: string;
+        let chainId: number;
+        let factory: Contract;
+        let customLogic: FakeContract<BaseContract>;
+
+        beforeEach(async function () {
+            const customSmartWalletFactory = await ethers.getContractFactory('CustomSmartWallet');
+            const smartWalletTemplate = await customSmartWalletFactory.deploy();
+            factory = await createCustomSmartWalletFactory(smartWalletTemplate);
+            customLogic = await smock.fake('SuccessCustomLogic');
+            fakeToken = await smock.fake('ERC20');
+            [relayWorker] = await ethers.getSigners();
+
+            senderAddress = bufferToHex(
+                privateToAddress(senderPrivateKey)
+            ).toLowerCase();
+
+            chainId = environments.rsk.chainId;
+
+
+        });
+
+        it('Should initialize the smart wallet properly', async () => {
+
+            const rReq = createRequest({
+                relayHub: relayWorker.address,
+                from: senderAddress,
+                index: '0'
+            }, {
+                callForwarder: factory.address,
+                gasPrice: '10'
+            });
+
+           const smartWallet = await createCustomSmartWallet(
+                relayWorker.address,
+                senderAddress,
+                factory,
+                senderPrivateKey,
+                chainId,
+                rReq
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+        });
+
+        it('Should verify method initialize fails when contract has already been initialized', async () => {
+            const rReq = createRequest({
+                relayHub: relayWorker.address,
+                from: senderAddress,
+                index: '0'
+            }, {
+                callForwarder: factory.address,
+                gasPrice: '10'
+            });
+
+
+           const smartWallet = await createCustomSmartWallet(
+                relayWorker.address,
+                senderAddress,
+                factory,
+                senderPrivateKey,
+                chainId,
+                rReq
+            );
+
+            assert.isTrue(await smartWallet.isInitialized());
+
+            await assert.isRejected(
+                smartWallet.initialize(
+                    senderAddress,
+                    customLogic.address,
+                    fakeToken.address,
+                    relayWorker.address,
+                    '0',
+                    '400000',
+                    '0x'
+                ),
+                'already initialized',
+                'Error while validating data'
+            );
+        });
+
+
+
+    });
+
+
     describe('Unit testing on execute method', function () {
         let customSmartWalletInstance: Contract;
         let fakeToken: FakeContract<BaseContract>;
