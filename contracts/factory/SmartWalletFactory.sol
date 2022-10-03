@@ -288,11 +288,16 @@ contract SmartWalletFactory is ISmartWalletFactory {
 
         require(
             RSKAddrValidator.safeEquals(
-                keccak256(abi.encodePacked(
-                    "\x19\x01",
-                    domainSeparator,
-                    keccak256(_getEncoded(req, suffixData)))
-                ).recover(sig), req.from),"signature mismatch"
+                keccak256(
+                    abi.encodePacked(
+                        "\x19\x01",
+                        domainSeparator,
+                        keccak256(_getEncoded(req, suffixData))
+                    )
+                ).recover(sig),
+                req.from
+            ),
+            "Signature mismatch"
         );
     }
 }
