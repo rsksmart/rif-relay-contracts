@@ -3,7 +3,7 @@ pragma solidity ^0.6.12;
 // solhint-disable not-rely-on-time
 
 import "../interfaces/IVersionRegistry.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../Ownable.sol";
 
 contract VersionRegistry is IVersionRegistry, Ownable {
 
