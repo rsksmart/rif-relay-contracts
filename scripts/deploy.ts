@@ -1,9 +1,9 @@
-import { constants } from 'ethers';
-import { ethers } from 'hardhat';
+import { deployContracts, generateJsonConfig } from './modules/deploy';
 
-// FIXME:  add contract deployment
 const main = async () => {
-  await ethers.getContractAt('CustomSmartWallet', constants.AddressZero);
+  const contractAddresses = await deployContracts();
+  console.table(contractAddresses);
+  generateJsonConfig(contractAddresses);
 };
 
 // We recommend this pattern to be able to use async/await everywhere
