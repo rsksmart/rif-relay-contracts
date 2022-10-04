@@ -1,49 +1,51 @@
 import {
-    MessageTypeProperty,
-    MessageTypes,
-    TypedMessage,
-    signTypedData,
-    SignTypedDataVersion
+  MessageTypeProperty,
+  MessageTypes,
+  signTypedData,
+  SignTypedDataVersion,
+  TypedMessage,
 } from '@metamask/eth-sig-util';
 
-import { EnvelopingTypes, IForwarder } from 'typechain-types/contracts/RelayHub';
+import {
+  EnvelopingTypes,
+  IForwarder,
+} from 'typechain-types/contracts/RelayHub';
 
 export type ForwardRequest = IForwarder.ForwardRequestStruct;
 export type RelayData = EnvelopingTypes.RelayDataStruct;
 export type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 export type DeployRequest = EnvelopingTypes.DeployRequestStruct;
 
-
 const eIP712DomainType: MessageTypeProperty[] = [
-    { name: 'name', type: 'string' },
-    { name: 'version', type: 'string' },
-    { name: 'chainId', type: 'uint256' },
-    { name: 'verifyingContract', type: 'address' }
+  { name: 'name', type: 'string' },
+  { name: 'version', type: 'string' },
+  { name: 'chainId', type: 'uint256' },
+  { name: 'verifyingContract', type: 'address' },
 ];
 
 const relayDataType: MessageTypeProperty[] = [
-    { name: 'gasPrice', type: 'uint256' },
-    { name: 'relayWorker', type: 'address' },
-    { name: 'callForwarder', type: 'address' },
-    { name: 'callVerifier', type: 'address' }
+  { name: 'gasPrice', type: 'uint256' },
+  { name: 'relayWorker', type: 'address' },
+  { name: 'callForwarder', type: 'address' },
+  { name: 'callVerifier', type: 'address' },
 ];
 
 export const forwardRequestType: MessageTypeProperty[] = [
-    { name: 'relayHub', type: 'address' },
-    { name: 'from', type: 'address' },
-    { name: 'to', type: 'address' },
-    { name: 'tokenContract', type: 'address' },
-    { name: 'value', type: 'uint256' },
-    { name: 'gas', type: 'uint256' },
-    { name: 'nonce', type: 'uint256' },
-    { name: 'tokenAmount', type: 'uint256' },
-    { name: 'tokenGas', type: 'uint256' },
-    { name: 'data', type: 'bytes' }
+  { name: 'relayHub', type: 'address' },
+  { name: 'from', type: 'address' },
+  { name: 'to', type: 'address' },
+  { name: 'tokenContract', type: 'address' },
+  { name: 'value', type: 'uint256' },
+  { name: 'gas', type: 'uint256' },
+  { name: 'nonce', type: 'uint256' },
+  { name: 'tokenAmount', type: 'uint256' },
+  { name: 'tokenGas', type: 'uint256' },
+  { name: 'data', type: 'bytes' },
 ];
 
 const relayRequestType: MessageTypeProperty[] = [
-    ...forwardRequestType,
-    { name: 'relayData', type: 'RelayData' }
+  ...forwardRequestType,
+  { name: 'relayData', type: 'RelayData' },
 ];
 
 const deployRequestType: MessageTypeProperty[] = [
@@ -51,11 +53,10 @@ const deployRequestType: MessageTypeProperty[] = [
     { name: 'relayData', type: 'RelayData' }
 ];
 
-
 interface Types extends MessageTypes {
-    EIP712Domain: MessageTypeProperty[];
-    RelayRequest: MessageTypeProperty[];
-    RelayData: MessageTypeProperty[];
+  EIP712Domain: MessageTypeProperty[];
+  RelayRequest: MessageTypeProperty[];
+  RelayData: MessageTypeProperty[];
 }
 
 interface TypesDeploy extends MessageTypes {
@@ -66,54 +67,54 @@ interface TypesDeploy extends MessageTypes {
 
 // use these values in registerDomainSeparator
 export const domainSeparatorType = {
-    prefix: 'string name,string version',
-    name: 'RSK Enveloping Transaction',
-    version: '2'
+  prefix: 'string name,string version',
+  name: 'RSK Enveloping Transaction',
+  version: '2',
 };
 
 type Domain = {
-    name: string;
-    version: string;
-    chainId: number;
-    verifyingContract: string;
-}
+  name: string;
+  version: string;
+  chainId: number;
+  verifyingContract: string;
+};
 
 function getDomainSeparator(
-    verifyingContract: string,
-    chainId: number
+  verifyingContract: string,
+  chainId: number
 ): Domain {
-    return {
-        name: domainSeparatorType.name,
-        version: domainSeparatorType.version,
-        chainId: chainId,
-        verifyingContract: verifyingContract
-    };
+  return {
+    name: domainSeparatorType.name,
+    version: domainSeparatorType.version,
+    chainId: chainId,
+    verifyingContract: verifyingContract,
+  };
 }
 
 export class TypedRequestData implements TypedMessage<Types> {
-    readonly types: Types;
+  readonly types: Types;
 
-    readonly domain: Domain;
+  readonly domain: Domain;
 
-    readonly primaryType: string;
+  readonly primaryType: string;
 
-    readonly message: Record<string, unknown>;
+  readonly message: Record<string, unknown>;
 
-    constructor(chainId: number, verifier: string, relayRequest: RelayRequest) {
-        this.types = {
-            EIP712Domain: eIP712DomainType,
-            RelayRequest: relayRequestType,
-            RelayData: relayDataType
-        };
-        this.domain = getDomainSeparator(verifier, chainId);
-        this.primaryType = 'RelayRequest';
-        // in the signature, all "request" fields are flattened out at the top structure.
-        // other params are inside "relayData" sub-type
-        this.message = {
-            ...relayRequest.request,
-            relayData: relayRequest.relayData
-        };
-    }
+  constructor(chainId: number, verifier: string, relayRequest: RelayRequest) {
+    this.types = {
+      EIP712Domain: eIP712DomainType,
+      RelayRequest: relayRequestType,
+      RelayData: relayDataType,
+    };
+    this.domain = getDomainSeparator(verifier, chainId);
+    this.primaryType = 'RelayRequest';
+    // in the signature, all "request" fields are flattened out at the top structure.
+    // other params are inside "relayData" sub-type
+    this.message = {
+      ...relayRequest.request,
+      relayData: relayRequest.relayData,
+    };
+  }
 }
 
 export class TypedDeployRequestData implements TypedMessage<TypesDeploy> {
@@ -143,10 +144,14 @@ export class TypedDeployRequestData implements TypedMessage<TypesDeploy> {
 }
 
 export function getLocalEip712Signature(
-    typedRequestData: TypedMessage<Types>,
-    privateKey: Buffer
+  typedRequestData: TypedMessage<Types>,
+  privateKey: Buffer
 ): string {
-    return signTypedData({ privateKey: privateKey, data: typedRequestData, version: SignTypedDataVersion.V4 });
+  return signTypedData({
+    privateKey: privateKey,
+    data: typedRequestData,
+    version: SignTypedDataVersion.V4,
+  });
 }
 
 export function getLocalEip712DeploySignature(
