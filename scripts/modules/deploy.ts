@@ -86,7 +86,11 @@ export const deployContracts = async () => {
     customSmartWalletFactoryAddress
   );
 
-  const { address: utilTokenAddress } = await utilTokenF.deploy();
+  let utilTokenAddress;
+  if(hardhatArguments.network != 'mainnet'){
+    const { address } = await utilTokenF.deploy();
+    utilTokenAddress = address
+  }
 
   return {
     Penalizer: penalizerAddress,

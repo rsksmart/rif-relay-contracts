@@ -46,8 +46,14 @@ describe('Deploy Script', function () {
     it('should deploy contracts with valid addresses', async function () {
       const result = await deployContracts();
       Object.values(result).forEach((value) => {
-        expect(value).to.eq(testAddress);
+        expect(value, value).to.eq(testAddress);
       });
+    });
+
+    it('should not deploy UtilToken if not in mainnet', async function () {
+      hardhat.hardhatArguments.network = 'mainnet';
+      const result = await deployContracts();
+      expect(result.UtilToken).to.be.undefined
     });
   });
 
