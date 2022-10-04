@@ -365,7 +365,7 @@ contract(
                     },
                     relayData
                 );
-                
+
                 const { signature, suffixData } = signRequest(
                     senderPrivateKey,
                     relayRequest,
