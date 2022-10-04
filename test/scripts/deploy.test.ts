@@ -1,16 +1,17 @@
-import chai, { expect } from 'chai';
+import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Contract, ContractFactory } from 'ethers';
-import { ethers } from 'hardhat';
-import sinon from 'sinon';
 import fs from 'fs';
 import * as hardhat from 'hardhat';
+import { ethers } from 'hardhat';
+import sinon from 'sinon';
 import {
+  ContractAddresses,
   deployContracts,
   generateJsonConfig,
-} from '../../scripts/modules/deploy';
+} from '../../scripts/deploy';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 describe('Deploy Script', function () {
   describe('deployContracts', function () {
@@ -33,12 +34,12 @@ describe('Deploy Script', function () {
         'RelayHub',
         'SmartWallet',
         'SmartWalletFactory',
-        'SmartWalletDeployVerifier',
-        'SmartWalletRelayVerifier',
+        'DeployVerifier',
+        'RelayVerifier',
         'CustomSmartWallet',
         'CustomSmartWalletFactory',
         'CustomSmartWalletDeployVerifier',
-        'CustomSmartWalletRelayVerifier',
+        'VersionRegistry',
         'UtilToken'
       );
     });
@@ -53,24 +54,23 @@ describe('Deploy Script', function () {
     it('should not deploy UtilToken if not in mainnet', async function () {
       hardhat.hardhatArguments.network = 'mainnet';
       const result = await deployContracts();
-      expect(result.UtilToken).to.be.undefined
+      expect(result.UtilToken).to.be.undefined;
     });
   });
 
   describe('generateJsonConfig', function () {
-    const contractAddresses = {
+    const contractAddresses: ContractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       RelayHub: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       SmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       SmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
-      SmartWalletDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
-      SmartWalletRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      DeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      RelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletDeployVerifier:
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
-      CustomSmartWalletRelayVerifier:
-        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
 
@@ -96,33 +96,43 @@ describe('Deploy Script', function () {
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
       generateJsonConfig(contractAddresses);
-      spyWriteFileSync.calledOnceWith('contract-addresses.json', JSON.stringify(chainContractAddresses));
+      spyWriteFileSync.calledOnceWith(
+        'contract-addresses.json',
+        JSON.stringify(chainContractAddresses)
+      );
     });
 
     it('should generate a json config file when config file is not present', function () {
-        sinon.stub(fs, 'existsSync').returns(false);
-        generateJsonConfig(contractAddresses);
-        spyWriteFileSync.calledOnceWith('contract-addresses.json', JSON.stringify(chainContractAddresses));
-      });
+      sinon.stub(fs, 'existsSync').returns(false);
+      generateJsonConfig(contractAddresses);
+      spyWriteFileSync.calledOnceWith(
+        'contract-addresses.json',
+        JSON.stringify(chainContractAddresses)
+      );
+    });
 
     it('should throw if network is undefined', function () {
-        sinon.stub(fs, 'existsSync').returns(true);
-        sinon
-          .stub(fs, 'readFileSync')
-          .returns(JSON.stringify(chainContractAddresses));
-        hardhat.hardhatArguments.network = undefined;
-        hardhat.config.networks.regtest.chainId = 33;
-        expect(() => generateJsonConfig(contractAddresses)).to.throw('Unknown Network');
-      });
+      sinon.stub(fs, 'existsSync').returns(true);
+      sinon
+        .stub(fs, 'readFileSync')
+        .returns(JSON.stringify(chainContractAddresses));
+      hardhat.hardhatArguments.network = undefined;
+      hardhat.config.networks.regtest.chainId = 33;
+      expect(() => generateJsonConfig(contractAddresses)).to.throw(
+        'Unknown Network'
+      );
+    });
 
-      it('should throw if chainId is undefined', function () {
-        sinon.stub(fs, 'existsSync').returns(true);
-        sinon
-          .stub(fs, 'readFileSync')
-          .returns(JSON.stringify(chainContractAddresses));
-        hardhat.hardhatArguments.network = 'regtest';
-        hardhat.config.networks.regtest.chainId = undefined;
-        expect(() => generateJsonConfig(contractAddresses)).to.throw('Unknown Chain Id');
-      });
+    it('should throw if chainId is undefined', function () {
+      sinon.stub(fs, 'existsSync').returns(true);
+      sinon
+        .stub(fs, 'readFileSync')
+        .returns(JSON.stringify(chainContractAddresses));
+      hardhat.hardhatArguments.network = 'regtest';
+      hardhat.config.networks.regtest.chainId = undefined;
+      expect(() => generateJsonConfig(contractAddresses)).to.throw(
+        'Unknown Chain Id'
+      );
+    });
   });
 });
