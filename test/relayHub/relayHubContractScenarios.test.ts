@@ -135,9 +135,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
 
     it('Should fail a relayRequest if the manager is in the last block of delay blocks', async function() {
-      // let mockRelayHub = await createContractDeployer([fakePenalizer.address]);
-      // const {smartWallet} = await loadFixture(prepareFixture);
-
       await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
         value: oneRBTC,
         from: relayOwnerAddr,
