@@ -69,8 +69,8 @@
     "lint:sol": "solhint --fix 'contracts/**/*.sol'",
     "lint:ts": "eslint test --ext .ts --fix",
     "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
-    "tdd": "npm run compile && REPORT_GAS=true hardhat watch tdd",
-    "test": "REPORT_GAS=true hardhat test"
+    "tdd": "TEST=true npm run compile && REPORT_GAS=true hardhat watch tdd",
+    "test": "TEST=true REPORT_GAS=true hardhat test"
   },
   "lint-staged": {
     "*.ts": "eslint --cache --fix",
