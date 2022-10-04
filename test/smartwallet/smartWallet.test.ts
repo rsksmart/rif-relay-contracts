@@ -365,7 +365,7 @@ contract(
                     },
                     relayData
                 );
-                // relayRequest.relayData.callForwarder = smartWallet.address;
+                
                 const { signature, suffixData } = signRequest(
                     senderPrivateKey,
                     relayRequest,
