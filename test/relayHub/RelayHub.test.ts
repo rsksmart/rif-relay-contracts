@@ -947,7 +947,7 @@ contract(
                 );
             });
 
-            it('Should success a relayRequest without paying fee', async () => {
+            it('Should relay a relayRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -966,7 +966,7 @@ contract(
                 await assert.isFulfilled(result);
             });
 
-            it('Should success a relayRequest paying fee', async () => {
+            it('Should relay a relayRequest paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1228,7 +1228,7 @@ contract(
                 );
             });
 
-            it('Should success a deployRequest without paying fee', async () => {
+            it('Should relay a deployRequest without paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
@@ -1259,7 +1259,7 @@ contract(
                 await assert.isFulfilled(result);
             });
 
-            it('Should success a deployRequest paying fee', async () => {
+            it('Should relay a deployRequest paying fee', async () => {
                 await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
