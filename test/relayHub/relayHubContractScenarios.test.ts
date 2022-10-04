@@ -1,4 +1,4 @@
-import {ERR_NOT_OWNER, ERR_UNSTAKED, oneRBTC} from "../utils";
+import { ERR_UNSTAKED, oneRBTC} from "../utils";
 import chai, {assert, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {mine} from "@nomicfoundation/hardhat-network-helpers";
@@ -52,207 +52,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
     beforeEach(async function () {
       deployRelayHubContract = createContractDeployer(fakePenalizer.address);
       mockRelayHub = await deployRelayHubContract();
-    });
-
-    it('Should stake only from owner account', async function() {
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
-      await assert.isRejected(
-        mockRelayHub
-          .connect(relayManager)
-          .stakeForAddress(relayManagerAddr, 1000, {
-            value: oneRBTC,
-          }),
-        ERR_NOT_OWNER,
-        'Stake was not made by the owner account'
-      );
-    });
-
-    it('Should NOT be able to unauthorize/unstake a HUB and then perform a new stake with a worker', async function() {
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
-
-      await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr], {
-        from: relayManagerAddr,
-      });
-      await mockRelayHub.unlockStake(relayManagerAddr, {
-        from: relayOwnerAddr,
-      });
-
-      //Verifying stake is now unlocked
-      const stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-      assert.isTrue(isUnlocked, 'Stake is not unlocked');
-
-      //Moving blocks to be able to unstake
-      await mine(Number(stakeInfo.unstakeDelay));
-
-      const gasPrice = ethers.BigNumber.from('6000000000000');
-      await assert.isRejected(
-        mockRelayHub.withdrawStake(relayWorkerAddr, {
-          from: relayOwnerAddr,
-          gasPrice,
-        }),
-        ERR_NOT_OWNER,
-        'Withdraw was made successfully'
-      );
-    });
-
-    it('Should be able to unauthorize/unstake a HUB then stake should be ZERO', async function() {
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
-
-      await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr], {
-        from: relayManagerAddr,
-      });
-
-      await mockRelayHub.unlockStake(relayManagerAddr, {
-        from: relayOwnerAddr,
-      });
-
-      //Verifying stake is now unlocked
-      let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-      assert.isTrue(isUnlocked, 'Stake is not unlocked');
-
-      //Moving blocks to be able to unstake
-      await mine(Number(stakeInfo.unstakeDelay));
-
-      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      const stakeBalanceBefore = ethers.BigNumber.from(stakeInfo.stake);
-
-      const relayOwnerBalanceBefore = ethers.BigNumber.from(
-        await ethers.provider.getBalance(relayOwnerAddr)
-      );
-
-      const gasPrice = ethers.BigNumber.from('6000000000000');
-      const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
-        from: relayOwnerAddr,
-        gasPrice,
-      });
-
-      //Getting the gas used in order to calculate the original balance of the account
-      const txReceipt = await ethers.provider.getTransactionReceipt(txResponse.hash);
-      const rbtcUsed = ethers.BigNumber.from(txReceipt.cumulativeGasUsed).mul(gasPrice);
-
-      const relayOwnerBalanceAfter = ethers.BigNumber.from(
-        await ethers.provider.getBalance(relayOwnerAddr)
-      );
-      assert.isTrue(
-        relayOwnerBalanceAfter.eq(
-          relayOwnerBalanceBefore.sub(rbtcUsed).add(stakeBalanceBefore)
-        ),
-        'Withdraw/unstake process have failed'
-      );
-
-      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      const stakeAfterWithdraw = ethers.BigNumber.from(stakeInfo.stake);
-
-      //Verifying there are no more stake balance for the manager
-      assert.isTrue(stakeAfterWithdraw.isZero(), 'Stake must be zero');
-    });
-
-    it('Should increment stake & replace stake delay when adding/performing a new stake for a manager', async function() {
-      let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-      assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
-
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
-
-      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-
-      await assert.isRejected(
-        mockRelayHub.stakeForAddress(relayManagerAddr, 100, {
-          value: ethers.BigNumber.from('10'),
-          from: relayOwnerAddr,
-        }),
-        'unstakeDelay cannot be decreased',
-        'Stake was made properly'
-      );
-
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 2000, {
-        value: '10000000000000000000',
-        from: relayOwnerAddr,
-      });
-
-      stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-
-      assert.strictEqual(
-        stakeInfo.unstakeDelay,
-        ethers.BigNumber.from('2000'),
-        'Unstake delay was not replaced'
-      );
-
-      assert.strictEqual(
-        stakeInfo.stake,
-        ethers.BigNumber.from('11000000000000000000'),
-        'Stakes were not added properly'
-      );
-    });
-
-    it('Should NOT be able to unauthorize/unstake a HUB before reaching the delay blocks minimum', async function() {
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
-
-      //Adding a new worker to the manager
-      await mockRelayHub.connect(relayManager).addRelayWorkers([relayWorkerAddr], {
-        from: relayManagerAddr,
-      });
-      await mockRelayHub.workerToManager(relayWorkerAddr);
-
-      const gasPrice = ethers.BigNumber.from('6000000000000');
-      await assert.isRejected(
-        mockRelayHub.withdrawStake(relayManagerAddr, {
-          from: relayOwnerAddr,
-          gasPrice,
-        }),
-        'Withdrawal is not scheduled',
-        'Withdrawal was completed'
-      );
-
-      await mockRelayHub.unlockStake(relayManagerAddr, {
-        from: relayOwnerAddr,
-      });
-      await assert.isRejected(
-        mockRelayHub.withdrawStake(relayManagerAddr, {
-          from: relayOwnerAddr,
-          gasPrice,
-        }),
-        'Withdrawal is not due',
-        'Withdrawal was completed'
-      );
-    });
-
-    it('Should fail when staking Manager and Owner account are the same when staking', async function() {
-      await assert.isRejected(
-        mockRelayHub.connect(relayManager).stakeForAddress(relayManagerAddr, 1000, {
-          value: oneRBTC,
-          from: relayManagerAddr,
-        }),
-        'caller is the relayManager',
-        'Stake for manager was made with manager account as owner'
-      );
-    });
-
-    it('Should fail when stake is less than minimum stake value', async function() {
-      await assert.isRejected(
-        mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-          value: ethers.BigNumber.from("0"),
-          from: relayOwnerAddr,
-        }),
-        'Insufficient intitial stake',
-        'Stake was made with less value than the minimum'
-      );
     });
 
     it('Should fail when sender is a RelayManager', async function() {
@@ -489,7 +288,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
     const nextWalletIndex = 500;
 
     function createRequest(
-      request: Partial<IForwarder.DeployRequestStruct>,
+      request: Partial<IForwarder.DeployRequestStruct> & { gas: string } ,
       relayData: Partial<RelayData>
     ): DeployRequest {
       const baseRequest: DeployRequest = {
@@ -566,7 +365,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         recoverer: ZERO_ADDRESS,
         index: '0',
         gas: '90000000000000'
-      }, {
+      } , {
         relayWorker: relayWorkerAddr,
         callForwarder: smartWalletFactory.address
       });
@@ -661,16 +460,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
         `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
       );
 
-      // const calculatedAddr = await factory.getSmartWalletAddress(
-      //   gaslessAccount.address,
-      //   "0x000000000000000000000000000000",
-      //   relayRequestMisbehavingVerifier.request.index
-      // );
-
-      // const smartWalletFactory = await ethers.getContractFactory('SmartWallet');
-      // let calculatedAddr: SmartWallet = await smartWalletFactory.deploy();
-      // await token.mint('1', calculatedAddr);
-
       const relayRequestMisbehavingVerifier = createRequest({
         from: externalWallet.address,
         to: ZERO_ADDRESS,
@@ -687,10 +476,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
       });
 
       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
-//         misbehavingVerifier =
-//           await TestDeployVerifierConfigurableMisbehavior.new();
-//       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
-//         nextWalletIndex++;
 
       const typedRequestData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequestMisbehavingVerifier);
 

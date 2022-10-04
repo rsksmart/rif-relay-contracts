@@ -336,15 +336,13 @@ describe('RelayHub Contract', function () {
 
         //Verifying stake is now unlocked
         const stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
-        console.log('stakeInfo :', stakeInfo);
         const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-
         assert.isTrue(isUnlocked, 'Stake is not unlocked');
 
         //Moving blocks to be able to unstake
         await mine(Number(stakeInfo.unstakeDelay));
 
-        const gasPrice = BigNumber.from('60000000');
+        const gasPrice = BigNumber.from('6000000000000');
         await assert.isRejected(
           mockRelayHub.withdrawStake(relayWorkerAddr, {
             gasPrice,
@@ -380,7 +378,7 @@ describe('RelayHub Contract', function () {
           await ethers.provider.getBalance(relayOwnerAddr)
         );
         //
-        const gasPrice = ethers.BigNumber.from('60000000');
+        const gasPrice = ethers.BigNumber.from('6000000000000');
         const txResponse = await mockRelayHub.withdrawStake(relayManagerAddr, {
           from: relayOwnerAddr,
           gasPrice,
@@ -460,7 +458,7 @@ describe('RelayHub Contract', function () {
 
         await mockRelayHub.workerToManager(relayWorkerAddr);
 
-        const gasPrice = ethers.BigNumber.from('60000000');
+        const gasPrice = ethers.BigNumber.from('6000000000000');
         await assert.isRejected(
           mockRelayHub.withdrawStake(relayManagerAddr, {
             from: relayOwnerAddr,
