@@ -3,14 +3,8 @@ import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
 import 'hardhat-watcher';
 import { HardhatUserConfig } from 'hardhat/config';
-import 'hardhat-dependency-compiler';
 
 const config: HardhatUserConfig = {
-  dependencyCompiler: {
-    paths: [
-      '@openzeppelin/contracts/token/ERC20/ERC20.sol'
-    ]
-  },
   solidity: {
     compilers: [
       {
@@ -32,6 +26,7 @@ const config: HardhatUserConfig = {
   networks: {
     regtest: {
       url: 'http://localhost:4444',
+      chainId: 33,
     },
   },
   typechain: {
