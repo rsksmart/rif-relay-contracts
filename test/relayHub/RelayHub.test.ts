@@ -40,7 +40,7 @@ import {
 } from '../../types/truffle-contracts';
 import { toBN } from 'web3-utils';
 
-import { use, assert } from 'chai';
+import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 use(chaiAsPromised);
 
@@ -86,8 +86,7 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -105,21 +104,20 @@ contract(
                 const relayWorkersAddedEvent = logs.find(
                     (e: any) => e != null && e.name === 'RelayWorkersAdded'
                 );
-                assert.equal(
-                    relayManager.toLowerCase(),
+                expect(relayManager.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[0].value.toLowerCase()
                 );
-                assert.equal(
-                    relayWorker.toLowerCase(),
+                expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                assert.equal(toBN(1), relayWorkersAddedEvent.events[2].value);
+                expect('1').to.be.equal(
+                    relayWorkersAddedEvent.events[2].value
+                );
 
                 const relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     1,
                     'Workers must be one'
                 );
@@ -131,17 +129,16 @@ contract(
                 let expectedManager = '0x00000000000000000000000'.concat(
                     stripHex(relayManager.concat('1'))
                 );
-                assert.equal(
-                    manager.toLowerCase(),
+                expect(manager.toLowerCase()).to.be.equal(
                     expectedManager.toLowerCase(),
                     `Incorrect relay manager: ${manager}`
                 );
 
-                //Adding same worker twice
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.addRelayWorkers([relayWorker], {
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'this worker has a manager',
                     'Worker was added twice'
                 );
@@ -151,8 +148,8 @@ contract(
                 expectedManager = '0x00000000000000000000000'.concat(
                     stripHex(relayManager.concat('1'))
                 );
-                assert.equal(
-                    manager.toLowerCase(),
+
+                expect(manager.toLowerCase()).to.be.equal(
                     expectedManager.toLowerCase(),
                     `Incorrect relay manager: ${manager}`
                 );
@@ -176,8 +173,7 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -195,15 +191,15 @@ contract(
                 const relayWorkersAddedEvent = logs.find(
                     (e: any) => e != null && e.name === 'RelayWorkersAdded'
                 );
-                assert.equal(
-                    relayManager.toLowerCase(),
+                expect(relayManager.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[0].value.toLowerCase()
                 );
-                assert.equal(
-                    relayWorker.toLowerCase(),
+                expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                assert.equal(toBN(1), relayWorkersAddedEvent.events[2].value);
+                expect('1').to.be.equal(
+                    relayWorkersAddedEvent.events[2].value
+                );
 
                 const expectedManager = '0x00000000000000000000000'.concat(
                     stripHex(relayManager.concat('1'))
@@ -211,8 +207,7 @@ contract(
                 const manager = await relayHubInstance.workerToManager(
                     relayWorker
                 );
-                assert.equal(
-                    manager.toLowerCase(),
+                expect(manager.toLowerCase()).to.be.equal(
                     expectedManager.toLowerCase(),
                     `Incorrect relay manager: ${manager}`
                 );
@@ -220,16 +215,16 @@ contract(
                 let relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     1,
                     'Workers must meet the Workers maximum value'
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.addRelayWorkers([relayWorker], {
                         from: incorrectRelayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'this worker has a manager',
                     'Worker was assigned to two Managers'
                 );
@@ -245,32 +240,29 @@ contract(
                 const relayWorkersDisabledEvent = logs.find(
                     (e: any) => e != null && e.name === 'RelayWorkersDisabled'
                 );
-                assert.equal(
-                    relayManager.toLowerCase(),
+                expect(relayManager.toLowerCase()).to.be.equal(
                     relayWorkersDisabledEvent.events[0].value.toLowerCase()
                 );
-                assert.equal(
-                    relayWorker.toLowerCase(),
+                expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersDisabledEvent.events[1].value[0].toLowerCase()
                 );
-                assert.equal(
-                    toBN(0),
+                expect('0').to.be.equal(
                     relayWorkersDisabledEvent.events[2].value
                 );
 
                 relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     0,
                     'Workers must be zero'
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.addRelayWorkers([relayWorker], {
                         from: incorrectRelayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'this worker has a manager',
                     'Worker was assigned to two Managers'
                 );
@@ -285,8 +277,7 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -303,21 +294,20 @@ contract(
                 const relayWorkersAddedEvent = logs.find(
                     (e: any) => e != null && e.name === 'RelayWorkersAdded'
                 );
-                assert.equal(
-                    relayManager.toLowerCase(),
+                expect(relayManager.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[0].value.toLowerCase()
                 );
-                assert.equal(
-                    relayWorker.toLowerCase(),
+                expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                assert.equal(toBN(1), relayWorkersAddedEvent.events[2].value);
+                expect('1').to.be.equal(
+                    relayWorkersAddedEvent.events[2].value
+                );
 
                 let relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     1,
                     'Workers must be one'
                 );
@@ -330,8 +320,7 @@ contract(
                     stripHex(relayManager.concat('1'))
                 );
 
-                assert.equal(
-                    manager.toLowerCase(),
+                expect(manager.toLowerCase()).to.be.equal(
                     expectedManager.toLowerCase(),
                     `Incorrect relay manager: ${manager}`
                 );
@@ -346,24 +335,20 @@ contract(
                 const relayWorkersDisabledEvent = logs.find(
                     (e: any) => e != null && e.name === 'RelayWorkersDisabled'
                 );
-                assert.equal(
-                    relayManager.toLowerCase(),
+                expect(relayManager.toLowerCase()).to.be.equal(
                     relayWorkersDisabledEvent.events[0].value.toLowerCase()
                 );
-                assert.equal(
-                    relayWorker.toLowerCase(),
+                expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersDisabledEvent.events[1].value[0].toLowerCase()
                 );
-                assert.equal(
-                    toBN(0),
+                expect('0').to.be.equal(
                     relayWorkersDisabledEvent.events[2].value
                 );
 
                 relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     0,
                     'Workers must be zero'
                 );
@@ -372,8 +357,7 @@ contract(
                 expectedManager = '0x00000000000000000000000'.concat(
                     stripHex(relayManager.concat('0'))
                 );
-                assert.equal(
-                    manager.toLowerCase(),
+                expect(manager.toLowerCase()).to.be.equal(
                     expectedManager.toLowerCase(),
                     `Incorrect relay manager: ${manager}`
                 );
@@ -383,16 +367,16 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.addRelayWorkers([relayWorker], {
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'RelayManager not staked',
                     'Worker was successfully added'
                 );
@@ -411,8 +395,7 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -434,16 +417,13 @@ contract(
                     const relayWorkersAddedEvent = logs.find(
                         (e: any) => e != null && e.name === 'RelayWorkersAdded'
                     );
-                    assert.equal(
-                        relayManager.toLowerCase(),
+                    expect(relayManager.toLowerCase()).to.be.equal(
                         relayWorkersAddedEvent.events[0].value.toLowerCase()
                     );
-                    assert.equal(
-                        workerAccount.address.toLowerCase(),
+                    expect(workerAccount.address.toLowerCase()).to.be.equal(
                         relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                     );
-                    assert.equal(
-                        toBN(workerId),
+                    expect(workerId.toString()).to.be.equal(
                         relayWorkersAddedEvent.events[2].value
                     );
 
@@ -453,8 +433,7 @@ contract(
                     const manager = await relayHubInstance.workerToManager(
                         workerAccount.address
                     );
-                    assert.equal(
-                        manager.toLowerCase(),
+                    expect(manager.toLowerCase()).to.be.equal(
                         expectedManager.toLowerCase(),
                         `Incorrect relay manager: ${manager}`
                     );
@@ -463,16 +442,16 @@ contract(
                 const relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersAfter.toNumber(),
+                expect(relayWorkersAfter.toNumber()).to.be.equal(
                     maxWorkerCount,
                     'Workers must meet the Workers maximum value'
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.addRelayWorkers([relayWorker], {
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'too many workers',
                     'More workers than maximum value were added'
                 );
@@ -521,11 +500,12 @@ contract(
                     value: ether('1'),
                     from: relayOwner
                 });
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.stakeForAddress(relayManager, 1000, {
                         value: ether('1'),
                         from: _
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'not owner',
                     'Stake was not made by the owner account'
                 );
@@ -548,18 +528,20 @@ contract(
                 const stakeInfo = await relayHubInstance.getStakeInfo(
                     relayManager
                 );
+
                 const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-                assert.isTrue(isUnlocked, 'Stake is not unlocked');
+                expect(isUnlocked).to.be.equal(true, 'Stake is not unlocked');
 
                 //Moving blocks to be able to unstake
                 await evmMineMany(Number(stakeInfo.unstakeDelay));
 
                 const gasPrice = toBN('60000000');
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.withdrawStake(relayWorker, {
                         from: relayOwner,
                         gasPrice
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'not owner',
                     'Withdraw was made successfully'
                 );
@@ -583,7 +565,7 @@ contract(
                     relayManager
                 );
                 const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-                assert.isTrue(isUnlocked, 'Stake is not unlocked');
+                expect(isUnlocked).to.be.equal(true, 'Stake is not unlocked');
 
                 //Moving blocks to be able to unstake
                 await evmMineMany(Number(stakeInfo.unstakeDelay));
@@ -610,21 +592,19 @@ contract(
                 const relayOwnerBalanceAfter = toBN(
                     await web3.eth.getBalance(relayOwner)
                 );
-                assert.isTrue(
+                expect(
                     relayOwnerBalanceAfter.eq(
                         relayOwnerBalanceBefore
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
-                    ),
-                    'Withdraw/unstake process have failed'
-                );
+                    )
+                ).to.be.equal(true,'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                assert.isTrue(
-                    stakeAfterWithdraw.isZero(),
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
                     'Stake must be zero'
                 );
             });
@@ -633,8 +613,7 @@ contract(
                 let stakeInfo = await relayHubInstance.getStakeInfo(
                     relayManager
                 );
-                assert.isTrue(
-                    Number(stakeInfo.stake) === 0,
+                expect(Number(stakeInfo.stake) === 0).to.be.equal(true,
                     'Stakes is not ZERO'
                 );
 
@@ -645,11 +624,12 @@ contract(
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.stakeForAddress(relayManager, 100, {
                         value: ether('10'),
                         from: relayOwner
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'unstakeDelay cannot be decreased',
                     'Stake was made properly'
                 );
@@ -661,13 +641,11 @@ contract(
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
-                assert.strictEqual(
-                    stakeInfo.unstakeDelay,
-                    '2000',
+                expect(stakeInfo.unstakeDelay === '2000').to.be.equal(true,
                     'Unstake delay was not replaced'
                 );
-                assert.isTrue(
-                    stakeInfo.stake === '11000000000000000000',
+
+                expect(stakeInfo.stake === '11000000000000000000').to.be.equal(true,
                     'Stakes were not added properly'
                 );
             });
@@ -685,11 +663,12 @@ contract(
                 await relayHubInstance.workerToManager(relayWorker);
 
                 const gasPrice = toBN('60000000');
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.withdrawStake(relayManager, {
                         from: relayOwner,
                         gasPrice
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'Withdrawal is not scheduled',
                     'Withdrawal was completed'
                 );
@@ -697,33 +676,36 @@ contract(
                 await relayHubInstance.unlockStake(relayManager, {
                     from: relayOwner
                 });
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.withdrawStake(relayManager, {
                         from: relayOwner,
                         gasPrice
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'Withdrawal is not due',
                     'Withdrawal was completed'
                 );
             });
 
             it('Should fail when staking Manager and Owner account are the same when staking', async () => {
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.stakeForAddress(relayManager, 1000, {
                         value: ether('1'),
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'caller is the relayManager',
                     'Stake for manager was made with manager account as owner'
                 );
             });
 
             it('Should fail when stake is less than minimum stake value', async () => {
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.stakeForAddress(relayManager, 1000, {
                         value: ether('0.0005'),
                         from: relayOwner
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'Insufficient intitial stake',
                     'Stake was made with less value than the minimum'
                 );
@@ -739,17 +721,17 @@ contract(
                     relayManager
                 );
 
-                assert.equal(
-                    stakeInfo.owner,
+                expect(stakeInfo.owner).to.be.equal(
                     constants.ZERO_ADDRESS,
                     'sender is a relayManager itself'
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.stakeForAddress(_, 1000, {
                         value: ether('1'),
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'sender is a relayManager itself',
                     'Stake was made with proper relayManager'
                 );
@@ -838,8 +820,7 @@ contract(
                 let relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -858,7 +839,7 @@ contract(
                     relayManager
                 );
                 const isUnlocked = Number(stakeInfo.withdrawBlock) > 0;
-                assert.isTrue(isUnlocked, 'Stake is not unlocked');
+                expect(isUnlocked).to.be.equal(true, 'Stake is not unlocked');
 
                 //Moving blocks to be able to unstake
                 await evmMineMany(Number(stakeInfo.unstakeDelay));
@@ -885,38 +866,36 @@ contract(
                 const relayOwnerBalanceAfter = toBN(
                     await web3.eth.getBalance(relayOwner)
                 );
-                assert.isTrue(
+                expect(
                     relayOwnerBalanceAfter.eq(
                         relayOwnerBalanceBefore
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
-                    ),
-                    'Withdraw/unstake process have failed'
-                );
+                    )
+                ).to.be.equal(true,'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                assert.isTrue(
-                    stakeAfterWithdraw.isZero(),
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
                     'Stake must be zero'
                 );
 
                 relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     1,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.relayCall(relayRequest, signature, {
                         from: relayWorker,
                         gas
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'RelayManager not staked',
                     'Relay request was properly processed'
                 );
@@ -937,11 +916,12 @@ contract(
                     from: relayOwner
                 });
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.relayCall(relayRequest, signature, {
                         from: relayWorker,
                         gas
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'RelayManager not staked',
                     'Relay request was properly processed'
                 );
@@ -963,7 +943,7 @@ contract(
                     signature,
                     { from: relayWorker }
                 );
-                await assert.isFulfilled(result);
+                await expect(result).to.be.fulfilled;
             });
 
             it('Should relay a relayRequest paying fee', async () => {
@@ -988,18 +968,18 @@ contract(
                 );
 
                 const workerBefore = await getTokenBalance(token, relayWorker);
-                assert.equal(workerBefore.toString(), '0');
+                expect(workerBefore.toString()).to.be.equal('0');
 
                 const result = relayHubInstance.relayCall(
                     relayRequest,
                     signature,
                     { from: relayWorker, gas }
                 );
-                await assert.isFulfilled(result);
+                await expect(result).to.be.fulfilled;
 
                 const workerAfter = await getTokenBalance(token, relayWorker);
 
-                assert.equal(workerAfter.toString(), fee.toString());
+                expect(workerAfter.toString()).to.be.equal(fee.toString());
             });
         });
 
@@ -1118,12 +1098,13 @@ contract(
                 );
                 await token.mint('1', calculatedAddr);
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.deployCall(
                         relayRequestMisbehavingVerifier,
                         signatureWithMisbehavingVerifier,
                         { from: relayWorker, gas, gasPrice }
-                    ),
+                    )
+                ).to.be.rejectedWith(
                     'Unable to initialize SW',
                     'SW was deployed and initialized'
                 );
@@ -1138,8 +1119,7 @@ contract(
                 let relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -1183,29 +1163,26 @@ contract(
                 const relayOwnerBalanceAfter = toBN(
                     await web3.eth.getBalance(relayOwner)
                 );
-                assert.isTrue(
+                expect(
                     relayOwnerBalanceAfter.eq(
                         relayOwnerBalanceBefore
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
-                    ),
-                    'Withdraw/unstake process have failed'
-                );
+                    )
+                ).to.be.equal(true,'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                assert.isTrue(
-                    stakeAfterWithdraw.isZero(),
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
                     'Stake must be zero'
                 );
 
                 relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     1,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
@@ -1217,12 +1194,13 @@ contract(
                 );
                 await token.mint('1', calculatedAddr);
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.deployCall(
                         relayRequestMisbehavingVerifier,
                         signatureWithMisbehavingVerifier,
                         { from: relayWorker, gas, gasPrice }
-                    ),
+                    )
+                ).to.be.rejectedWith(
                     'RelayManager not staked',
                     'Deploy was processed successfully'
                 );
@@ -1256,7 +1234,7 @@ contract(
                     signature,
                     { from: relayWorker }
                 );
-                await assert.isFulfilled(result);
+                await expect(result).to.be.fulfilled;
             });
 
             it('Should relay a deployRequest paying fee', async () => {
@@ -1293,18 +1271,18 @@ contract(
                 );
 
                 const workerBefore = await getTokenBalance(token, relayWorker);
-                assert.equal(workerBefore.toString(), '0');
+                expect(workerBefore.toString()).to.be.equal('0');
 
                 const result = relayHubInstance.deployCall(
                     deployRequest,
                     signature,
                     { from: relayWorker, gas }
                 );
-                await assert.isFulfilled(result);
+                await expect(result).to.be.fulfilled;
 
                 const workerAfter = await getTokenBalance(token, relayWorker);
 
-                assert.equal(workerAfter.toString(), fee.toString());
+                expect(workerAfter.toString()).to.be.equal(fee.toString());
             });
 
             it('Should fail when registering with no workers assigned to the Manager', async () => {
@@ -1316,16 +1294,16 @@ contract(
                 const relayWorkersBefore = await relayHubInstance.workerCount(
                     relayManager
                 );
-                assert.equal(
-                    relayWorkersBefore.toNumber(),
+                expect(relayWorkersBefore.toNumber()).to.be.equal(
                     0,
                     `Initial workers must be zero but was ${relayWorkersBefore.toNumber()}`
                 );
 
-                await assert.isRejected(
+                await expect(
                     relayHubInstance.registerRelayServer(url, {
                         from: relayManager
-                    }),
+                    })
+                ).to.be.rejectedWith(
                     'no relay workers',
                     'Relay Server was successfully registered'
                 );
