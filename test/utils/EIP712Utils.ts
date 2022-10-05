@@ -53,7 +53,6 @@ const deployRequestType: MessageTypeProperty[] = [
     { name: 'relayData', type: 'RelayData' }
 ];
 
-
 interface Types extends MessageTypes {
   EIP712Domain: MessageTypeProperty[];
   RelayRequest: MessageTypeProperty[];
