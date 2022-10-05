@@ -339,6 +339,21 @@ describe('Collector', () => {
             ).to.equal(0);
         });
 
+        it('Should not fail if the revenue to share is equal to the number of partners', async () => {
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
+            // We assume the current balance of the collector to be 
+            // equal to the number of partners
+            await testToken.mint(NUMBER_OF_PARTNERS, collector.address);
+
+            await collector.withdraw();
+            expect(
+                await testToken.balanceOf(collector.address),
+                'Balance of the collector'
+            ).to.be.equal('2');
+        });
+
         it('Should fail when no revenue to share', async () => {
             const { collector, testToken } = await loadFixture(
                 prepareAllFixture
