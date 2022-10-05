@@ -343,7 +343,7 @@ describe('Collector', () => {
             const { collector, testToken } = await loadFixture(
                 prepareAllFixture
             );
-            // We assume the current balance of the collector to be 
+            // We assume the current balance of the collector to be
             // equal to the number of partners
             await testToken.mint(NUMBER_OF_PARTNERS, collector.address);
 
