@@ -83,7 +83,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should not let deploy if the array of partners is empty', async () => {
@@ -100,7 +100,7 @@ describe('Collector', () => {
                     partners,
                     remainder.address
                 ])
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should not let deploy if a share is 0', async () => {
@@ -196,7 +196,7 @@ describe('Collector', () => {
 
             await expect(
                 collector.updateShares(newPartners)
-            ).to.be.revertedWith('Total shares must add up to 100%');
+            ).to.be.revertedWith('Shares must add up to 100%');
         });
 
         it('Should fail if a share is 0', async () => {
@@ -337,6 +337,21 @@ describe('Collector', () => {
                 await testToken.balanceOf(collector.address),
                 'Balance of the collector'
             ).to.equal(0);
+        });
+
+        it('Should not fail if the revenue to share is equal to the number of partners', async () => {
+            const { collector, testToken } = await loadFixture(
+                prepareAllFixture
+            );
+            // We assume the current balance of the collector to be
+            // equal to the number of partners
+            await testToken.mint(NUMBER_OF_PARTNERS, collector.address);
+
+            await collector.withdraw();
+            expect(
+                await testToken.balanceOf(collector.address),
+                'Balance of the collector'
+            ).to.be.equal('2');
         });
 
         it('Should fail when no revenue to share', async () => {

@@ -92,9 +92,9 @@
     "truffle-hdwallet-provider": "~1.0.17"
   },
   "devDependencies": {
+    "abi-decoder": "~2.3.0",
     "@openeth/truffle-typings": "0.0.6",
     "@openzeppelin/test-helpers": "^0.5.15",
-    "@rsksmart/rif-relay-client": "^0.0.2-alpha.7",
     "@truffle/contract-schema": "3.3.2",
     "@truffle/hdwallet-provider": "1.2.4",
     "@trufflesuite/web3-provider-engine": "^15.0.13-1",

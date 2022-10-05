@@ -8,7 +8,6 @@ import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
 import ethWallet from 'ethereumjs-wallet';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { HttpProvider } from 'web3-core';
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 import {
@@ -301,7 +300,7 @@ export async function deployHub(
     );
 }
 
-export async function getGaslessAccount(): Promise<AccountKeypair> {
+export async function getGaslessAccount() {
     const randomWallet = ethWallet.generate();
     const gaslessAccount = {
         privateKey: randomWallet.getPrivateKey(),
