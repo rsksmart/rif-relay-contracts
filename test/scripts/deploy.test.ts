@@ -18,6 +18,7 @@ describe('Deploy Script', function () {
     const testAddress = '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7';
     beforeEach(function () {
       const contract = new Contract(testAddress, []);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const contractFactoryStub = sinon.createStubInstance(ContractFactory);
       sinon.stub(ethers, 'getContractFactory').resolves(contractFactoryStub);
       contractFactoryStub.deploy.resolves(contract);
@@ -81,6 +82,7 @@ describe('Deploy Script', function () {
     let spyWriteFileSync: sinon.SinonSpy;
 
     beforeEach(function () {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       spyWriteFileSync = sinon.spy(fs, 'writeFileSync');
       hardhat.hardhatArguments.network = 'regtest';
       hardhat.config.networks.regtest.chainId = 33;

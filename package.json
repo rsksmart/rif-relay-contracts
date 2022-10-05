@@ -48,7 +48,11 @@
     },
     {
       "name": "Christos Otarola",
-      "url": "https://github/ironFe93"
+      "url": "https://github.com/ironFe93"
+    },
+    {
+      "name": "Alan Hurtarte",
+      "url": "https://github.com/kenny08gt"
     }
   ],
   "main": "dist/index.js",
