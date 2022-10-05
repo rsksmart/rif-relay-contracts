@@ -110,9 +110,7 @@ contract(
                 expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                expect('1').to.be.equal(
-                    relayWorkersAddedEvent.events[2].value
-                );
+                expect('1').to.be.equal(relayWorkersAddedEvent.events[2].value);
 
                 const relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
@@ -197,9 +195,7 @@ contract(
                 expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                expect('1').to.be.equal(
-                    relayWorkersAddedEvent.events[2].value
-                );
+                expect('1').to.be.equal(relayWorkersAddedEvent.events[2].value);
 
                 const expectedManager = '0x00000000000000000000000'.concat(
                     stripHex(relayManager.concat('1'))
@@ -300,9 +296,7 @@ contract(
                 expect(relayWorker.toLowerCase()).to.be.equal(
                     relayWorkersAddedEvent.events[1].value[0].toLowerCase()
                 );
-                expect('1').to.be.equal(
-                    relayWorkersAddedEvent.events[2].value
-                );
+                expect('1').to.be.equal(relayWorkersAddedEvent.events[2].value);
 
                 let relayWorkersAfter = await relayHubInstance.workerCount(
                     relayManager
@@ -598,13 +592,14 @@ contract(
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
                     )
-                ).to.be.equal(true,'Withdraw/unstake process have failed');
+                ).to.be.equal(true, 'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(
+                    true,
                     'Stake must be zero'
                 );
             });
@@ -613,7 +608,8 @@ contract(
                 let stakeInfo = await relayHubInstance.getStakeInfo(
                     relayManager
                 );
-                expect(Number(stakeInfo.stake) === 0).to.be.equal(true,
+                expect(Number(stakeInfo.stake) === 0).to.be.equal(
+                    true,
                     'Stakes is not ZERO'
                 );
 
@@ -641,11 +637,13 @@ contract(
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
-                expect(stakeInfo.unstakeDelay === '2000').to.be.equal(true,
+                expect(stakeInfo.unstakeDelay === '2000').to.be.equal(
+                    true,
                     'Unstake delay was not replaced'
                 );
 
-                expect(stakeInfo.stake === '11000000000000000000').to.be.equal(true,
+                expect(stakeInfo.stake === '11000000000000000000').to.be.equal(
+                    true,
                     'Stakes were not added properly'
                 );
             });
@@ -872,13 +870,14 @@ contract(
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
                     )
-                ).to.be.equal(true,'Withdraw/unstake process have failed');
+                ).to.be.equal(true, 'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(
+                    true,
                     'Stake must be zero'
                 );
 
@@ -1169,13 +1168,14 @@ contract(
                             .sub(rbtcUsed)
                             .add(stakeBalanceBefore)
                     )
-                ).to.be.equal(true,'Withdraw/unstake process have failed');
+                ).to.be.equal(true, 'Withdraw/unstake process have failed');
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
                 const stakeAfterWithdraw = toBN(stakeInfo.stake);
 
                 //Verifying there are no more stake balance for the manager
-                expect(stakeAfterWithdraw.isZero()).to.be.equal(true,
+                expect(stakeAfterWithdraw.isZero()).to.be.equal(
+                    true,
                     'Stake must be zero'
                 );
 
