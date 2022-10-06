@@ -51,14 +51,19 @@
       "url": "https://github/ironFe93"
     }
   ],
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "allow-tokens": "hardhat allow-tokens --network",
     "allowed-tokens": "hardhat allowed-tokens --network",
+    "prebuild": "npm run clean",
+    "build": "hardhat compile --force",
+    "postbuild": "tsc --project tsconfig.build.json",
     "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
     "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
-    "ci:test": "npm run compile && npm run test",
-    "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed && hardhat clean",
+    "preci:test": "npm run build",
+    "ci:test": "npm run test",
+    "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed",
+    "postclean": "hardhat clean",
     "compile": "npm run clean && hardhat compile --force",
     "deploy": "hardhat deploy --network",
     "deploy-configure": "hardhat deploy --network",
@@ -66,12 +71,12 @@
     "format": "npm run format:sol && npm run format:ts",
     "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
     "format:ts": "prettier -c -w --no-editorconfig **/*.ts",
-    "postinstall": "npm run compile && tsc",
     "lint": "npm run lint:sol && npm run lint:ts",
     "lint:sol": "solhint --fix 'contracts/**/*.sol'",
     "lint:ts": "eslint test --ext .ts --fix",
-    "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
-    "tdd": "TEST=true npm run compile && REPORT_GAS=true hardhat watch tdd",
+    "prepare": "./scripts/prepare.npm",
+    "pretdd": "npm run build",
+    "tdd": "TEST=true REPORT_GAS=true hardhat watch tdd",
     "test": "TEST=true REPORT_GAS=true hardhat test"
   },
   "lint-staged": {
@@ -113,15 +118,5 @@
   "peerDependencies": {
     "ethers": "^5.7.0",
     "typescript": "4.8.2"
-  },
-  "publishConfig": {
-    "ignore": [
-      "!dist",
-      "!build",
-      "!test",
-      "src",
-      "typechain-types",
-      ".github"
-    ]
   }
 }
