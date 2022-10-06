@@ -17,7 +17,7 @@ describe('CustomSmartWalletTemplate', function(){
             const customSmartWalletFactoryMock = 
                 await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
         
-            return await customSmartWalletFactoryMock.deploy();
+            customSmartWalletMock = await customSmartWalletFactoryMock.deploy();
         });
 
         it('Should be initialized during the deployment', async function(){
