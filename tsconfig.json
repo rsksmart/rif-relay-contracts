@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "lib": ["es2020", "esnext"],
+    "lib": [
+      "es2020",
+      "esnext"
+    ],
     "target": "es2020",
     "module": "commonjs",
     "strict": true,
@@ -17,8 +20,12 @@
     "utils",
   ],
   "paths": {
-    "*": ["node_modules/*"]
+    "*": [
+      "node_modules/*"
+    ]
   },
-  "files": ["hardhat.config.ts"]
+  "files": [
+    "hardhat.config.ts",
+    "index.ts"
+  ]
 }
-  
