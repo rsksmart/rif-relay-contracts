@@ -1079,15 +1079,6 @@ contract(
 
                 const smartWalletTemplate: SmartWalletInstance =
                     await SmartWallet.new();
-                const senderAccount = web3.eth.accounts.create();
-
-                smartWalletTemplate.initialize(
-                    senderAccount.address,
-                    token.address,
-                    relayWorker,
-                    '0',
-                    '400000'
-                );
                 factory = await createSmartWalletFactory(smartWalletTemplate);
 
                 const calculatedAddr = await factory.getSmartWalletAddress(
