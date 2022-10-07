@@ -62,6 +62,7 @@ interface IForwarder {
     function execute(
         bytes32 suffixData,
         ForwardRequest calldata forwardRequest,
+        address feesReceiver,
         bytes calldata signature
     )
     external payable

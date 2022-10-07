@@ -14,11 +14,9 @@ import {
     getTestingEnvironment
 } from '../utils';
 
-import chai from 'chai';
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const TestToken = artifacts.require('TestToken');
 const SmartWallet = artifacts.require('SmartWallet');
@@ -182,7 +180,7 @@ contract(
                         },
                         relayData: {
                             gasPrice,
-                            relayWorker,
+                            feesReceiver: relayWorker,
                             callForwarder: sw.address,
                             callVerifier: contractVerifier.address
                         }

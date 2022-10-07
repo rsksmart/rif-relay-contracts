@@ -1,4 +1,4 @@
-import chai from 'chai';
+import { use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { BN, bufferToHex, toBuffer, privateToAddress } from 'ethereumjs-util';
 import { expectRevert } from '@openzeppelin/test-helpers';
@@ -20,8 +20,7 @@ import {
     signRequest
 } from '../utils';
 
-chai.use(chaiAsPromised);
-const assert = chai.assert;
+use(chaiAsPromised);
 
 const SmartWallet = artifacts.require('SmartWallet');
 const TestToken = artifacts.require('TestToken');
@@ -342,6 +341,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -376,6 +376,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -411,6 +412,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     ),
@@ -446,6 +448,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )
@@ -490,6 +493,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )
@@ -555,6 +559,7 @@ contract(
                     smartWallet.execute(
                         suffixData,
                         relayRequest.request,
+                        worker,
                         signature,
                         { from: worker }
                     )

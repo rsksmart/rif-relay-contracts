@@ -16,6 +16,7 @@ const ITokenHandler = require('./build/contracts/ITokenHandler.json');
 const IVersionRegistry = require('./build/contracts/IVersionRegistry.json');
 const IWalletCustomLogic = require('./build/contracts/IWalletCustomLogic.json');
 const IWalletFactory = require('./build/contracts/IWalletFactory.json');
+const ERC20 = require('./build/contracts/ERC20.json');
 
 // contracts
 const CustomSmartWallet = require('./build/contracts/CustomSmartWallet.json');
@@ -52,6 +53,7 @@ export {
     IVersionRegistry,
     IWalletCustomLogic,
     IWalletFactory,
+    ERC20,
     // contracts
     CustomSmartWallet,
     CustomSmartWalletDeployVerifier,

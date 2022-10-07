@@ -65,16 +65,16 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
     let factory: SmartWalletFactoryInstance;
     let owner: AccountKeypair;
 
+    beforeEach(async () => {
+        owner = await getGaslessAccount();
+        chainId = (await getTestingEnvironment()).chainId;
+        const smartWallet = await SmartWallet.new();
+        factory = await SmartWalletFactory.new(smartWallet.address);
+    });
+
     describe('createUserSmartWallet', async () => {
         const recoverer = constants.ZERO_ADDRESS;
         const index = '0';
-
-        beforeEach(async () => {
-            owner = await getGaslessAccount();
-            chainId = (await getTestingEnvironment()).chainId;
-            const smartWallet = await SmartWallet.new();
-            factory = await SmartWalletFactory.new(smartWallet.address);
-        });
 
         it('Should initiate the smart wallet in the expected address', async () => {
             const smartWalletAddress = await factory.getSmartWalletAddress(
@@ -164,12 +164,6 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
         const index = '0';
 
         beforeEach(async () => {
-            chainId = (await getTestingEnvironment()).chainId;
-            const smartWallet = await SmartWallet.new();
-            factory = await SmartWalletFactory.new(smartWallet.address);
-        });
-
-        beforeEach(async () => {
             token = await TestToken.new();
             smartWalletAddress = await factory.getSmartWalletAddress(
                 owner.address,
@@ -212,6 +206,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -261,6 +256,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -327,6 +323,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
             await factory.relayedUserSmartWalletCreation(
                 relayRequest.request,
                 suffixData,
+                worker,
                 signature,
                 {
                     from: worker
@@ -367,6 +364,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -405,6 +403,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -444,6 +443,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker
@@ -483,6 +483,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 factory.relayedUserSmartWalletCreation(
                     relayRequest.request,
                     suffixData,
+                    worker,
                     signature,
                     {
                         from: worker

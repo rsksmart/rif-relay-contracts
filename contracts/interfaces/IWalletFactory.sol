@@ -13,6 +13,7 @@ interface IWalletFactory {
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,
+        address feesReceiver,
         bytes calldata sig
     ) external;
 

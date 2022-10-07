@@ -24,7 +24,7 @@ export const EIP712DomainType = [
 
 const RelayDataType = [
     { name: 'gasPrice', type: 'uint256' },
-    { name: 'relayWorker', type: 'address' },
+    { name: 'feesReceiver', type: 'address' },
     { name: 'callForwarder', type: 'address' },
     { name: 'callVerifier', type: 'address' }
 ];
@@ -153,14 +153,3 @@ export class TypedDeployRequestData implements EIP712TypedData {
         };
     }
 }
-
-export const ENVELOPING_PARAMS =
-    'address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data';
-export const DEPLOY_PARAMS =
-    'address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data';
-
-export const RequestType = {
-    typeName: 'RelayRequest',
-    typeSuffix:
-        'RelayData relayData)RelayData(uint256 gasPrice,address relayWorker,address callForwarder,address callVerifier)'
-};

@@ -8,7 +8,6 @@ import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import { soliditySha3Raw } from 'web3-utils';
 import { PrefixedHexString } from 'ethereumjs-tx';
 import ethWallet from 'ethereumjs-wallet';
-import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { HttpProvider } from 'web3-core';
 import RelayHubConfiguration from '../types/RelayHubConfiguration';
 import {
@@ -144,7 +143,7 @@ export async function createSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
+            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
@@ -167,6 +166,7 @@ export async function createSmartWallet(
     const txResult = await factory.relayedUserSmartWalletCreation(
         rReq.request,
         suffixData,
+        constants.ZERO_ADDRESS,
         deploySignature
     );
 
@@ -225,7 +225,7 @@ export async function createCustomSmartWallet(
         },
         relayData: {
             gasPrice: '10',
-            relayWorker: constants.ZERO_ADDRESS,
+            feesReceiver: constants.ZERO_ADDRESS,
             callForwarder: constants.ZERO_ADDRESS,
             callVerifier: constants.ZERO_ADDRESS
         }
@@ -248,6 +248,7 @@ export async function createCustomSmartWallet(
     const txResult = await factory.relayedUserSmartWalletCreation(
         rReq.request,
         suffixData,
+        constants.ZERO_ADDRESS,
         deploySignature,
         { from: relayHub }
     );
@@ -299,7 +300,7 @@ export async function deployHub(
     );
 }
 
-export async function getGaslessAccount(): Promise<AccountKeypair> {
+export async function getGaslessAccount() {
     const randomWallet = ethWallet.generate();
     const gaslessAccount = {
         privateKey: randomWallet.getPrivateKey(),
@@ -411,7 +412,7 @@ export function signRequest(
 
 const baseRelayData: RelayData = {
     gasPrice: '1',
-    relayWorker: constants.ZERO_ADDRESS,
+    feesReceiver: constants.ZERO_ADDRESS,
     callForwarder: constants.ZERO_ADDRESS,
     callVerifier: constants.ZERO_ADDRESS
 };
