@@ -1,31 +1,22 @@
 {
+  "extends": "@tsconfig/node16-strictest/tsconfig.json",
   "compilerOptions": {
-    "lib": [
-      "es2020",
-      "esnext"
-    ],
-    "target": "es2020",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist",
     "declaration": true,
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "exactOptionalPropertyTypes": false,
+    "alwaysStrict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "extendedDiagnostics":true,
+    "noErrorTruncation": true,
+    "sourceMap": true
   },
-  "include": [
-    "scripts",
-    "test",
-    "typechain-types",
-    "utils",
-  ],
-  "paths": {
-    "*": [
-      "node_modules/*"
-    ]
-  },
-  "files": [
-    "hardhat.config.ts",
-    "index.ts"
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }

@@ -51,7 +51,8 @@
       "url": "https://github/ironFe93"
     }
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "allow-tokens": "hardhat allow-tokens --network",
     "allowed-tokens": "hardhat allowed-tokens --network",
@@ -103,6 +104,7 @@
     "@types/node": "^18.8.3",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@tsconfig/node16-strictest": "^1.0.4",
     "@typescript-eslint/parser": "^5.33.1",
     "chai-as-promised": "^7.1.1",
     "eslint-config-prettier": "^8.5.0",
