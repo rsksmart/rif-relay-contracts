@@ -73,9 +73,9 @@ export const allowTokens = async (
         await verifier.acceptToken(tokenAddress);
       } catch (error) {
         console.error(
-          `Error adding token with address ${tokenAddress} to allowed tokens on ${key}`,
+          `Error adding token with address ${tokenAddress} to allowed tokens on ${key}`
         );
-        throw error
+        throw error;
       }
     }
   }

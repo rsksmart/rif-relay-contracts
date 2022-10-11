@@ -1,6 +1,6 @@
 import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
-import { ContractAddresses, NetworkConfig } from '../utils/scripts/types'
+import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
 
 const ADDRESS_FILE = process.env.ADDRESS_FILE || 'contract-addresses.json';
 
@@ -8,7 +8,7 @@ export const getExistingConfig = () => {
   try {
     if (fs.existsSync(ADDRESS_FILE)) {
       return JSON.parse(
-        fs.readFileSync(ADDRESS_FILE, {encoding: 'utf-8'})
+        fs.readFileSync(ADDRESS_FILE, { encoding: 'utf-8' })
       ) as { [key: string]: ContractAddresses };
     }
   } catch (e) {
@@ -18,7 +18,7 @@ export const getExistingConfig = () => {
 
 export const writeConfiigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
-  console.log(`address file available at: ${ADDRESS_FILE}`)
+  console.log(`address file available at: ${ADDRESS_FILE}`);
 };
 
 export const updateConfig = (
@@ -27,11 +27,11 @@ export const updateConfig = (
 ): NetworkConfig => {
   console.log('Generating network config...');
 
-  const {network} = hardhatArguments;
+  const { network } = hardhatArguments;
   if (!network) {
     throw new Error('Unknown Network');
   }
-  const {chainId} = networks[network];
+  const { chainId } = networks[network];
 
   if (!chainId) {
     throw new Error('Unknown Chain Id');
@@ -43,7 +43,10 @@ export const updateConfig = (
   };
 };
 
-export const deployContracts = async (ethers: HardhatEthersHelpers, networkName?: string): Promise<ContractAddresses> => {
+export const deployContracts = async (
+  ethers: HardhatEthersHelpers,
+  networkName?: string
+): Promise<ContractAddresses> => {
   const relayHubF = await ethers.getContractFactory('RelayHub');
   const penalizerF = await ethers.getContractFactory('Penalizer');
   const smartWalletF = await ethers.getContractFactory('SmartWallet');
@@ -68,39 +71,39 @@ export const deployContracts = async (ethers: HardhatEthersHelpers, networkName?
     'VersionRegistry'
   );
 
-  const {address: penalizerAddress} = await penalizerF.deploy();
-  const {address: relayHubAddress} = await relayHubF.deploy(
+  const { address: penalizerAddress } = await penalizerF.deploy();
+  const { address: relayHubAddress } = await relayHubF.deploy(
     penalizerAddress,
     1,
     1,
     1,
     1
   );
-  const {address: smartWalletAddress} = await smartWalletF.deploy();
-  const {address: smartWalletFactoryAddress} =
+  const { address: smartWalletAddress } = await smartWalletF.deploy();
+  const { address: smartWalletFactoryAddress } =
     await smartWalletFactoryF.deploy(smartWalletAddress);
-  const {address: deployVerifierAddress} = await deployVerifierF.deploy(
+  const { address: deployVerifierAddress } = await deployVerifierF.deploy(
     smartWalletFactoryAddress
   );
-  const {address: relayVerifierAddress} = await relayVerifierF.deploy(
+  const { address: relayVerifierAddress } = await relayVerifierF.deploy(
     smartWalletFactoryAddress
   );
 
-  const {address: customSmartWalletAddress} =
+  const { address: customSmartWalletAddress } =
     await customSmartWalletF.deploy();
-  const {address: customSmartWalletFactoryAddress} =
+  const { address: customSmartWalletFactoryAddress } =
     await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
-  const {address: customDeployVerifierAddress} =
+  const { address: customDeployVerifierAddress } =
     await customSmartWalletDeployVerifierF.deploy(
       customSmartWalletFactoryAddress
     );
 
-  const {address: versionRegistryAddress} =
+  const { address: versionRegistryAddress } =
     await versionRegistryFactory.deploy();
 
   let utilTokenAddress;
   if (networkName != 'mainnet') {
-    const {address} = await utilTokenF.deploy();
+    const { address } = await utilTokenF.deploy();
     utilTokenAddress = address;
   }
 
@@ -120,7 +123,10 @@ export const deployContracts = async (ethers: HardhatEthersHelpers, networkName?
 };
 
 export const deploy = async (hre: HardhatRuntimeEnvironment) => {
-  const { ethers, hardhatArguments: {network} } = hre;
+  const {
+    ethers,
+    hardhatArguments: { network },
+  } = hre;
   const contractAddresses = await deployContracts(ethers, network);
   console.table(contractAddresses);
   const newConfig = updateConfig(contractAddresses, hre);
