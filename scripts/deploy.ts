@@ -1,38 +1,15 @@
-import {config, ethers, hardhatArguments} from 'hardhat';
+import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
-import {contracts} from '../typechain-types/factories';
+import { ContractAddresses, NetworkConfig } from '../utils/scripts/types'
 
 const ADDRESS_FILE = process.env.ADDRESS_FILE || 'contract-addresses.json';
-
-const factoryList = {
-  ...contracts,
-  ...contracts.factory,
-  ...contracts.smartwallet,
-  ...contracts.utils,
-  ...contracts.verifier,
-} as const;
-
-export type FactoryName = Exclude<Extract<keyof typeof factoryList, `${string}__factory`>,
-  'Migrations__factory'>;
-
-export type ContractName = FactoryName extends `${infer Prefix}__factory`
-  ? Prefix
-  : never;
-
-export type ContractAddresses = {
-  [key in ContractName]: string | undefined;
-};
-
-export type NetworkConfig = {
-  [key: `${number}`]: ContractAddresses;
-};
 
 export const getExistingConfig = () => {
   try {
     if (fs.existsSync(ADDRESS_FILE)) {
       return JSON.parse(
         fs.readFileSync(ADDRESS_FILE, {encoding: 'utf-8'})
-      ) as ContractAddresses;
+      ) as { [key: string]: ContractAddresses };
     }
   } catch (e) {
     console.warn(e);
@@ -41,10 +18,12 @@ export const getExistingConfig = () => {
 
 export const writeConfiigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
+  console.log(`address file available at: ${ADDRESS_FILE}`)
 };
 
 export const updateConfig = (
-  contractAddresses: ContractAddresses
+  contractAddresses: ContractAddresses,
+  { hardhatArguments, config: { networks } }: HardhatRuntimeEnvironment
 ): NetworkConfig => {
   console.log('Generating network config...');
 
@@ -52,7 +31,7 @@ export const updateConfig = (
   if (!network) {
     throw new Error('Unknown Network');
   }
-  const {chainId} = config.networks[network];
+  const {chainId} = networks[network];
 
   if (!chainId) {
     throw new Error('Unknown Chain Id');
@@ -64,7 +43,7 @@ export const updateConfig = (
   };
 };
 
-export const deployContracts = async (): Promise<ContractAddresses> => {
+export const deployContracts = async (ethers: HardhatEthersHelpers, networkName?: string): Promise<ContractAddresses> => {
   const relayHubF = await ethers.getContractFactory('RelayHub');
   const penalizerF = await ethers.getContractFactory('Penalizer');
   const smartWalletF = await ethers.getContractFactory('SmartWallet');
@@ -120,7 +99,7 @@ export const deployContracts = async (): Promise<ContractAddresses> => {
     await versionRegistryFactory.deploy();
 
   let utilTokenAddress;
-  if (hardhatArguments.network != 'mainnet') {
+  if (networkName != 'mainnet') {
     const {address} = await utilTokenF.deploy();
     utilTokenAddress = address;
   }
@@ -140,18 +119,10 @@ export const deployContracts = async (): Promise<ContractAddresses> => {
   };
 };
 
-const main = async () => {
-  if (process.env.TEST) return;
-
-  const contractAddresses = await deployContracts();
+export const deploy = async (hre: HardhatRuntimeEnvironment) => {
+  const { ethers, hardhatArguments: {network} } = hre;
+  const contractAddresses = await deployContracts(ethers, network);
   console.table(contractAddresses);
-  const newConfig = updateConfig(contractAddresses);
+  const newConfig = updateConfig(contractAddresses, hre);
   writeConfiigToDisk(newConfig);
 };
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});

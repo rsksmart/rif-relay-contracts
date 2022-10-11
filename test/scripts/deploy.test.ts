@@ -2,14 +2,15 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Contract, ContractFactory } from 'ethers';
 import fs from 'fs';
-import * as hardhat from 'hardhat';
+import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
 import {
-  ContractAddresses,
   deployContracts,
   updateConfig,
+  
 } from '../../scripts/deploy';
+import { ContractAddresses } from '../../utils/scripts/types'
 
 use(chaiAsPromised);
 
@@ -29,7 +30,7 @@ describe('Deploy Script', function () {
     });
 
     it('should deploy all contracts', async function () {
-      const result = await deployContracts();
+      const result = await deployContracts(ethers, hre.network.name);
       expect(result).to.have.all.keys(
         'Penalizer',
         'RelayHub',
@@ -46,15 +47,15 @@ describe('Deploy Script', function () {
     });
 
     it('should deploy contracts with valid addresses', async function () {
-      const result = await deployContracts();
+      const result = await deployContracts(ethers, hre.network.name);
       Object.values(result).forEach((value) => {
         expect(value, value).to.eq(testAddress);
       });
     });
 
     it('should not deploy UtilToken in mainnet', async function () {
-      hardhat.hardhatArguments.network = 'mainnet';
-      const result = await deployContracts();
+      hre.hardhatArguments.network = 'mainnet';
+      const result = await deployContracts(ethers, hre.hardhatArguments.network);
       expect(result.UtilToken).to.be.undefined;
     });
   });
@@ -84,8 +85,8 @@ describe('Deploy Script', function () {
     beforeEach(function () {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       spyWriteFileSync = sinon.spy(fs, 'writeFileSync');
-      hardhat.hardhatArguments.network = 'regtest';
-      hardhat.config.networks.regtest.chainId = 33;
+      hre.hardhatArguments.network = 'regtest';
+      hre.config.networks.regtest.chainId = 33;
     });
 
     afterEach(function () {
@@ -97,7 +98,7 @@ describe('Deploy Script', function () {
       sinon
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
-      updateConfig(contractAddresses);
+      updateConfig(contractAddresses, hre);
       spyWriteFileSync.calledOnceWith(
         'contract-addresses.json',
         JSON.stringify(chainContractAddresses)
@@ -106,7 +107,7 @@ describe('Deploy Script', function () {
 
     it('should generate a json config file when config file is not present', function () {
       sinon.stub(fs, 'existsSync').returns(false);
-      updateConfig(contractAddresses);
+      updateConfig(contractAddresses, hre);
       spyWriteFileSync.calledOnceWith(
         'contract-addresses.json',
         JSON.stringify(chainContractAddresses)
@@ -118,9 +119,9 @@ describe('Deploy Script', function () {
       sinon
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
-      hardhat.hardhatArguments.network = undefined;
-      hardhat.config.networks.regtest.chainId = 33;
-      expect(() => updateConfig(contractAddresses)).to.throw('Unknown Network');
+      hre.hardhatArguments.network = undefined;
+      hre.config.networks.regtest.chainId = 33;
+      expect(() => updateConfig(contractAddresses, hre)).to.throw('Unknown Network');
     });
 
     it('should throw if chainId is undefined', function () {
@@ -128,9 +129,9 @@ describe('Deploy Script', function () {
       sinon
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
-      hardhat.hardhatArguments.network = 'regtest';
-      hardhat.config.networks.regtest.chainId = undefined;
-      expect(() => updateConfig(contractAddresses)).to.throw(
+      hre.hardhatArguments.network = 'regtest';
+      hre.config.networks.regtest.chainId = undefined;
+      expect(() => updateConfig(contractAddresses, hre)).to.throw(
         'Unknown Chain Id'
       );
     });
