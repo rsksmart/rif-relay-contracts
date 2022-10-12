@@ -59,15 +59,15 @@ export const allowTokens = async (
     customDeployVerifierAddress
   );
 
+  const verifierMap: Map<
+    string,
+    { acceptToken: (tokenAddress: string) => Promise<ContractTransaction> }
+  > = new Map();
+  verifierMap.set('deployVerifier', deployVerifier);
+  verifierMap.set('relayVerifier', relayVerifier);
+  verifierMap.set('customDeployVerifier', customDeployVerifier);
+  
   for (const tokenAddress of tokenAddresses) {
-    const verifierMap: Map<
-      string,
-      { acceptToken: (tokenAddress: string) => Promise<ContractTransaction> }
-    > = new Map();
-    verifierMap.set('deployVerifier', deployVerifier);
-    verifierMap.set('relayVerifier', relayVerifier);
-    verifierMap.set('customDeployVerifier', customDeployVerifier);
-
     for (const [key, verifier] of verifierMap) {
       try {
         await verifier.acceptToken(tokenAddress);

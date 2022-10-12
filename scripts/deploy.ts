@@ -16,7 +16,7 @@ export const getExistingConfig = () => {
   }
 };
 
-export const writeConfiigToDisk = (config: NetworkConfig) => {
+export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
   console.log(`address file available at: ${ADDRESS_FILE}`);
 };
@@ -130,5 +130,5 @@ export const deploy = async (hre: HardhatRuntimeEnvironment) => {
   const contractAddresses = await deployContracts(ethers, network);
   console.table(contractAddresses);
   const newConfig = updateConfig(contractAddresses, hre);
-  writeConfiigToDisk(newConfig);
+  writeConfigToDisk(newConfig);
 };
