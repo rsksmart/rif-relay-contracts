@@ -66,7 +66,7 @@ export const allowTokens = async (
   verifierMap.set('deployVerifier', deployVerifier);
   verifierMap.set('relayVerifier', relayVerifier);
   verifierMap.set('customDeployVerifier', customDeployVerifier);
-  
+
   for (const tokenAddress of tokenAddresses) {
     for (const [key, verifier] of verifierMap) {
       try {
