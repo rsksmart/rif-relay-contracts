@@ -4,11 +4,14 @@ import {MockContract, FakeContract, smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
 import { 
     CustomSmartWallet, 
+    CustomSmartWalletFactory, 
     CustomSmartWallet__factory,
     ERC20} from 'typechain-types';
 import {
     getLocalEip712Signature,
-    TypedRequestData} from '../utils/EIP712Utils';
+    getLocalEip712DeploySignature,
+    TypedRequestData,
+    TypedDeployRequestData} from '../utils/EIP712Utils';
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
 import {Wallet} from 'ethers';
 import { EnvelopingTypes, IForwarder } from 'typechain-types/contracts/RelayHub';
@@ -16,11 +19,12 @@ import { BaseProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {oneRBTC} from '../utils/constants';
 
-
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
 type ForwardRequest = IForwarder.ForwardRequestStruct;
+type DeployRequest = EnvelopingTypes.DeployRequestStruct;
+type DeployRequestInternal = IForwarder.DeployRequestStruct;
 type RelayData = EnvelopingTypes.RelayDataStruct;
 type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 
@@ -79,6 +83,45 @@ function createRequest(
     };
 }
 
+function createDeployRequest(
+    request: Partial<DeployRequestInternal>,// & {gas: string},
+    relayData?: Partial<RelayData>
+): DeployRequest {
+    const baseRequest = {
+        request:{
+            relayHub: ZERO_ADDRESS,
+            from: ZERO_ADDRESS,
+            to: ZERO_ADDRESS,
+            tokenContract: ZERO_ADDRESS,
+            recoverer: ZERO_ADDRESS,
+            value: '0',
+            // gas: '10000',
+            nonce: '0',
+            tokenAmount: '0',
+            tokenGas: '50000',
+            index: '0',
+            data: '0x'
+        },            
+        relayData:{
+            gasPrice: '1',
+            relayWorker: ZERO_ADDRESS,
+            callForwarder: ZERO_ADDRESS,
+            callVerifier: ZERO_ADDRESS
+        }
+    };
+
+    return {
+        request: {
+            ...baseRequest.request,
+            ...request,
+        },
+        relayData: {
+            ...baseRequest.relayData,
+            ...relayData,
+        }
+    };
+}
+
 function buildDomainSeparator(address: string ){
     const domainSeparator = {
         name: 'RSK Enveloping Transaction',
@@ -91,37 +134,139 @@ function buildDomainSeparator(address: string ){
 }
 
 describe('CustomSmartWallet', function(){
-    describe.skip('Function initialize()', function(){
-        let mockCustomSmartWallet: MockContract<CustomSmartWallet>;
+    //This function is being tested as an integration test due to the lack
+    //of tools for properly creating unit testing in these specific scenarios
+    describe('Function initialize()', function(){
         let provider: BaseProvider;
         let owner: Wallet;
+        let customSmartWalletFactory: CustomSmartWalletFactory;
+        let relayHub: SignerWithAddress;
+        let fakeToken: FakeContract<ERC20>;
+
+        async function createCustomSmartWalletFactory(owner: Wallet){
+            const customSmartWalletTemplateFactory = await hardhat.getContractFactory('CustomSmartWallet');
+            const customSmartWalletTemplate = await customSmartWalletTemplateFactory.deploy();
+    
+            const customSmartWalletFactoryFactory = await hardhat.getContractFactory('CustomSmartWalletFactory');
+            customSmartWalletFactory = await customSmartWalletFactoryFactory.connect(owner).deploy(customSmartWalletTemplate.address);
+        }
 
         beforeEach(async function(){
-            const [, someWallet] = await hardhat.getSigners();
-
-            const mockCustomSmartWalletFactory = await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
+            let fundedAccount: SignerWithAddress;
+            [relayHub, fundedAccount] = await hardhat.getSigners();
 
             provider = hardhat.provider;
-
             owner = hardhat.Wallet.createRandom().connect(provider);
+            
+            //Fund the owner
+            await fundedAccount.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
 
-            await someWallet.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
+            await createCustomSmartWalletFactory(owner);
 
-            mockCustomSmartWallet = await mockCustomSmartWalletFactory.connect(owner).deploy(); 
-
-            const domainSeparator = buildDomainSeparator(mockCustomSmartWallet.address);
-            await mockCustomSmartWallet.setVariable('domainSeparator', domainSeparator);
+            fakeToken = await smock.fake('ERC20');
         });
 
-        it('', async function(){
-            const mockCustomSmartWalletFactory = await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
-            const mockCustomSmartWallet = await mockCustomSmartWalletFactory.deploy();
-            
-            await mockCustomSmartWallet.setVariable('owner', ZERO_ADDRESS);
-            
-            const initialized = await mockCustomSmartWallet.isInitialized();
-            console.log('initialized', initialized);
+        it('Should initiliaze a CustomSmartWallet', async function(){
+            const privateKey =  Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+            const toSign = hardhat.utils.solidityKeccak256(
+                ['bytes2', 'address', 'address', 'address', 'uint256', 'bytes'],
+                ['0x1910', owner.address, ZERO_ADDRESS, ZERO_ADDRESS, 0, '0x' ]
+            );
+            const toSignAsBinaryArray = hardhat.utils.arrayify(toSign);
+            const signingKey = new hardhat.utils.SigningKey(privateKey);
+            const signature = signingKey.signDigest(toSignAsBinaryArray);
+            const signatureCollapsed = hardhat.utils.joinSignature(signature);
+
+            await customSmartWalletFactory.createUserSmartWallet(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                '0',
+                '0x',
+                signatureCollapsed
+            );
+
+            const customSmartWalletAddress = await customSmartWalletFactory.getSmartWalletAddress(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                hardhat.utils.solidityKeccak256(['bytes'], ['0x']),
+                0,
+            );
+
+            const customSmartWallet = await hardhat.getContractAt('CustomSmartWallet', customSmartWalletAddress);
+
+            expect(await customSmartWallet.isInitialized()).to.be.true;
         });
+
+        it('Should fail to initialize an already initilized CustomSmartWallet', async function(){
+            const privateKey =  Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+            const toSign = hardhat.utils.solidityKeccak256(
+                ['bytes2', 'address', 'address', 'address', 'uint256', 'bytes'],
+                ['0x1910', owner.address, ZERO_ADDRESS, ZERO_ADDRESS, 0, '0x' ]
+            );
+            const toSignAsBinaryArray = hardhat.utils.arrayify(toSign);
+            const signingKey = new hardhat.utils.SigningKey(privateKey);
+            const signature = signingKey.signDigest(toSignAsBinaryArray);
+            const signatureCollapsed = hardhat.utils.joinSignature(signature);
+
+            await customSmartWalletFactory.createUserSmartWallet(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                '0',
+                '0x',
+                signatureCollapsed
+            );
+
+            const customSmartWalletAddress = await customSmartWalletFactory.getSmartWalletAddress(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                hardhat.utils.solidityKeccak256(['bytes'], ['0x']),
+                0,
+            );
+
+            const customSmartWallet = await hardhat.getContractAt('CustomSmartWallet', customSmartWalletAddress);
+
+            await expect(customSmartWallet.initialize(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                0,
+                0,
+                '0x'
+            )).to.be.rejectedWith('already initialized');
+        });
+
+        it('Should fail when the amount is greater than 0 and gas 0', async function(){
+            const deployRequest = createDeployRequest({
+                relayHub: relayHub.address,
+                from: owner.address,
+                nonce: '0',
+                tokenGas: '0',
+                tokenAmount: '10',
+                tokenContract: fakeToken.address
+            });
+            
+            const typedDeployData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, customSmartWalletFactory.address, deployRequest);
+
+            const suffixData = getSuffixData(typedDeployData);
+
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+            const signature = getLocalEip712DeploySignature(typedDeployData, privateKey);
+            
+            await expect( 
+                customSmartWalletFactory.connect(relayHub).relayedUserSmartWalletCreation(
+                    deployRequest.request,
+                    suffixData,
+                    signature
+                )
+            ).to.be.rejectedWith('Unable to initialize SW');
+        })
     });
 
     describe('Function verify()', function(){
@@ -347,7 +492,8 @@ describe('CustomSmartWallet', function(){
         });
     });
 
-    describe('Function directExecute()', function(){let mockCustomSmartWallet: MockContract<CustomSmartWallet>;
+    describe('Function directExecute()', function(){
+        let mockCustomSmartWallet: MockContract<CustomSmartWallet>;
         let provider: BaseProvider;
         let owner: Wallet;
         let recipient: FakeContract;
@@ -402,4 +548,10 @@ describe('CustomSmartWallet', function(){
             ).not.to.be.rejected;
         });
     });
+
+    describe.skip('Function recover()', function (){
+        it('', function(){
+            console.log('TODO: Implement this');
+        })
+    })
 });

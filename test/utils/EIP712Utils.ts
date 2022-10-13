@@ -43,13 +43,27 @@ export const forwardRequestType: MessageTypeProperty[] = [
   { name: 'data', type: 'bytes' },
 ];
 
+export const deployRequestDataType: MessageTypeProperty[] = [
+  { name: 'relayHub', type: 'address' },
+  { name: 'from', type: 'address' },
+  { name: 'to', type: 'address' },
+  { name: 'tokenContract', type: 'address' },
+  { name: 'recoverer', type: 'address' },
+  { name: 'value', type: 'uint256' },
+  { name: 'nonce', type: 'uint256' },
+  { name: 'tokenAmount', type: 'uint256' },
+  { name: 'tokenGas', type: 'uint256' },
+  { name: 'index', type: 'uint256' },
+  { name: 'data', type: 'bytes' }
+];
+
 const relayRequestType: MessageTypeProperty[] = [
   ...forwardRequestType,
   { name: 'relayData', type: 'RelayData' },
 ];
 
 const deployRequestType: MessageTypeProperty[] = [
-    ...forwardRequestType,
+    ...deployRequestDataType,
     { name: 'relayData', type: 'RelayData' }
 ];
 
@@ -57,12 +71,6 @@ interface Types extends MessageTypes {
   EIP712Domain: MessageTypeProperty[];
   RelayRequest: MessageTypeProperty[];
   RelayData: MessageTypeProperty[];
-}
-
-interface TypesDeploy extends MessageTypes {
-    EIP712Domain: MessageTypeProperty[];
-    DeployRequest: MessageTypeProperty[];
-    RelayData: MessageTypeProperty[];
 }
 
 // use these values in registerDomainSeparator
@@ -117,8 +125,8 @@ export class TypedRequestData implements TypedMessage<Types> {
   }
 }
 
-export class TypedDeployRequestData implements TypedMessage<TypesDeploy> {
-    readonly types: TypesDeploy;
+export class TypedDeployRequestData implements TypedMessage<Types> {
+    readonly types: Types;
 
     readonly domain: Domain;
 
@@ -129,11 +137,11 @@ export class TypedDeployRequestData implements TypedMessage<TypesDeploy> {
     constructor(chainId: number, verifier: string, deployRequest: DeployRequest) {
         this.types = {
             EIP712Domain: eIP712DomainType,
-            DeployRequest: deployRequestType,
+            RelayRequest: deployRequestType,
             RelayData: relayDataType
         };
         this.domain = getDomainSeparator(verifier, chainId);
-        this.primaryType = 'DeployRequest';
+        this.primaryType = 'RelayRequest';
         // in the signature, all "request" fields are flattened out at the top structure.
         // other params are inside "relayData" sub-type
         this.message = {
@@ -155,7 +163,7 @@ export function getLocalEip712Signature(
 }
 
 export function getLocalEip712DeploySignature(
-    typedRequestData: TypedMessage<TypesDeploy>,
+    typedRequestData: TypedMessage<Types>,
     privateKey: Buffer
 ): string {
     return signTypedData({ privateKey: privateKey, data: typedRequestData, version: SignTypedDataVersion.V4 });
