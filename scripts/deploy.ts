@@ -1,6 +1,6 @@
-import {config, ethers, hardhatArguments} from 'hardhat';
+import { config, ethers, hardhatArguments } from 'hardhat';
 import fs from 'node:fs';
-import {contracts} from '../typechain-types/factories';
+import { contracts } from '../typechain-types/factories';
 
 const ADDRESS_FILE = process.env.ADDRESS_FILE || 'contract-addresses.json';
 
@@ -12,8 +12,10 @@ const factoryList = {
   ...contracts.verifier,
 } as const;
 
-export type FactoryName = Exclude<Extract<keyof typeof factoryList, `${string}__factory`>,
-  'Migrations__factory'>;
+export type FactoryName = Exclude<
+  Extract<keyof typeof factoryList, `${string}__factory`>,
+  'Migrations__factory'
+>;
 
 export type ContractName = FactoryName extends `${infer Prefix}__factory`
   ? Prefix
@@ -31,7 +33,7 @@ export const getExistingConfig = () => {
   try {
     if (fs.existsSync(ADDRESS_FILE)) {
       return JSON.parse(
-        fs.readFileSync(ADDRESS_FILE, {encoding: 'utf-8'})
+        fs.readFileSync(ADDRESS_FILE, { encoding: 'utf-8' })
       ) as ContractAddresses;
     }
   } catch (e) {
@@ -48,11 +50,11 @@ export const updateConfig = (
 ): NetworkConfig => {
   console.log('Generating network config...');
 
-  const {network} = hardhatArguments;
+  const { network } = hardhatArguments;
   if (!network) {
     throw new Error('Unknown Network');
   }
-  const {chainId} = config.networks[network];
+  const { chainId } = config.networks[network];
 
   if (!chainId) {
     throw new Error('Unknown Chain Id');
@@ -89,39 +91,39 @@ export const deployContracts = async (): Promise<ContractAddresses> => {
     'VersionRegistry'
   );
 
-  const {address: penalizerAddress} = await penalizerF.deploy();
-  const {address: relayHubAddress} = await relayHubF.deploy(
+  const { address: penalizerAddress } = await penalizerF.deploy();
+  const { address: relayHubAddress } = await relayHubF.deploy(
     penalizerAddress,
     1,
     1,
     1,
     1
   );
-  const {address: smartWalletAddress} = await smartWalletF.deploy();
-  const {address: smartWalletFactoryAddress} =
+  const { address: smartWalletAddress } = await smartWalletF.deploy();
+  const { address: smartWalletFactoryAddress } =
     await smartWalletFactoryF.deploy(smartWalletAddress);
-  const {address: deployVerifierAddress} = await deployVerifierF.deploy(
+  const { address: deployVerifierAddress } = await deployVerifierF.deploy(
     smartWalletFactoryAddress
   );
-  const {address: relayVerifierAddress} = await relayVerifierF.deploy(
+  const { address: relayVerifierAddress } = await relayVerifierF.deploy(
     smartWalletFactoryAddress
   );
 
-  const {address: customSmartWalletAddress} =
+  const { address: customSmartWalletAddress } =
     await customSmartWalletF.deploy();
-  const {address: customSmartWalletFactoryAddress} =
+  const { address: customSmartWalletFactoryAddress } =
     await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
-  const {address: customDeployVerifierAddress} =
+  const { address: customDeployVerifierAddress } =
     await customSmartWalletDeployVerifierF.deploy(
       customSmartWalletFactoryAddress
     );
 
-  const {address: versionRegistryAddress} =
+  const { address: versionRegistryAddress } =
     await versionRegistryFactory.deploy();
 
   let utilTokenAddress;
   if (hardhatArguments.network != 'mainnet') {
-    const {address} = await utilTokenF.deploy();
+    const { address } = await utilTokenF.deploy();
     utilTokenAddress = address;
   }
 
