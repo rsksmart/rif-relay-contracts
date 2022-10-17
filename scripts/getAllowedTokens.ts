@@ -1,9 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { getExistingConfig } from './deploy';
 
-export const getAllowedTokens = async (
-  hre: HardhatRuntimeEnvironment
-) => {
+export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
   const { ethers, network } = hre;
 
   if (!network) {
@@ -73,17 +71,14 @@ export const getAllowedTokens = async (
   verifierMap.set('deployVerifier', deployVerifier);
   verifierMap.set('relayVerifier', relayVerifier);
   verifierMap.set('customDeployVerifier', customDeployVerifier);
-  verifierMap.set('customRelayVerifier', customRelayVerifier)
-
+  verifierMap.set('customRelayVerifier', customRelayVerifier);
 
   for (const [key, verifier] of verifierMap) {
     try {
       const allowedTokens = await verifier.getAcceptedTokens();
-      console.log(key, allowedTokens)
+      console.log(key, allowedTokens);
     } catch (error) {
-      console.error(
-        `Error getting allowed tokens for ${key}`
-      );
+      console.error(`Error getting allowed tokens for ${key}`);
       throw error;
     }
   }
