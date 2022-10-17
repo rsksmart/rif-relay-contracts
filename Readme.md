@@ -12,7 +12,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Addresses**](#addresses)
 - [**System usage**](#system-usage)
   - [**Allowing tokens**](#allowing-tokens)
-  - [**TestToken Minting**](#testtoken-minting)
+  - [**UtilToken Minting**](#UtilToken-minting)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
   - [**Development**](#development)
@@ -44,7 +44,7 @@ The project is ready to be used at this point.
 The contracts can be deployed in the following way:
 
 1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
-2. Run `npm run deploy --network <NETWORK_NAME>` 
+2. Run `npm run deploy <NETWORK_NAME>` 
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
@@ -110,12 +110,12 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
 
 1. To allow a specific token, run `npm run allow-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
-    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `truffle.js` file (default value is `regtest`) **important! This should be the same network name as the one used to deploy the contracts** 
-2. To query allowed tokens run `npm run allowedTokens <NETWORK_NAME>`. This will display them on the console.
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
+2. To query allowed tokens run `npm run allowed-tokens <NETWORK_NAME>`. This will display them on the console.
 
-### TestToken Minting
+### UtilToken Minting
 
-Once the smart contracts are deployed, [TestToken](./contracts/test/tokens/TestToken.sol)s can be minted and transferred by using the related script:
+Once the smart contracts are deployed, [UtilToken](./contracts/utils/UtilToken.sol)s can be minted and transferred by using the related script:
 ```bash
 npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc123> --amount <amount_in_wei>
 ```
