@@ -13,10 +13,10 @@ const factoryList = {
   
   export type ContractName = FactoryName extends `${infer Prefix}__factory`
     ? Prefix
-    : never;
+    : never ;
   
   export type ContractAddresses = {
-    [key in ContractName]: string | undefined;
+    [key in (ContractName | 'CustomSmartWalletRelayVerifier')]: string | undefined;
   };
   
   export type NetworkConfig = {

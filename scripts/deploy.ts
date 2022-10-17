@@ -97,6 +97,9 @@ export const deployContracts = async (
     await customSmartWalletDeployVerifierF.deploy(
       customSmartWalletFactoryAddress
     );
+  const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
+    smartWalletFactoryAddress
+  );
 
   const { address: versionRegistryAddress } =
     await versionRegistryFactory.deploy();
@@ -117,6 +120,7 @@ export const deployContracts = async (
     CustomSmartWallet: customSmartWalletAddress,
     CustomSmartWalletFactory: customSmartWalletFactoryAddress,
     CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
+    CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };

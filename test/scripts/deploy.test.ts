@@ -40,6 +40,7 @@ describe('Deploy Script', function () {
         'CustomSmartWallet',
         'CustomSmartWalletFactory',
         'CustomSmartWalletDeployVerifier',
+        'CustomSmartWalletRelayVerifier',
         'VersionRegistry',
         'UtilToken'
       );
@@ -70,6 +71,8 @@ describe('Deploy Script', function () {
       CustomSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletDeployVerifier:
+        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      CustomSmartWalletRelayVerifier:
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',

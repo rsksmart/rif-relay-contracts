@@ -6,15 +6,13 @@ import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
 import {
-  allowTokens
-} from '../../scripts/allowTokens';
+  getAllowedTokens
+} from '../../scripts/getAllowedTokens';
 
 use(chaiAsPromised);
 
-describe('Allow Tokens Script', function () {
-  describe('allowTokens', function () {
-    const taskArgs = { tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7' };
-
+describe('Get Allowed Tokens Script', function () {
+  describe('getAllowedTokens', function () {
     const contractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       RelayHub: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
@@ -48,20 +46,20 @@ describe('Allow Tokens Script', function () {
       sinon.restore();
     });
 
-    it('should allow a list of tokens', async function () {
+    it('should get several lists of allowed tokens succesfully', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract.acceptToken = () => undefined;
+      stubContract.getAcceptedTokens = () => undefined;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(allowTokens(taskArgs, hre)).to.not.be.rejected;
+      await expect(getAllowedTokens(hre)).to.not.be.rejected;
     });
 
-    it('should throw error and print it if token cannot be allowed', async function () {
+    it('should throw error and print it if error while getting allowed tokens', async function () {
       const stubContract = sinon.createStubInstance(Contract);
       stubContract.acceptToken = () => {
         throw new Error();
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(allowTokens(taskArgs, hre)).to.be.rejected;
+      await expect(getAllowedTokens(hre)).to.be.rejected;
     });
   });
 });
