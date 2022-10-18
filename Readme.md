@@ -73,6 +73,24 @@ E.g.:
 npx truffle --network <network_name> exec tasks/deploy-collector.js --collectorConfig="<collector_configuration.json>" --outputFile="output.json"
 ```
 
+#### Change partner shares
+
+Pre-requirements: the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector.
+
+The `change-partner-shares.js` is a utility script that can be run to change the partner shares of a collector already deployed. It receives the following parameters:
+- `collectorAddress`: mandatory, it's the address of the collector we want to change
+- `partnerConfig`: optional, it includes the new partner shares we want to set; if not specified we use `partner-shares.json` as default value; check the `partner-shares.sample.json` to verify the format.
+- `txGas`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `150000`;
+
+Usage:
+```bash
+npx truffle --network <network_name> exec tasks/changePartnerShares.js --partnerConfig="<file_including_partners_config.json>" --collectorAddress="<collector_address>" --txGas="<gas_limit>"
+```
+Example:
+```bash
+npx truffle --network testnet exec tasks/changePartnerShares.js --partnerConfig="partner-shares.json" --collectorAddress="0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --txGas="200000"
+```
+
 ### Addresses
 
 Each time the smart contracts are deployed, the `contract-addresses.json` file is updated. This file contains all contracts addresses for the network they were selected to be deployed on. 
