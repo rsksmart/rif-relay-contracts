@@ -5,7 +5,11 @@ const { resolve } = require('path');
 const argv = yargs(hideBin(process.argv)).parserConfiguration({
     'parse-numbers': false
 }).argv;
-const { printReceipt, getRevertReason, getTransactionReceipt } = require('./utils');
+const {
+    printReceipt,
+    getRevertReason,
+    getTransactionReceipt
+} = require('./utils');
 
 const defaultPartnerSharesFile = 'partner-shares.json';
 const defaultTxGas = 150000;
@@ -55,10 +59,7 @@ module.exports = async (callback) => {
             .updateShares(partners)
             .send({ from: accounts[0], gas: txGas });
         console.log('Transaction Hash', tx.transactionHash);
-        const txReceipt = await getTransactionReceipt(
-            web3,
-            tx.transactionHash
-        );
+        const txReceipt = await getTransactionReceipt(web3, tx.transactionHash);
         if (txReceipt) {
             printReceipt(txReceipt);
         }
