@@ -82,6 +82,66 @@ describe('DeployVerifier Contract', function () {
     });
   });
 
+  describe('removeToken', function () {
+
+    it('should remove a token from tokens map', async function () {
+
+      await deployVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true
+          },
+          acceptedTokens: [ ethers.utils.getAddress(fakeToken.address) ]
+        }
+      );
+
+      await deployVerifierMock.removeToken(fakeToken.address, 0);
+
+      const tokenMapValue = await deployVerifierMock.getVariable('tokens', [ fakeToken.address ]) as boolean;
+
+      expect(tokenMapValue).to.be.false;
+    });
+
+    it('should remove a token from acceptedTokens array', async function () {
+
+      await deployVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true
+          },
+          acceptedTokens: [ fakeToken.address ]
+        }
+      );
+
+      await deployVerifierMock.removeToken(fakeToken.address, 0);
+
+      const acceptedTokens = await deployVerifierMock.getAcceptedTokens();
+
+      expect(acceptedTokens).to.not.contain(fakeToken.address);
+    });
+
+    it('should revert if token is not currently previously accepted', async function () {
+      const result = deployVerifierMock.removeToken(fakeToken.address, 0);
+
+      await expect(result).to.be.revertedWith('Token is not accepted');
+    });
+
+    it('should revert if token removed is ZERO ADDRESS', async function () {
+      const result = deployVerifierMock.removeToken(constants.AddressZero, 0);
+
+      await expect(result).to.be
+        .revertedWith('Token cannot be zero address');
+    });
+
+    it('should revert if caller is not the owner', async function () {
+      const [, other] = await ethers.getSigners();
+
+      await expect(
+        deployVerifierMock.connect(other).acceptToken(fakeToken.address)
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+  });
+
   describe('getAcceptedTokens()', function () {
     it('should get all the accepted tokens', async function () {
       const fakeTokenList = [fakeToken.address];
