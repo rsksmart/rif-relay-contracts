@@ -89,6 +89,14 @@ contract CustomSmartWalletDeployVerifier is
         acceptedTokens.push(token);
     }
 
+    function removeToken(address token, uint256 index) external onlyOwner {
+        require(token != address(0), "Token cannot be zero address");
+        require(tokens[token] == true, "Token is not accepted");
+        delete tokens[token];
+        acceptedTokens[index] = acceptedTokens[acceptedTokens.length - 1];
+        acceptedTokens.pop();
+    }
+
     function getAcceptedTokens()
         external
         view
