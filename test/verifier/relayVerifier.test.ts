@@ -142,6 +142,25 @@ describe('RelayVerifier Contract', function () {
         .revertedWith('Token cannot be zero address');
     });
 
+    it('should revert if token index does not correspond to token address to be removed', async function () {
+
+      const fakeToken1 = await smock.fake<ERC20>('ERC20');
+
+      await relayVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true,
+            [fakeToken1.address]: true,
+          },
+          acceptedTokens: [ fakeToken.address, fakeToken1.address ]
+        }
+      );
+
+      const result = relayVerifierMock.removeToken(fakeToken.address, 1);
+      await expect(result).to.be
+      .revertedWith('Wrong token index');
+    });
+
     it('should revert if caller is not the owner', async function () {
       const [, other] = await ethers.getSigners();
 
