@@ -60,7 +60,7 @@ module.exports = async function( ) {
   try {
     for (let tokenAddress of tokenAddresses) {
       try {
-        const acceptedTokens = await smartWalletDeployVerifier.methods.getAcceptedTokens().send({from: accounts[0]});
+        const acceptedTokens = await smartWalletDeployVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
         const index = acceptedTokens.indexOf(tokenAddress);
         await smartWalletDeployVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
       } catch (error) {
@@ -69,7 +69,7 @@ module.exports = async function( ) {
         throw error;
       }
       try {
-        const acceptedTokens = await smartWalletRelayVerifier.methods.getAcceptedTokens().send({from: accounts[0]});
+        const acceptedTokens = await smartWalletRelayVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
         const index = acceptedTokens.indexOf(tokenAddress);
         await smartWalletRelayVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
       } catch (error) {
@@ -78,7 +78,7 @@ module.exports = async function( ) {
         throw error;
       }
       try {
-        const acceptedTokens = await customSmartWalletDeployVerifier.methods.getAcceptedTokens().send({from: accounts[0]});
+        const acceptedTokens = await customSmartWalletDeployVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
         const index = acceptedTokens.indexOf(tokenAddress);
         await customSmartWalletDeployVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
       } catch (error) {
@@ -87,7 +87,7 @@ module.exports = async function( ) {
         throw error;
       }
       try {
-        const acceptedTokens = await customSmartWalletRelayVerifier.methods.getAcceptedTokens().send({from: accounts[0]});
+        const acceptedTokens = await customSmartWalletRelayVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
         const index = acceptedTokens.indexOf(tokenAddress);
         await customSmartWalletRelayVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
       } catch (error) {
