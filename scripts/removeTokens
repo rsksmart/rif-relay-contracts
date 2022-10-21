@@ -107,4 +107,4 @@ EOF
 
 truffle exec --network ${NETWORK_NAME} removeTokens.js
 
-rm allowTokens.js
+rm removeTokens.js
