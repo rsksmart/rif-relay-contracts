@@ -1,8 +1,10 @@
 import {
   Contract as Contract,
   ContractFactory as EthersContractFactory,
+  Signer,
 } from 'ethers/lib/ethers';
 import { ethers } from 'hardhat';
+import { FactoryOptions } from 'hardhat/types';
 
 export interface ContractFactory<C extends Contract>
   extends EthersContractFactory {
@@ -11,6 +13,7 @@ export interface ContractFactory<C extends Contract>
 
 export type DeployerParam<
   C extends Contract,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   A extends {} = ContractFactory<C>['deploy']
 > = {
   contractName: string;
@@ -18,13 +21,19 @@ export type DeployerParam<
   contractFactory?: ContractFactory<C>;
 };
 
+type ContractFactoryOpt = {
+  contractName: string,
+  signerOrOptions?: Signer | FactoryOptions
+}
+
+
 export const getContractFactory = async <
   C extends Contract,
   F extends ContractFactory<C>
 >({
   contractName,
   signerOrOptions,
-}: typeof ethers.getContractFactory.arguments) =>
+}: ContractFactoryOpt) =>
   ethers.getContractFactory(contractName, signerOrOptions) as Promise<F>;
 
 export type DeployerReturnType<C extends Contract> = Promise<{
@@ -34,6 +43,7 @@ export type DeployerReturnType<C extends Contract> = Promise<{
 
 export const deployContract = async <
   C extends Contract,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   A extends {} = ContractFactory<C>['deploy']
 >({
   contractName,

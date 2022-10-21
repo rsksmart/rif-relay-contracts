@@ -39,7 +39,7 @@ export const updateConfig = (
 
   return {
     ...getExistingConfig(),
-    contractAddresses,
+    [`${network}.${chainId}`]: contractAddresses,
   };
 };
 
