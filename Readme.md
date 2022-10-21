@@ -88,7 +88,7 @@ npx truffle --network <network_name> exec tasks/change-partner-shares.js --partn
 ```
 Example:
 ```bash
-npx truffle --network testnet exec tasks/changePartnerShares.js --partnerConfig="partner-shares.json" --collectorAddress="0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --txGas="200000"
+npx truffle --network testnet exec tasks/change-partner-shares.js --partnerConfig="partner-shares.json" --collectorAddress="0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --txGas="200000"
 ```
 
 ### Addresses
