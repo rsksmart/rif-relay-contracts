@@ -1,0 +1,41 @@
+name: Slither Analysis
+on:
+    workflow_dispatch:
+    push:
+        paths:
+            - 'contracts/**'
+            - '!contracts/test/**'
+
+jobs:
+    analyze:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+
+            - name: Remove test folder
+              run: rm -rf contracts/test
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Run Slither
+              uses: crytic/slither-action@v0.2.0
+              id: slither
+              with:
+                  sarif: results.sarif
+                  fail-on: none
+                  ignore-compile: true
+                  slither-args: --filter-paths "node_modules/@openzeppelin"
+
+            - name: Fix "uri" field in sarif field.
+              run: sed -i 's/\.\.\/\.\.\/home\/runner\/work\/rif-relay-contracts\/rif-relay-contracts\///g' ${{ steps.slither.outputs.sarif }}
+
+            - name: Upload SARIF file
+              uses: github/codeql-action/upload-sarif@v2
+              with:
+                  sarif_file: ${{ steps.slither.outputs.sarif }}
