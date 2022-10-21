@@ -14,6 +14,7 @@ import {
 export type ForwardRequest = IForwarder.ForwardRequestStruct;
 export type RelayData = EnvelopingTypes.RelayDataStruct;
 export type RelayRequest = EnvelopingTypes.RelayRequestStruct;
+export type DeployRequest = EnvelopingTypes.DeployRequestStruct;
 
 const eIP712DomainType: MessageTypeProperty[] = [
   { name: 'name', type: 'string' },
@@ -24,7 +25,7 @@ const eIP712DomainType: MessageTypeProperty[] = [
 
 const relayDataType: MessageTypeProperty[] = [
   { name: 'gasPrice', type: 'uint256' },
-  { name: 'relayWorker', type: 'address' },
+  { name: 'feesReceiver', type: 'address' },
   { name: 'callForwarder', type: 'address' },
   { name: 'callVerifier', type: 'address' },
 ];
@@ -47,9 +48,20 @@ const relayRequestType: MessageTypeProperty[] = [
   { name: 'relayData', type: 'RelayData' },
 ];
 
+const deployRequestType: MessageTypeProperty[] = [
+  ...forwardRequestType,
+  { name: 'relayData', type: 'RelayData' }
+];
+
 interface Types extends MessageTypes {
   EIP712Domain: MessageTypeProperty[];
   RelayRequest: MessageTypeProperty[];
+  RelayData: MessageTypeProperty[];
+}
+
+interface TypesDeploy extends MessageTypes {
+  EIP712Domain: MessageTypeProperty[];
+  DeployRequest: MessageTypeProperty[];
   RelayData: MessageTypeProperty[];
 }
 
@@ -114,4 +126,37 @@ export function getLocalEip712Signature(
     data: typedRequestData,
     version: SignTypedDataVersion.V4,
   });
+}
+
+export class TypedDeployRequestData implements TypedMessage<TypesDeploy> {
+  readonly types: TypesDeploy;
+
+  readonly domain: Domain;
+
+  readonly primaryType: string;
+
+  readonly message: Record<string, unknown>;
+
+  constructor(chainId: number, verifier: string, deployRequest: DeployRequest) {
+      this.types = {
+          EIP712Domain: eIP712DomainType,
+          DeployRequest: deployRequestType,
+          RelayData: relayDataType
+      };
+      this.domain = getDomainSeparator(verifier, chainId);
+      this.primaryType = 'DeployRequest';
+      // in the signature, all "request" fields are flattened out at the top structure.
+      // other params are inside "relayData" sub-type
+      this.message = {
+          ...deployRequest.request,
+          relayData: deployRequest.relayData
+      };
+  }
+}
+
+export function getLocalEip712DeploySignature(
+  typedRequestData: TypedMessage<TypesDeploy>,
+  privateKey: Buffer
+): string {
+  return signTypedData({ privateKey: privateKey, data: typedRequestData, version: SignTypedDataVersion.V4 });
 }

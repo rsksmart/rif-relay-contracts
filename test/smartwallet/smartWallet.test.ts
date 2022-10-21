@@ -24,7 +24,7 @@ type ForwardRequest = IForwarder.ForwardRequestStruct;
 type RelayData = EnvelopingTypes.RelayDataStruct;
 type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 
-describe('SmartWallet', function(){
+describe.skip('SmartWallet', function(){
     function createRequest(
         request: Partial<ForwardRequest>,
         relayData?: Partial<RelayData>

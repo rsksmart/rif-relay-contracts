@@ -12,8 +12,9 @@ import {
   TypedRequestData,
   RelayRequest,
   ForwardRequest,
-  RelayData, DeployRequest
+  RelayData, DeployRequest, TypedDeployRequestData, getLocalEip712DeploySignature
 } from '../utils/EIP712Utils';
+import { IForwarder } from 'typechain-types/contracts/RelayHub';
 import {Wallet} from "ethers";
 
 
@@ -97,7 +98,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         } as ForwardRequest,
         relayData: {
           gasPrice: '1',
-          relayWorker: ZERO_ADDRESS,
+          feesReceiver: ZERO_ADDRESS,
           callForwarder: ZERO_ADDRESS,
           callVerifier: ZERO_ADDRESS
         } as RelayData
@@ -152,7 +153,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         tokenAmount: '1',
         tokenGas: '50000'
       }, {
-        relayWorker: relayWorkerAddr
+        feesReceiver: relayWorkerAddr
       });
 
       const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
@@ -253,7 +254,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
         tokenAmount: '1',
         tokenGas: '6000000000000'
       }, {
-        relayWorker: relayWorkerAddr
+        feesReceiver: relayWorkerAddr
       });
 
       relayRequest.request.data = '0xdeadbeef';
@@ -293,20 +294,20 @@ describe('RelayHub contract - Manager related scenarios', function () {
           to: ZERO_ADDRESS,
           tokenContract: ZERO_ADDRESS,
           value: '0',
-          gas: '10000',
           nonce: '0',
           tokenAmount: '1',
           tokenGas: '50000',
           data: '0x',
           recoverer: '0',
-        } as ForwardRequest,
+          index: 0,
+        },
         relayData: {
           gasPrice: '1',
-          relayWorker: ZERO_ADDRESS,
+          feesReceiver: ZERO_ADDRESS,
           callForwarder: ZERO_ADDRESS,
           callVerifier: ZERO_ADDRESS
-        } as RelayData
-      } as DeployRequest
+        }
+      }
 
       return {
         request: {
@@ -361,17 +362,17 @@ describe('RelayHub contract - Manager related scenarios', function () {
         index: '0',
         gas: '90000000000000'
       } , {
-        relayWorker: relayWorkerAddr,
+        feesReceiver: relayWorkerAddr,
         callForwarder: smartWalletFactory.address
       });
 
       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
 
-      const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWalletFactory.address, relayRequestMisbehavingVerifier);
+      const typedRequestData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWalletFactory.address, relayRequestMisbehavingVerifier);
 
       const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
 
-      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+      const signature = getLocalEip712DeploySignature(typedRequestData, privateKey);
 
       await assert.isRejected(
           mockRelayHub.connect(relayWorker).deployCall(
@@ -465,17 +466,18 @@ describe('RelayHub contract - Manager related scenarios', function () {
         tokenGas: '50000',
         recoverer: ZERO_ADDRESS,
         index: '0',
+        gas: '900000000000',
       }, {
-        relayWorker: relayWorkerAddr
+        feesReceiver: relayWorkerAddr
       });
 
       relayRequestMisbehavingVerifier.request.index = nextWalletIndex.toString();
 
-      const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequestMisbehavingVerifier);
+      const typedRequestData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequestMisbehavingVerifier);
 
       const privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
 
-      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+      const signature = getLocalEip712DeploySignature(typedRequestData, privateKey);
 
 
       await assert.isRejected(
