@@ -166,10 +166,10 @@ contract CustomSmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
         nonce++;
 
-        if(req.tokenAmount > 0){
+        if (req.tokenAmount > 0) {
             (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
-                    hex"a9059cbb", 
+                    hex"a9059cbb",
                     feesReceiver,
                     req.tokenAmount
                 )
@@ -261,7 +261,9 @@ contract CustomSmartWallet is IForwarder {
     {
         return
             abi.encodePacked(
-                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"), //requestTypeHash,
+                keccak256(
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                ), //requestTypeHash,
                 abi.encode(
                     req.relayHub,
                     req.from,

@@ -33,7 +33,7 @@ contract SmartWallet is IForwarder {
             )
         );
     }
-    
+
     function setOwner(address owner) private {
         //To avoid re-entrancy attacks by external contracts, the first thing we do is set
         //the variable that controls "is initialized"
@@ -144,10 +144,10 @@ contract SmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
         nonce++;
 
-        if(req.tokenAmount > 0){
+        if (req.tokenAmount > 0) {
             (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
-                    hex"a9059cbb", 
+                    hex"a9059cbb",
                     feesReceiver,
                     req.tokenAmount
                 )

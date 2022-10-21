@@ -19,16 +19,16 @@ library Eip712Library {
         // estimate is done against the whole relayedUserSmartWalletCreation function in
         // the relayClient
 
-            /* solhint-disable-next-line avoid-low-level-calls */
-            (deploySuccess, ret) = relayRequest.relayData.callForwarder.call(
-                abi.encodeWithSelector(
-                    IWalletFactory.relayedUserSmartWalletCreation.selector,
-                    relayRequest.request, 
-                    hashRelayData(relayRequest.relayData),
-                    relayRequest.relayData.feesReceiver, 
-                    signature
-            ));
- 
+        /* solhint-disable-next-line avoid-low-level-calls */
+        (deploySuccess, ret) = relayRequest.relayData.callForwarder.call(
+            abi.encodeWithSelector(
+                IWalletFactory.relayedUserSmartWalletCreation.selector,
+                relayRequest.request,
+                hashRelayData(relayRequest.relayData),
+                relayRequest.relayData.feesReceiver,
+                signature
+            )
+        );
     }
 
     //forwarderSuccess = Did the call to IForwarder.execute() revert or not?
@@ -38,7 +38,7 @@ library Eip712Library {
     function execute(
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
-    ) 
+    )
         internal
         returns (
             bool forwarderSuccess,
@@ -56,8 +56,8 @@ library Eip712Library {
                 signature
             )
         );
-        
-        if ( forwarderSuccess ) {
+
+        if (forwarderSuccess) {
             (relaySuccess, ret) = abi.decode(ret, (bool, bytes)); // decode return value of execute:
         }
 
@@ -69,14 +69,17 @@ library Eip712Library {
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encode(
-                keccak256(
-                    "RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
-                ), // RELAYDATA_TYPEHASH
-                req.gasPrice,
-                req.feesReceiver,
-                req.callForwarder,
-                req.callVerifier
-            ));
+        return
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    ), // RELAYDATA_TYPEHASH
+                    req.gasPrice,
+                    req.feesReceiver,
+                    req.callForwarder,
+                    req.callVerifier
+                )
+            );
     }
 }

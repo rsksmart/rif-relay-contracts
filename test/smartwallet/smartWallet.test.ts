@@ -44,7 +44,7 @@ describe('SmartWallet', function(){
             },            
             relayData:{
                 gasPrice: '1',
-                relayWorker: ZERO_ADDRESS,
+                feesReceiver: ZERO_ADDRESS,
                 callForwarder: ZERO_ADDRESS,
                 callVerifier: ZERO_ADDRESS
             }
@@ -317,7 +317,7 @@ describe('SmartWallet', function(){
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, signature),
+                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -345,7 +345,7 @@ describe('SmartWallet', function(){
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, signature),
+                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -376,7 +376,7 @@ describe('SmartWallet', function(){
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, signature),
+                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -406,7 +406,7 @@ describe('SmartWallet', function(){
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, signature),
+                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
                 'The execution did not fail'
             ).to.be.rejectedWith('Invalid caller');
         });
@@ -431,7 +431,7 @@ describe('SmartWallet', function(){
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, signature),
+                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution should fail'
             ).to.be.rejectedWith('Not enough gas left');
         });

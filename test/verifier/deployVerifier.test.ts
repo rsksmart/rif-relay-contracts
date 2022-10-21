@@ -78,7 +78,7 @@ describe('DeployVerifier Contract', function () {
 
       await expect(
         deployVerifierMock.connect(other).acceptToken(fakeToken.address)
-      ).to.be.revertedWith('Ownable: caller is not the owner');
+      ).to.be.revertedWith('Caller is not the owner');
     });
   });
 
@@ -149,7 +149,7 @@ describe('DeployVerifier Contract', function () {
           callForwarder: fakeWalletFactory.address,
           callVerifier: deployVerifierMock.address,
           gasPrice: '10',
-          relayWorker: relayWorker.address,
+          feesReceiver: relayWorker.address,
         },
         request: {
           recoverer: constants.AddressZero,
@@ -179,7 +179,7 @@ describe('DeployVerifier Contract', function () {
           callForwarder: fakeWalletFactory.address,
           callVerifier: deployVerifierMock.address,
           gasPrice: '10',
-          relayWorker: relayWorker.address,
+          feesReceiver: relayWorker.address,
         },
         request: {
           recoverer: constants.AddressZero,
@@ -220,7 +220,7 @@ describe('DeployVerifier Contract', function () {
           callForwarder: differentFactoryFake.address,
           callVerifier: deployVerifierMock.address,
           gasPrice: '10',
-          relayWorker: relayWorker.address,
+          feesReceiver: relayWorker.address,
         },
         request: {
           recoverer: constants.AddressZero,
@@ -271,7 +271,7 @@ describe('DeployVerifier Contract', function () {
           callForwarder: fakeWalletFactory.address,
           callVerifier: deployVerifierMock.address,
           gasPrice: '10',
-          relayWorker: relayWorker.address,
+          feesReceiver: relayWorker.address,
         },
         request: {
           recoverer: constants.AddressZero,
@@ -311,7 +311,7 @@ describe('DeployVerifier Contract', function () {
           callForwarder: fakeWalletFactory.address,
           callVerifier: deployVerifierMock.address,
           gasPrice: '10',
-          relayWorker: relayWorker.address,
+          feesReceiver: relayWorker.address,
         },
         request: {
           recoverer: constants.AddressZero,
