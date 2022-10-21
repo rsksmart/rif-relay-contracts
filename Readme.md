@@ -84,7 +84,7 @@ The `change-partner-shares.js` is a utility script that can be run to change the
 
 Usage:
 ```bash
-npx truffle --network <network_name> exec tasks/changePartnerShares.js --partnerConfig="<file_including_partners_config.json>" --collectorAddress="<collector_address>" --txGas="<gas_limit>"
+npx truffle --network <network_name> exec tasks/change-partner-shares.js --partnerConfig="<file_including_partners_config.json>" --collectorAddress="<collector_address>" --txGas="<gas_limit>"
 ```
 Example:
 ```bash
