@@ -24,7 +24,8 @@ type ForwardRequest = IForwarder.ForwardRequestStruct;
 type RelayData = EnvelopingTypes.RelayDataStruct;
 type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 
-describe.skip('SmartWallet', function(){
+// TODO: Those tests need to be changed due to REL-002 fix
+describe('SmartWallet', function(){
     function createRequest(
         request: Partial<ForwardRequest>,
         relayData?: Partial<RelayData>
@@ -93,21 +94,21 @@ describe.skip('SmartWallet', function(){
             fakeToken.transfer.returns(true);
         });
 
-        it('Should initialize with the correct parameters', async function () {
+        it.skip('Should initialize with the correct parameters', async function () {
             const  {smartWallet} = await loadFixture(prepareFixture);
 
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
             expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;            
         });
 
-        it('Should call transfer on not sponsored deployment', async function(){
+        it.skip('Should call transfer on not sponsored deployment', async function(){
             const {smartWallet} = await loadFixture(prepareFixture);
 
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
             expect(fakeToken.transfer).to.be.called;
         });
 
-        it('Should not call transfer on sponsored deployment', async function(){
+        it.skip('Should not call transfer on sponsored deployment', async function(){
             const {smartWallet} = await loadFixture(prepareFixture);
 
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
@@ -118,8 +119,6 @@ describe.skip('SmartWallet', function(){
         it('Should fail to initialize a contract when it is already initialized', async function(){
             const {smartWallet} = await loadFixture(prepareFixture);
 
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);  
-
             await expect(
                 smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000),
                 'Second initialization not rejected'
@@ -129,12 +128,10 @@ describe.skip('SmartWallet', function(){
         it('Should create the domainSeparator', async function () {
             const  {smartWallet} = await loadFixture(prepareFixture);
 
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);        
-
             expect(await smartWallet.domainSeparator()).to.be.properHex(64);
         });
 
-        it('Should fail when the token transfer method fails', async function () {
+        it.skip('Should fail when the token transfer method fails', async function () {
             const  {smartWallet} = await loadFixture(prepareFixture);
 
             fakeToken.transfer.returns(false);
@@ -146,7 +143,7 @@ describe.skip('SmartWallet', function(){
         });
     });
 
-    describe('Function verify()', function(){
+    describe.skip('Function verify()', function(){
         const HARDHAT_CHAIN_ID = 31337;
         const FAKE_PRIVATE_KEY = 'da1294b386f1c04cd3276ef3298ef122f226472a55f241d22f924bdc19f92379';
 
@@ -255,7 +252,7 @@ describe.skip('SmartWallet', function(){
         });
     });
 
-    describe('Function execute()', function(){
+    describe.skip('Function execute()', function(){
         const HARDHAT_CHAIN_ID = 31337;
 
         let fakeToken: FakeContract;
@@ -437,7 +434,7 @@ describe.skip('SmartWallet', function(){
         });
     });
 
-    describe('Function directExecute()', function(){
+    describe.skip('Function directExecute()', function(){
         let fakeToken: FakeContract;
         let recipient: FakeContract;
         let smartWallet: SmartWallet;
@@ -469,7 +466,7 @@ describe.skip('SmartWallet', function(){
             fakeToken.transfer.returns(true);
         });
 
-        it('Should execute a valid transaction', async function(){
+        it.skip('Should execute a valid transaction', async function(){
             await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
 
             await expect(
