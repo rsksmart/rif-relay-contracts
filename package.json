@@ -62,6 +62,7 @@
     "lint:sol": "solhint -f unix \"contracts/**/*.sol\" --max-warnings 0",
     "allowTokens": "./scripts/allowTokens",
     "allowedTokens": "./scripts/allowedTokens",
+    "removeTokens": "./scripts/removeTokens",
     "prettier:fix": "npx prettier --write --ignore-unknown .",
     "prettier": "npx prettier --check .",
     "test:truffle": "truffle test --network regtest",

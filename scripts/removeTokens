@@ -1,0 +1,110 @@
+#!/bin/bash
+
+TOKEN_ADDRESSES=$1
+NETWORK_NAME=$2
+
+if [ "${TOKEN_ADDRESSES}" == "" ]; then
+        echo "You need to specify at least one token address."
+        exit 1
+fi
+
+if [ "${NETWORK_NAME}" == "" ]; then
+        NETWORK_NAME="regtest"
+fi
+
+cat > removeTokens.js << EOF
+
+async function getRevertReason(txHash) {
+  const tx = await web3.eth.getTransaction(txHash);
+  const txBlockNumber = tx.blockNumber;
+  try {
+    delete tx['hash'];
+    delete tx['blockHash'];
+    delete tx['blockNumber'];
+    delete tx['transactionIndex'];
+    delete tx['v'];
+    delete tx['r'];
+    delete tx['s'];
+    let result = await web3.eth.call(tx, txBlockNumber);
+    result = result.startsWith('0x') ? result : '0x' + result;
+    if (result && result.substr(138)) {
+      return web3.utils.toAscii(result.substr(138));
+    } else {
+      return 'Cannot get reason - No return value';
+    }
+  } catch (reason) {
+    return reason;
+  }
+}
+
+module.exports = async function( ) {
+  const truffleConfig = require('./truffle');
+  const contractAddresses = require('./contract-addresses.json');
+
+  const networkConfiguration = truffleConfig.networks["${NETWORK_NAME}"];
+  const networkId = networkConfiguration.network_id;
+
+  const smartWalletDeployVerifierAbi = require("./build/contracts/DeployVerifier.json").abi;
+  const customSmartWalletDeployVerifierAbi = require("./build/contracts/CustomSmartWalletDeployVerifier.json").abi;
+  const relayVerifierAbi = require("./build/contracts/RelayVerifier.json").abi;
+
+  const smartWalletDeployVerifier = await new web3.eth.Contract(smartWalletDeployVerifierAbi, contractAddresses[networkId].smartWalletDeployVerifier);
+  const smartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses[networkId].smartWalletRelayVerifier);
+  const customSmartWalletDeployVerifier = await new web3.eth.Contract(customSmartWalletDeployVerifierAbi, contractAddresses[networkId].customSmartWalletDeployVerifier);
+  const customSmartWalletRelayVerifier = await new web3.eth.Contract(relayVerifierAbi, contractAddresses[networkId].customSmartWalletRelayVerifier);
+
+  const tokenAddresses = '${TOKEN_ADDRESSES}'.split(',');
+
+  const accounts = await web3.eth.getAccounts();
+
+  try {
+    for (let tokenAddress of tokenAddresses) {
+      try {
+        const acceptedTokens = await smartWalletDeployVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
+        const index = acceptedTokens.indexOf(tokenAddress);
+        await smartWalletDeployVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
+      } catch (error) {
+        const reason = error.hasOwnProperty('receipt') ? await getRevertReason(error.receipt.transactionHash) : error;
+        console.error("Error removing token with address " + tokenAddress + " from allowed tokens on smart wallet deploy verifier", reason);
+        throw error;
+      }
+      try {
+        const acceptedTokens = await smartWalletRelayVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
+        const index = acceptedTokens.indexOf(tokenAddress);
+        await smartWalletRelayVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
+      } catch (error) {
+        const reason = error.hasOwnProperty('receipt') ? await getRevertReason(error.receipt.transactionHash) : error;
+        console.error("Error removing token with address " + tokenAddress + " from allowed tokens on smart wallet relay verifier", reason);
+        throw error;
+      }
+      try {
+        const acceptedTokens = await customSmartWalletDeployVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
+        const index = acceptedTokens.indexOf(tokenAddress);
+        await customSmartWalletDeployVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
+      } catch (error) {
+        const reason = error.hasOwnProperty('receipt') ? await getRevertReason(error.receipt.transactionHash) : error;
+        console.error("Error removing token with address " + tokenAddress + " from allowed tokens on custom smart deploy verifier", reason);
+        throw error;
+      }
+      try {
+        const acceptedTokens = await customSmartWalletRelayVerifier.methods.getAcceptedTokens().call({from: accounts[0]});
+        const index = acceptedTokens.indexOf(tokenAddress);
+        await customSmartWalletRelayVerifier.methods.removeToken(tokenAddress, index).send({from: accounts[0]});
+      } catch (error) {
+        const reason = error.hasOwnProperty('receipt') ? await getRevertReason(error.receipt.transactionHash) : error;
+        console.error("Error removing token with address " + tokenAddress + " from allowed tokens on custom smart wallet relay verifier", reason);
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    console.error("Failed to remove tokens");
+    return;
+  }
+  console.log("Tokens removed successfully!");
+}
+EOF
+
+truffle exec --network ${NETWORK_NAME} removeTokens.js
+
+rm removeTokens.js
