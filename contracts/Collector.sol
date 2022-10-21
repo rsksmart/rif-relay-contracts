@@ -7,17 +7,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Collector is ICollector {
-    address private remainderAddress;
-    RevenuePartner[] private partners;
+    address private _remainderAddress;
+    RevenuePartner[] private _partners;
     IERC20 public token;
     address public owner;
 
-    modifier validShares(RevenuePartner[] memory _partners) {
+    modifier validShares(RevenuePartner[] memory partners) {
         uint256 totalShares;
 
-        for (uint256 i = 0; i < _partners.length; i++) {
-            require(_partners[i].share > 0, "0 is not a valid share");
-            totalShares = totalShares + _partners[i].share;
+        for (uint256 i = 0; i < partners.length; i++) {
+            require(partners[i].share > 0, "0 is not a valid share");
+            totalShares = totalShares + partners[i].share;
         }
 
         require(totalShares == 100, "Shares must add up to 100%");
@@ -31,7 +31,7 @@ contract Collector is ICollector {
 
     modifier noBalanceToShare() {
         require(
-            token.balanceOf(address(this)) < partners.length,
+            token.balanceOf(address(this)) < _partners.length,
             "There is balance to share"
         );
         _;
@@ -40,31 +40,31 @@ contract Collector is ICollector {
     constructor(
         address _owner,
         IERC20 _token,
-        RevenuePartner[] memory _partners,
-        address _remainderAddress
-    ) public validShares(_partners) {
+        RevenuePartner[] memory partners,
+        address remainderAddress
+    ) public validShares(partners) {
         owner = _owner;
         token = _token;
-        remainderAddress = _remainderAddress;
-        for (uint256 i = 0; i < _partners.length; i++)
-            partners.push(_partners[i]);
+        _remainderAddress = remainderAddress;
+        for (uint256 i = 0; i < partners.length; i++)
+            _partners.push(partners[i]);
     }
 
-    function updateShares(RevenuePartner[] memory _partners)
+    function updateShares(RevenuePartner[] memory partners)
         external
-        validShares(_partners)
+        validShares(partners)
         onlyOwner
         noBalanceToShare
     {
-        delete partners;
+        delete _partners;
 
-        for (uint256 i = 0; i < _partners.length; i++)
-            partners.push(_partners[i]);
+        for (uint256 i = 0; i < partners.length; i++)
+            _partners.push(partners[i]);
     }
 
     //@notice Withdraw the actual remainder and then update the remainder's address
     //for a new one. This function is the only way to withdraw the remainder.
-    function updateRemainderAddress(address _remainderAddress)
+    function updateRemainderAddress(address remainderAddress)
         external
         onlyOwner
         noBalanceToShare
@@ -72,11 +72,11 @@ contract Collector is ICollector {
         uint256 balance = token.balanceOf(address(this));
 
         if (balance != 0) {
-            token.transfer(remainderAddress, balance);
+            token.transfer(_remainderAddress, balance);
         }
 
         // solhint-disable-next-line
-        remainderAddress = _remainderAddress;
+        _remainderAddress = remainderAddress;
     }
 
     function getBalance() external view returns (uint256) {
@@ -85,12 +85,12 @@ contract Collector is ICollector {
 
     function withdraw() external override onlyOwner {
         uint256 balance = token.balanceOf(address(this));
-        require(balance >= partners.length, "Not enough balance to split");
+        require(balance >= _partners.length, "Not enough balance to split");
 
-        for (uint256 i = 0; i < partners.length; i++)
+        for (uint256 i = 0; i < _partners.length; i++)
             token.transfer(
-                partners[i].beneficiary,
-                SafeMath.div(SafeMath.mul(balance, partners[i].share), 100)
+                _partners[i].beneficiary,
+                SafeMath.div(SafeMath.mul(balance, _partners[i].share), 100)
             );
     }
 

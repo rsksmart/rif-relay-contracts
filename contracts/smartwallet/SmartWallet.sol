@@ -17,7 +17,7 @@ contract SmartWallet is IForwarder {
     bytes32 public domainSeparator;
 
     constructor() public {
-        setOwner(msg.sender);
+        _setOwner(msg.sender);
     }
 
     function _buildDomainSeparator() internal {
@@ -34,7 +34,7 @@ contract SmartWallet is IForwarder {
         );
     }
 
-    function setOwner(address owner) private {
+    function _setOwner(address owner) private {
         //To avoid re-entrancy attacks by external contracts, the first thing we do is set
         //the variable that controls "is initialized"
         //We set this instance as initialized, by
@@ -268,7 +268,7 @@ contract SmartWallet is IForwarder {
     ) external {
         require(_getOwner() == bytes32(0), "already initialized");
 
-        setOwner(owner);
+        _setOwner(owner);
 
         //we need to initialize the contract
         if (tokenAmount > 0) {
