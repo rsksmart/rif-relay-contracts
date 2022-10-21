@@ -75,7 +75,10 @@ npx truffle --network <network_name> exec tasks/deploy-collector.js --collectorC
 
 #### Change partner shares
 
-Pre-requirements: the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector.
+Pre-requirements:
+- the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector;
+- there must be no shares to be distributed among the partners otherwise the transaction will fail; please be sure that the current balance is less than or equal to the number of partners;
+- only the owner can execute this transaction.
 
 The `change-partner-shares.js` is a utility script that can be run to change the partner shares of a collector already deployed. It receives the following parameters:
 - `collectorAddress`: mandatory, it's the address of the collector we want to change
