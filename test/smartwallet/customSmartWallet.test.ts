@@ -800,7 +800,7 @@ function createRequest(
         },            
         relayData:{
             gasPrice: '1',
-            relayWorker: ZERO_ADDRESS,
+            feesReceiver: ZERO_ADDRESS,
             callForwarder: ZERO_ADDRESS,
             callVerifier: ZERO_ADDRESS
         }
@@ -839,7 +839,7 @@ function createDeployRequest(
         },            
         relayData:{
             gasPrice: '1',
-            relayWorker: ZERO_ADDRESS,
+            feesReceiver: ZERO_ADDRESS,
             callForwarder: ZERO_ADDRESS,
             callVerifier: ZERO_ADDRESS
         }
@@ -998,6 +998,7 @@ describe('CustomSmartWallet', function(){
                 customSmartWalletFactory.connect(relayHub).relayedUserSmartWalletCreation(
                     deployRequest.request,
                     suffixData,
+                    owner.address,
                     signature
                 )
             ).to.be.rejectedWith('Unable to initialize SW');
@@ -1143,7 +1144,7 @@ describe('CustomSmartWallet', function(){
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             await expect(
-                mockCustomSmartWallet.execute(suffixData, relayRequest.request, signature)
+                mockCustomSmartWallet.execute(suffixData, relayRequest.request, owner.address, signature)
             ).to.be.rejectedWith('Invalid caller');
         });
 
@@ -1167,7 +1168,8 @@ describe('CustomSmartWallet', function(){
             await expect(
                 mockCustomSmartWallet.connect(relayHub).execute(
                     suffixData, 
-                    relayRequest.request, 
+                    relayRequest.request,
+                    owner.address,
                     signature
                 )
             ).to.be.rejectedWith('Unable to pay for relay');
@@ -1190,7 +1192,8 @@ describe('CustomSmartWallet', function(){
             await expect(
                 mockCustomSmartWallet.connect(relayHub).execute(
                     suffixData, 
-                    relayRequest.request, 
+                    relayRequest.request,
+                    owner.address,
                     signature
                 )
             ).to.be.rejectedWith('Not enough gas left');
@@ -1217,7 +1220,8 @@ describe('CustomSmartWallet', function(){
             await expect(
                 mockCustomSmartWallet.connect(relayHub).execute(
                     suffixData, 
-                    relayRequest.request, 
+                    relayRequest.request,
+                    owner.address,
                     signature
                 ),
                 'The transaction was reverted'
