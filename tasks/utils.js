@@ -120,11 +120,55 @@ const getPartnerAddresses = async (web3) => {
     return partners.map((partner) => partner['address']);
 };
 
+function printReceipt(txReceipt) {
+    const printLine = () => console.log('-'.repeat(98));
+
+    console.log('Transaction Receipt');
+    printLine();
+
+    const fieldsToPrint = ['transactionHash', 'from', 'blockNumber', 'gasUsed'];
+    fieldsToPrint.forEach((field) => {
+        console.log(
+            `> ${field} ` +
+                `${' '.repeat(20 - field.length)}` +
+                `| ${txReceipt[field]} ` +
+                `${' '.repeat(70 - txReceipt[field].toString().length)} |`
+        );
+    });
+    printLine();
+    console.log();
+}
+
+async function getRevertReason(txHash) {
+    const tx = await web3.eth.getTransaction(txHash);
+    const txBlockNumber = tx.blockNumber;
+    try {
+        delete tx['hash'];
+        delete tx['blockHash'];
+        delete tx['blockNumber'];
+        delete tx['transactionIndex'];
+        delete tx['v'];
+        delete tx['r'];
+        delete tx['s'];
+        let result = await web3.eth.call(tx, txBlockNumber);
+        result = result.startsWith('0x') ? result : '0x' + result;
+        if (result && result.substr(138)) {
+            return web3.utils.toAscii(result.substr(138));
+        } else {
+            return 'Cannot get reason - No return value';
+        }
+    } catch (reason) {
+        return reason;
+    }
+}
+
 module.exports = {
     getTestTokenInstance,
     getCollectorInstance,
     signWithAddress,
     contractNetworks,
     getTransactionReceipt,
-    getPartnerAddresses
+    getPartnerAddresses,
+    printReceipt,
+    getRevertReason
 };
