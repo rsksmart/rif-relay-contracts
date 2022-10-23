@@ -166,7 +166,7 @@ describe('RelayVerifier Contract', function () {
 
       await expect(
         relayVerifierMock.connect(other).acceptToken(fakeToken.address)
-      ).to.be.revertedWith('Ownable: caller is not the owner');
+      ).to.be.revertedWith('Caller is not the owner');
     });
   });
 
