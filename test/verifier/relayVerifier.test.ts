@@ -47,18 +47,29 @@ describe('RelayVerifier Contract', function () {
   });
 
   describe('acceptToken', function () {
-    it('should accept a token', async function () {
+    it('should map a token address into the tokens mapping', async function () {
       await relayVerifierMock.acceptToken(fakeToken.address);
+      const tokenMapValue = await relayVerifierMock.getVariable('tokens', [ fakeToken.address ]) as boolean;
 
-      const acceptsToken = await relayVerifierMock.acceptsToken(fakeToken.address);
+      expect(tokenMapValue).to.be.true;
+    });
 
-      expect(acceptsToken).to.be.true;
+    it('should push a token into the acceptedTokens array', async function () {
+      await relayVerifierMock.acceptToken(fakeToken.address);
+      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+
+      expect(acceptedTokens).to.include(fakeToken.address);
     });
 
     it('should revert if token is already accepted', async function () {
-      await relayVerifierMock.setVariable('tokens', {
-        [fakeToken.address]: true
-      })
+      await relayVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true
+          },
+          acceptedTokens: [ ethers.utils.getAddress(fakeToken.address) ]
+        }
+      );
       const result = relayVerifierMock.acceptToken(fakeToken.address);
 
       await expect(result).to.be.revertedWith('Token is already accepted');
@@ -69,6 +80,85 @@ describe('RelayVerifier Contract', function () {
 
       await expect(result).to.be
         .revertedWith('Token cannot be zero address');
+    });
+
+    it('should revert if caller is not the owner', async function () {
+      const [, other] = await ethers.getSigners();
+
+      await expect(
+        relayVerifierMock.connect(other).acceptToken(fakeToken.address)
+      ).to.be.revertedWith('Caller is not the owner');
+    });
+  });
+
+  describe('removeToken', function () {
+
+    it('should remove a token from tokens map', async function () {
+
+      await relayVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true
+          },
+          acceptedTokens: [ ethers.utils.getAddress(fakeToken.address) ]
+        }
+      );
+
+      await relayVerifierMock.removeToken(fakeToken.address, 0);
+
+      const tokenMapValue = await relayVerifierMock.getVariable('tokens', [ fakeToken.address ]) as boolean;
+
+      expect(tokenMapValue).to.be.false;
+    });
+
+    it('should remove a token from acceptedTokens array', async function () {
+
+      await relayVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true
+          },
+          acceptedTokens: [ fakeToken.address ]
+        }
+      );
+
+      await relayVerifierMock.removeToken(fakeToken.address, 0);
+
+      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+
+      expect(acceptedTokens).to.not.contain(fakeToken.address);
+    });
+
+    it('should revert if token is not currently previously accepted', async function () {
+      const result = relayVerifierMock.removeToken(fakeToken.address, 0);
+
+      await expect(result).to.be.revertedWith('Token is not accepted');
+    });
+
+    it('should revert if token removed is ZERO ADDRESS', async function () {
+      const result = relayVerifierMock.removeToken(constants.AddressZero, 0);
+
+      await expect(result).to.be
+        .revertedWith('Token cannot be zero address');
+    });
+
+    it('should revert if token index does not correspond to token address to be removed', async function () {
+
+      const fakeToken1 = await smock.fake<ERC20>('ERC20');
+
+      await relayVerifierMock.setVariables(
+        {
+          tokens: {
+            [fakeToken.address]: true,
+            [fakeToken1.address]: true,
+          },
+          acceptedTokens: [ fakeToken.address, fakeToken1.address ]
+        }
+      );
+
+      const result = relayVerifierMock.removeToken(fakeToken.address, 1);
+      await expect(result).to.be
+      .revertedWith('Wrong token index');
     });
 
     it('should revert if caller is not the owner', async function () {
