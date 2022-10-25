@@ -94,7 +94,7 @@ contract DeployVerifier is IDeployVerifier, ITokenHandler, Ownable {
 
     function removeToken(address token, uint256 index) external onlyOwner {
         require(token != address(0), "Token cannot be zero address");
-        require(tokens[token] == true, "Token is not accepted");
+        require(tokens[token], "Token is not accepted");
         require(token == acceptedTokens[index], "Wrong token index");
         delete tokens[token];
         acceptedTokens[index] = acceptedTokens[acceptedTokens.length - 1];
