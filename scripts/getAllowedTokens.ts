@@ -1,13 +1,7 @@
-import { ContractTransaction } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { getExistingConfig } from './deploy';
 
-export const allowTokens = async (
-  taskArgs: { tokenlist: string },
-  hre: HardhatRuntimeEnvironment
-) => {
-  const tokenAddresses = taskArgs.tokenlist.split(',');
-
+export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
   const { ethers, network } = hre;
 
   if (!network) {
@@ -72,24 +66,20 @@ export const allowTokens = async (
 
   const verifierMap: Map<
     string,
-    { acceptToken: (tokenAddress: string) => Promise<ContractTransaction> }
+    { getAcceptedTokens: () => Promise<string[]> }
   > = new Map();
   verifierMap.set('deployVerifier', deployVerifier);
   verifierMap.set('relayVerifier', relayVerifier);
   verifierMap.set('customDeployVerifier', customDeployVerifier);
   verifierMap.set('customRelayVerifier', customRelayVerifier);
 
-  for (const tokenAddress of tokenAddresses) {
-    for (const [key, verifier] of verifierMap) {
-      try {
-        await verifier.acceptToken(tokenAddress);
-      } catch (error) {
-        console.error(
-          `Error adding token with address ${tokenAddress} to allowed tokens on ${key}`
-        );
-        throw error;
-      }
+  for (const [key, verifier] of verifierMap) {
+    try {
+      const allowedTokens = await verifier.getAcceptedTokens();
+      console.log(key, allowedTokens);
+    } catch (error) {
+      console.error(`Error getting allowed tokens for ${key}`);
+      throw error;
     }
   }
-  console.log('Tokens allowed successfully!');
 };

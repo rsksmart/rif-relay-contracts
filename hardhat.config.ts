@@ -6,6 +6,7 @@ import '@nomiclabs/hardhat-ethers';
 import { allowTokens } from './scripts/allowTokens';
 import { deploy } from './scripts/deploy';
 import { HardhatUserConfig, task } from 'hardhat/config';
+import { getAllowedTokens } from './scripts/getAllowedTokens';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -81,10 +82,16 @@ task('deploy', 'Deploys rif-relay contracts to selected network')
   }
 );
 
-task('allow-tokens', 'allows a list of tokens')
+task('allow-tokens', 'Allows a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
   .setAction(async (taskArgs: { tokenlist: string }, hre) => {
     await allowTokens(taskArgs, hre);
+  }
+);
+
+task('allowed-tokens', 'Retrieves a list of allowed tokens')
+  .setAction(async (taskArgs, hre) => {
+    await getAllowedTokens(hre);
   }
 );
 

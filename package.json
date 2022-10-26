@@ -54,6 +54,7 @@
   ],
   "scripts": {
     "allow-tokens": "hardhat allow-tokens --network",
+    "allowed-tokens": "hardhat allowed-tokens --network",
     "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
     "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
     "ci:test": "npm run compile && npm run test",
