@@ -22,6 +22,7 @@ interface IWalletCustomLogic {
     function execute(
         bytes32 suffixData,
         IForwarder.ForwardRequest calldata forwardRequest,
+        address feesReceiver,
         bytes calldata signature
     )
     external payable

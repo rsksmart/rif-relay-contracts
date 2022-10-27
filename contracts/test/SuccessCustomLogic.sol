@@ -26,9 +26,10 @@ contract SuccessCustomLogic is IWalletCustomLogic {
     function execute(
         bytes32 suffixData,
         IForwarder.ForwardRequest memory req,
+        address feesReceiver,
         bytes calldata sig
     ) override external payable returns (bytes memory ret) {
-        emit LogicCalled();     
+        emit LogicCalled();
         ret = "success";
     }
 
