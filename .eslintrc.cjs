@@ -51,6 +51,19 @@ module.exports = {
     "mocha/no-skipped-tests": "warn",
     "mocha/no-empty-description": "off",
     "mocha/no-exclusive-tests": "error",
-    "@typescript-eslint/no-unsafe-member-access": "warn"
+    "@typescript-eslint/no-unsafe-member-access": "warn",
   },
+  // FIXME: we need to fix those rules in the test files
+  overrides: [
+    {
+      files: ["test/**"],
+      rules: {
+        "@typescript-eslint/no-unsafe-assignment": "warn",
+        "@typescript-eslint/no-unsafe-call": "warn",
+        "@typescript-eslint/no-unsafe-argument": "warn",
+        "@typescript-eslint/no-unsafe-return": "warn",
+        "@typescript-eslint/restrict-template-expressions": "warn",
+      },
+    },
+  ],
 };
