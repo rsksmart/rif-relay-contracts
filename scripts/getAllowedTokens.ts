@@ -21,14 +21,18 @@ export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
   }
 
   const networkChainKey = `${network.name}.${chainId}`;
+  const contractAddressesDeployed = contractAddresses[networkChainKey];
+  if ( !contractAddressesDeployed) {
+    throw new Error(`Contracts not deployed for chain ID ${chainId}`);
+  }
 
   const deployVerifierAddress =
-    contractAddresses[networkChainKey].DeployVerifier;
-  const relayVerifierAddress = contractAddresses[networkChainKey].RelayVerifier;
+    contractAddressesDeployed.DeployVerifier;
+  const relayVerifierAddress = contractAddressesDeployed.RelayVerifier;
   const customDeployVerifierAddress =
-    contractAddresses[networkChainKey].CustomSmartWalletDeployVerifier;
+    contractAddressesDeployed.CustomSmartWalletDeployVerifier;
   const customRelayVerifierAddress =
-    contractAddresses[networkChainKey].CustomSmartWalletRelayVerifier;
+    contractAddressesDeployed.CustomSmartWalletRelayVerifier;
 
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');

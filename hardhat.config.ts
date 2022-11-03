@@ -77,7 +77,7 @@ const config: HardhatUserConfig = {
 };
 
 task('deploy', 'Deploys rif-relay contracts to selected network')
-  .setAction(async (args, hre) => {
+  .setAction(async (_, hre) => {
     await deploy(hre);
   }
 );
@@ -90,7 +90,7 @@ task('allow-tokens', 'Allows a list of tokens')
 );
 
 task('allowed-tokens', 'Retrieves a list of allowed tokens')
-  .setAction(async (taskArgs, hre) => {
+  .setAction(async (_, hre) => {
     await getAllowedTokens(hre);
   }
 );

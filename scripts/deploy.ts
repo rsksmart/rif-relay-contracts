@@ -2,7 +2,7 @@ import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
 
-const ADDRESS_FILE = process.env.ADDRESS_FILE || 'contract-addresses.json';
+const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export const getExistingConfig = () => {
   try {
@@ -14,6 +14,7 @@ export const getExistingConfig = () => {
   } catch (e) {
     console.warn(e);
   }
+  throw new Error(`File ${ADDRESS_FILE} not found`);
 };
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
@@ -31,7 +32,11 @@ export const updateConfig = (
   if (!network) {
     throw new Error('Unknown Network');
   }
-  const { chainId } = networks[network];
+  const networkConfig = networks[network];
+  if (!networkConfig) {
+    throw new Error(`No network configuration found for ${network}`);
+  }
+  const { chainId } = networkConfig;
 
   if (!chainId) {
     throw new Error('Unknown Chain Id');
