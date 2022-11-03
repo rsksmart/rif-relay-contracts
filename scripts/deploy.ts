@@ -14,7 +14,8 @@ export const getExistingConfig = () => {
   } catch (e) {
     console.warn(e);
   }
-  throw new Error(`File ${ADDRESS_FILE} not found`);
+
+  return {};
 };
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
