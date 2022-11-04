@@ -52,6 +52,7 @@ module.exports = {
     "mocha/no-empty-description": "off",
     "mocha/no-exclusive-tests": "error",
     "@typescript-eslint/no-unsafe-member-access": "warn",
+    "eol-last": ["error", "always"]
   },
   // FIXME: we need to fix those rules in the test files
   overrides: [
