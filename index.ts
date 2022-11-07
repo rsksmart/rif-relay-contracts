@@ -1,4 +1,2 @@
-import * as deployment from './scripts/deploy';
-import * as types from './typechain-types';
-
-export { types, deployment };
+export * from './typechain-types'; 
+export * from './scripts/deploy';
