@@ -1,38 +1,40 @@
-// import { use, expect } from 'chai';
-// import chaiAsPromised from 'chai-as-promised';
+import { MockContract, smock } from '@defi-wonderland/smock';
+import { SmartWallet, SmartWallet__factory } from 'typechain-types';
+import chai, { expect} from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import {ethers as hardhat} from 'hardhat';
 
-// import { SmartWalletInstance } from '../../types/truffle-contracts';
-// import { constants } from '../constants';
+chai.use(smock.matchers);
+chai.use(chaiAsPromised);
 
-// use(chaiAsPromised);
+const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-// const SmartWallet = artifacts.require('SmartWallet');
+describe('SmartWallet template', function(){
+    describe('Function initialize()', function() {
+        let smartWalletMock: MockContract<SmartWallet>;
 
-// contract('SmartWallet - template', ([owner]) => {
-//     describe('initialize', () => {
-//         let smartWallet: SmartWalletInstance;
+        beforeEach(async function(){
+            const smartWalletFactoryMock = 
+                await smock.mock<SmartWallet__factory>('CustomSmartWallet');
+        
+            smartWalletMock = await smartWalletFactoryMock.deploy();
+        });
 
-//         beforeEach(async () => {
-//             smartWallet = await SmartWallet.new();
-//         });
+        it('Should be initialized during the deployment', async function(){
+            expect(await smartWalletMock.isInitialized()).to.be.true;
+        });
 
-//         it('Should be initialized during the deployment', async () => {
-//             await expect(smartWallet.isInitialized()).to.eventually.be.true;
-//         });
-
-//         it('Should verify method initialize fails when contract has already deployed', async () => {
-//             const tokenAddress = constants.ZERO_ADDRESS;
-//             const recipient = constants.ZERO_ADDRESS;
-
-//             await expect(
-//                 smartWallet.initialize(
-//                     owner,
-//                     tokenAddress,
-//                     recipient,
-//                     '0',
-//                     '5000'
-//                 )
-//             ).to.be.rejectedWith('already initialized');
-//         });
-//     });
-// });
+        it('Should fail to initialize if alredy initialized', async function(){
+            const[owner] = await hardhat.getSigners();
+            await expect(smartWalletMock.initialize(
+                owner.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                '0',
+                '50000',
+                '0x'
+            )).to.be.rejectedWith('already initialized');
+        });
+    });
+});

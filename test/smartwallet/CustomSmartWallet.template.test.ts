@@ -9,7 +9,7 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-describe('CustomSmartWalletTemplate', function(){
+describe('CustomSmartWallet template', function(){
     describe('Function initialize()', function() {
         let customSmartWalletMock: MockContract<CustomSmartWallet>;
 

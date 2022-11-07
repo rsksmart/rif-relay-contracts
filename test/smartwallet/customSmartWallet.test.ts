@@ -133,7 +133,7 @@ function buildDomainSeparator(address: string ){
     return hardhat.utils._TypedDataEncoder.hashDomain(domainSeparator);
 }
 
-describe('CustomSmartWallet', function(){
+describe('CustomSmartWallet contract', function(){
     //This function is being tested as an integration test due to the lack
     //of tools for properly creating unit testing in these specific scenarios
     describe('Function initialize()', function(){

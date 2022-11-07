@@ -3,29 +3,43 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai, { expect} from 'chai';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { TypedDataUtils } from '@metamask/eth-sig-util';
 import {
     getLocalEip712Signature,
-    TypedRequestData} from '../utils/EIP712Utils';
+    TypedRequestData,
+    TypedDeployRequestData,
+    getLocalEip712DeploySignature} from '../utils/EIP712Utils';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
 import { Wallet } from 'ethers';
-import { SmartWallet } from 'typechain-types';
+import { 
+    SmartWallet, 
+    SmartWalletFactory,
+    ERC20,
+    SmartWallet__factory} from 'typechain-types';
 import { BaseProvider } from '@ethersproject/providers';
 import { EnvelopingTypes, IForwarder } from 'typechain-types/contracts/RelayHub';
+import { MockContract } from '@defi-wonderland/smock';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 const ONE_FIELD_IN_BYTES = 32;
+const HARDHAT_CHAIN_ID = 31337;
 
 type ForwardRequest = IForwarder.ForwardRequestStruct;
 type RelayData = EnvelopingTypes.RelayDataStruct;
 type RelayRequest = EnvelopingTypes.RelayRequestStruct;
+type DeployRequest = EnvelopingTypes.DeployRequestStruct;
+type DeployRequestInternal = IForwarder.DeployRequestStruct;
 
-// TODO: Those tests need to be changed due to REL-002 fix
-describe('SmartWallet', function(){
+describe('SmartWallet contract', function(){
+    let smartWalletFactory: SmartWalletFactory;
+    let provider: BaseProvider;
+    let owner: Wallet;
+    let relayHub: SignerWithAddress;
+    let fakeToken: FakeContract<ERC20>;
+
     function createRequest(
         request: Partial<ForwardRequest>,
         relayData?: Partial<RelayData>
@@ -62,6 +76,55 @@ describe('SmartWallet', function(){
             }
         };
     }
+
+    function createDeployRequest(
+        request: Partial<DeployRequestInternal>,
+        relayData?: Partial<RelayData>
+    ): DeployRequest {
+        const baseRequest = {
+            request:{
+                relayHub: ZERO_ADDRESS,
+                from: ZERO_ADDRESS,
+                to: ZERO_ADDRESS,
+                tokenContract: ZERO_ADDRESS,
+                recoverer: ZERO_ADDRESS,
+                value: '0',
+                nonce: '0',
+                tokenAmount: '0',
+                tokenGas: '50000',
+                index: '0',
+                data: '0x'
+            },            
+            relayData:{
+                gasPrice: '1',
+                feesReceiver: ZERO_ADDRESS,
+                callForwarder: ZERO_ADDRESS,
+                callVerifier: ZERO_ADDRESS
+            }
+        };
+    
+        return {
+            request: {
+                ...baseRequest.request,
+                ...request,
+            },
+            relayData: {
+                ...baseRequest.relayData,
+                ...relayData,
+            }
+        };
+    }
+
+    function buildDomainSeparator(address: string ){
+        const domainSeparator = {
+            name: 'RSK Enveloping Transaction',
+            version: '2',
+            chainId: HARDHAT_CHAIN_ID,
+            verifyingContract: address
+        };
+
+        return hardhat.utils._TypedDataEncoder.hashDomain(domainSeparator);
+    }
     
     function getSuffixData(typedRequestData: TypedRequestData):string{
         const encoded =TypedDataUtils.encodeData(
@@ -76,245 +139,360 @@ describe('SmartWallet', function(){
         return '0x'+(encoded.slice(messageSize * ONE_FIELD_IN_BYTES)).toString('hex');
     }
 
-    describe('Function initialize()', function(){
-        let fakeToken: FakeContract;
-        let owner: SignerWithAddress;
-        let worker: SignerWithAddress;
+    async function createSmartWalletFactory(owner: Wallet){
+        const smartWalletTemplateFactory = await hardhat.getContractFactory('SmartWallet');
 
-        async function prepareFixture(){
-            const smartWalletFactory =await hardhat.getContractFactory('SmartWallet');
-            const smartWallet = await smartWalletFactory.deploy();
-        
-            return {smartWallet};
+        const smartWalletTemplate = await smartWalletTemplateFactory.deploy();
+
+        const smartWalletFactoryFactory = await hardhat.getContractFactory('SmartWalletFactory');
+
+        smartWalletFactory = await smartWalletFactoryFactory.connect(owner).deploy(smartWalletTemplate.address);
+    }
+
+    //This function is being tested as an integration test because of the lack of tools to unit test it
+    describe('Function initialize()', function(){
+        function signData(
+            dataTypesToSign: Array<string>,
+            valuesToSign: Array<string | number>
+        ){
+            const privateKey =  Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+            const toSign = hardhat.utils.solidityKeccak256(
+                dataTypesToSign,
+                valuesToSign
+            );
+            const toSignAsBinaryArray = hardhat.utils.arrayify(toSign);
+            const signingKey = new hardhat.utils.SigningKey(privateKey);
+            const signature = signingKey.signDigest(toSignAsBinaryArray);
+
+            return hardhat.utils.joinSignature(signature);
+        }
+
+        async function getAlreadyDeployedSmartWallet(){
+            const smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
+                owner.address,
+                ZERO_ADDRESS,
+                0,
+            );
+
+            return await hardhat.getContractAt('SmartWallet', smartWalletAddress);
         }
 
         beforeEach(async function(){
-            [owner, worker] = await hardhat.getSigners();
+            let fundedAccount: SignerWithAddress;
+            [relayHub, fundedAccount] = await hardhat.getSigners();
+
+            provider = hardhat.provider;
+            owner = hardhat.Wallet.createRandom().connect(provider);
+            
+            //Fund the owner
+            await fundedAccount.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
+            await createSmartWalletFactory(owner);
+
             fakeToken = await smock.fake('ERC20');
+        });
+
+        it('Should initialize a SmartWallet', async function(){
+            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
+            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
+
+            const signature = signData(dataTypesToSign, valuesToSign);
+
+            await smartWalletFactory.createUserSmartWallet(
+                owner.address,
+                ZERO_ADDRESS,
+                '0',
+                signature
+            );
+
+            const smartWallet = await getAlreadyDeployedSmartWallet();
+
+            expect(await smartWallet.isInitialized()).to.be.true;
+        });
+
+        it('Should call transfer on not sponsored deployment', async function(){
+            const deployRequest = createDeployRequest({
+                relayHub: relayHub.address,
+                from: owner.address,
+                nonce: '0',
+                tokenGas: '1',
+                tokenAmount: '1',
+                tokenContract: fakeToken.address
+            });
+            
+            const typedDeployData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWalletFactory.address, deployRequest);
+
+            const suffixData = getSuffixData(typedDeployData);
+
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+            const signature = getLocalEip712DeploySignature(typedDeployData, privateKey);
+            
             fakeToken.transfer.returns(true);
-        });
+            
+            await smartWalletFactory.connect(relayHub).relayedUserSmartWalletCreation(
+                deployRequest.request,
+                suffixData,
+                owner.address,
+                signature
+            );            
 
-        it.skip('Should initialize with the correct parameters', async function () {
-            const  {smartWallet} = await loadFixture(prepareFixture);
-
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
-            expect(await smartWallet.isInitialized(), 'Contract not initialized').to.be.true;            
-        });
-
-        it.skip('Should call transfer on not sponsored deployment', async function(){
-            const {smartWallet} = await loadFixture(prepareFixture);
-
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000);
             expect(fakeToken.transfer).to.be.called;
-        });
+        })
 
-        it.skip('Should not call transfer on sponsored deployment', async function(){
-            const {smartWallet} = await loadFixture(prepareFixture);
+        it('Should not call transfer on sponsored deployment', async function(){
+            const deployRequest = createDeployRequest({
+                relayHub: relayHub.address,
+                from: owner.address,
+                nonce: '0',
+                tokenGas: '0',
+                tokenAmount: '0',
+                tokenContract: fakeToken.address
+            });
+            
+            const typedDeployData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWalletFactory.address, deployRequest);
 
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
+            const suffixData = getSuffixData(typedDeployData);
+
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+            const signature = getLocalEip712DeploySignature(typedDeployData, privateKey);
+            
+            fakeToken.transfer.returns(true);
+            
+            await smartWalletFactory.connect(relayHub).relayedUserSmartWalletCreation(
+                deployRequest.request,
+                suffixData,
+                owner.address,
+                signature
+            );            
 
             expect(fakeToken.transfer).not.to.be.called;
-        });
+        })
 
-        it('Should fail to initialize a contract when it is already initialized', async function(){
-            const {smartWallet} = await loadFixture(prepareFixture);
+        it('Should fail to initialize a SmartWallet twice', async function(){
+            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
+            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
+
+            const signature = signData(dataTypesToSign, valuesToSign);
+
+            await smartWalletFactory.createUserSmartWallet(
+                owner.address,
+                ZERO_ADDRESS,
+                '0',
+                signature
+            );
+
+            const smartWallet = await getAlreadyDeployedSmartWallet();
 
             await expect(
-                smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000),
+                smartWallet.initialize(owner.address, fakeToken.address, ZERO_ADDRESS, 10, 400000),
                 'Second initialization not rejected'
             ).to.be.revertedWith('already initialized');
         });
 
         it('Should create the domainSeparator', async function () {
-            const  {smartWallet} = await loadFixture(prepareFixture);
+            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
+            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
+            
+            const signature = signData(dataTypesToSign, valuesToSign);
+
+            await smartWalletFactory.createUserSmartWallet(
+                owner.address,
+                ZERO_ADDRESS,
+                '0',
+                signature
+            );
+
+            const smartWallet = await getAlreadyDeployedSmartWallet();
 
             expect(await smartWallet.domainSeparator()).to.be.properHex(64);
         });
 
-        it.skip('Should fail when the token transfer method fails', async function () {
-            const  {smartWallet} = await loadFixture(prepareFixture);
+        it('Should fail when the token transfer method fails', async function () {
+            const deployRequest = createDeployRequest({
+                relayHub: relayHub.address,
+                from: owner.address,
+                nonce: '0',
+                tokenGas: '1',
+                tokenAmount: '1',
+                tokenContract: fakeToken.address
+            });
+            
+            const typedDeployData = new TypedDeployRequestData(HARDHAT_CHAIN_ID, smartWalletFactory.address, deployRequest);
 
+            const suffixData = getSuffixData(typedDeployData);
+
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+            const signature = getLocalEip712DeploySignature(typedDeployData, privateKey);
+            
             fakeToken.transfer.returns(false);
-
+            
             await expect(
-                smartWallet.initialize(owner.address, fakeToken.address, worker.address, 10, 400000),
-                'Deployment should be reverted'
-            ).to.be.revertedWith('Unable to pay for deployment');
+                smartWalletFactory.connect(relayHub).relayedUserSmartWalletCreation(
+                    deployRequest.request,
+                    suffixData,
+                    owner.address,
+                    signature
+                )
+            ).to.be.revertedWith('Unable to initialize SW');
         });
     });
 
-    describe.skip('Function verify()', function(){
-        const HARDHAT_CHAIN_ID = 31337;
-        const FAKE_PRIVATE_KEY = 'da1294b386f1c04cd3276ef3298ef122f226472a55f241d22f924bdc19f92379';
+    describe('Function verify()', function(){
+        let mockSmartWallet: MockContract<SmartWallet>;
+        let provider: BaseProvider;
+        let owner: Wallet;
 
-        let fakeToken: FakeContract;
-        let smartWallet: SmartWallet;
-        let privateKey: Buffer;
-        let worker: SignerWithAddress;
-        let utilSigner: SignerWithAddress;
-        let externalWallet: Wallet;
+        beforeEach(async function(){
+            const [, fundedAccount] = await hardhat.getSigners();
 
-        async function prepareFixture(){
-            const smartWalletFactory =await hardhat.getContractFactory('SmartWallet');
-            smartWallet = await smartWalletFactory.deploy();
+            const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>('CustomSmartWallet');
 
-            const provider = hardhat.getDefaultProvider();
-            externalWallet =  hardhat.Wallet.createRandom();
-            externalWallet.connect(provider);
-        }
+            provider = hardhat.provider;
+            owner = hardhat.Wallet.createRandom().connect(provider);
 
-        beforeEach(async function(){            
-            await loadFixture(prepareFixture);
+            //Fund the owner
+            await fundedAccount.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
+            mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy(); 
 
-            [, worker, utilSigner] = await hardhat.getSigners();
-
-            fakeToken = await smock.fake('ERC20');
-            fakeToken.transfer.returns(true);
-
-            await smartWallet.initialize(externalWallet.address, fakeToken.address, worker.address, 10, 400000);
-
-            privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
+            const domainSeparator = buildDomainSeparator(mockSmartWallet.address);
+            await mockSmartWallet.setVariable('domainSeparator', domainSeparator);
         });
 
-        it('Should verify a valid transaction', async function(){
+        it('Should verify a transaction', async function(){ 
             const relayRequest = createRequest({
-                from: externalWallet.address,
-                tokenContract: fakeToken.address
+                from: owner.address,
+                nonce: '0'
             });
-
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
-
-            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);
+            
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
 
             const suffixData = getSuffixData(typedRequestData);
-
+            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
             await expect(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                "Verification failed"
+                mockSmartWallet.verify(suffixData, relayRequest.request, signature)
             ).not.to.be.rejected;
         });
 
         it('Should fail when not called by the owner', async function(){
+            const notTheOwner =  hardhat.Wallet.createRandom();
+            notTheOwner.connect(provider);
+            
             const relayRequest = createRequest({
-                from: utilSigner.address,
-                tokenContract: fakeToken.address
-            },{});
-
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
-
-            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+                from: notTheOwner.address
+            });
+            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, notTheOwner.address, relayRequest);
+            
+            const privateKey = Buffer.from(notTheOwner.privateKey.substring(2, 66), 'hex');
 
             const suffixData = getSuffixData(typedRequestData);
-
+            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
             await expect(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                'The verification was not rejected'
-            ).to.be.revertedWith('Not the owner of the SmartWallet');
+                mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+            ).to.be.rejectedWith('Not the owner of the SmartWallet');
         });
 
-        it('Should fail when the nonce is incorrect', async function(){
+        it('Should fail when the nonce is wrong', async function(){
             const relayRequest = createRequest({
-                from: externalWallet.address,
-                nonce: '1',
-                tokenContract: fakeToken.address
+                from: owner.address,
+                nonce: '2'
             });
-
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
-
-            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, owner.address, relayRequest);
+            
+            const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
 
             const suffixData = getSuffixData(typedRequestData);
-
+            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
             await expect(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                "Verification failed"
-            ).to.be.revertedWith('nonce mismatch');
+                mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+            ).to.be.rejectedWith('nonce mismatch');
         });
 
-        it('Should fail when the signature is incorrect', async function(){
+        it('Should fail when the signature is wrong', async function(){
+            const notTheOwner =  hardhat.Wallet.createRandom();
+            notTheOwner.connect(provider);
+            
             const relayRequest = createRequest({
-                from: externalWallet.address,
-                tokenContract: fakeToken.address
+                from: owner.address
             });
-
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);
-
-            const fakePrivateKey = Buffer.from(FAKE_PRIVATE_KEY, 'hex');
-
-            const signature = getLocalEip712Signature(typedRequestData, fakePrivateKey);
+            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, owner.address, relayRequest);
+            
+            const privateKey = Buffer.from(notTheOwner.privateKey.substring(2, 66), 'hex');
 
             const suffixData = getSuffixData(typedRequestData);
-
+            const signature = getLocalEip712Signature(typedRequestData, privateKey);
+            
             await expect(
-                smartWallet.verify(suffixData, relayRequest.request, signature),
-                'Verification failed'
-            ).to.be.revertedWith('Signature mismatch');
+                mockSmartWallet.verify(suffixData, relayRequest.request, signature)
+            ).to.be.rejectedWith('Signature mismatch');
         });
     });
 
-    describe.skip('Function execute()', function(){
-        const HARDHAT_CHAIN_ID = 31337;
-
-        let fakeToken: FakeContract;
+    describe('Function execute()', function(){
+        let mockSmartWallet: MockContract<SmartWallet>;
+        let provider: BaseProvider;
+        let owner: Wallet;
         let recipient: FakeContract;
-        let smartWallet: SmartWallet;
+        let recipientFunction: string;
         let privateKey: Buffer;
         let worker: SignerWithAddress;
-        let externalWallet: Wallet;
-        let relayHub: SignerWithAddress;
-        let recipientFunction: string;
-        let provider: BaseProvider;
 
-        async function prepareFixture(){
-            const smartWalletFactory = await hardhat.getContractFactory('SmartWallet');
-            smartWallet = await smartWalletFactory.deploy();
+        beforeEach(async function(){
+            let fundedAccount: SignerWithAddress;
+            [relayHub, fundedAccount, worker] = await hardhat.getSigners();
 
-            provider = hardhat.getDefaultProvider();
-            externalWallet =  hardhat.Wallet.createRandom();
-            externalWallet.connect(provider);
+            const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>('CustomSmartWallet');
+
+            provider = hardhat.provider;
+            owner = hardhat.Wallet.createRandom().connect(provider);
+
+            //Fund the owner
+            await fundedAccount.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
+            mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy(); 
+
+            const domainSeparator = buildDomainSeparator(mockSmartWallet.address);
+            await mockSmartWallet.setVariable('domainSeparator', domainSeparator);
+
+            recipient = await smock.fake('SmartWallet');
+            recipient.isInitialized.returns(true);
 
             const ABI = ['function isInitialized()'];
             const abiInterface = new hardhat.utils.Interface(ABI);
             recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
-        }
 
-        beforeEach(async function(){            
-            await loadFixture(prepareFixture);
-
-            [relayHub, worker] = await hardhat.getSigners();
-
-            privateKey = Buffer.from(externalWallet.privateKey.substring(2, 66), 'hex');
+            privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
 
             fakeToken = await smock.fake('ERC20');
             fakeToken.transfer.returns(true);
-
-            recipient = await smock.fake('SmartWallet');
-            recipient.isInitialized.returns(true);
-            
-            await smartWallet.initialize(externalWallet.address, fakeToken.address, worker.address, 0, 0);
         });
 
         it('Should execute a sponsored transaction', async function(){
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
-                from: externalWallet.address,
+                from: owner.address,
                 to: recipient.address,
                 tokenAmount: '10',
                 tokenGas: '40000',
                 tokenContract: fakeToken.address,
                 data: recipientFunction
             },{
-                callForwarder: smartWallet.address
+                callForwarder: mockSmartWallet.address
             });
 
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);            
 
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
+                mockSmartWallet.connect(relayHub).execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -325,24 +503,24 @@ describe('SmartWallet', function(){
         it('Should execute a not sponsored transaction', async function(){
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
-                from: externalWallet.address,
+                from: owner.address,
                 to: recipient.address,
                 tokenAmount: '0',
                 tokenGas: '0',
                 tokenContract: fakeToken.address,
                 data: recipientFunction
             },{
-                callForwarder: smartWallet.address
+                callForwarder: mockSmartWallet.address
             });
 
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);            
 
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
+                mockSmartWallet.connect(relayHub).execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -355,7 +533,7 @@ describe('SmartWallet', function(){
 
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
-                from: externalWallet.address,
+                from: owner.address,
                 to: recipient.address,
                 tokenAmount: '10',
                 tokenGas: '40000',
@@ -363,21 +541,21 @@ describe('SmartWallet', function(){
                 data: recipientFunction,
                 nonce: initialNonce.toString()
             },{
-                callForwarder: smartWallet.address
+                callForwarder: mockSmartWallet.address
             });
 
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);            
 
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
+                mockSmartWallet.connect(relayHub).execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution failed'
             ).not.to.be.rejected;
 
-            expect(await smartWallet.nonce(), 'Nonce was not incremented').to.equal(initialNonce+1);
+            expect(await mockSmartWallet.nonce(), 'Nonce was not incremented').to.equal(initialNonce+1);
         });
 
         it('Should fail if not called by the relayHub', async function(){
@@ -386,24 +564,24 @@ describe('SmartWallet', function(){
 
             const relayRequest = createRequest({
                 relayHub: notTheRelayHub.address,
-                from: externalWallet.address,
+                from: owner.address,
                 to: recipient.address,
                 tokenAmount: '10',
                 tokenGas: '40000',
                 tokenContract: fakeToken.address,
                 data: recipientFunction
             },{
-                callForwarder: smartWallet.address
+                callForwarder: mockSmartWallet.address
             });
 
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);            
 
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
+                mockSmartWallet.connect(relayHub).execute(suffixData, relayRequest.request, worker.address, signature),
                 'The execution did not fail'
             ).to.be.rejectedWith('Invalid caller');
         });
@@ -411,98 +589,89 @@ describe('SmartWallet', function(){
         it('Should fail when gas is not enough', async function(){
             const relayRequest = createRequest({
                 relayHub: relayHub.address,
-                from: externalWallet.address,
+                from: owner.address,
                 to: recipient.address,
                 tokenAmount: '10',
                 gas: '10000000000',
                 tokenContract: fakeToken.address,
                 data: recipientFunction
             },{
-                callForwarder: smartWallet.address
+                callForwarder: mockSmartWallet.address
             });
 
-            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, smartWallet.address, relayRequest);            
+            const typedRequestData = new TypedRequestData(HARDHAT_CHAIN_ID, mockSmartWallet.address, relayRequest);            
 
             const signature = getLocalEip712Signature(typedRequestData, privateKey);
 
             const suffixData = getSuffixData(typedRequestData);
 
             await expect(
-                smartWallet.execute(suffixData, relayRequest.request, worker.address, signature),
+                mockSmartWallet.connect(relayHub).execute(suffixData, relayRequest.request, worker.address, signature),
                 'Execution should fail'
             ).to.be.rejectedWith('Not enough gas left');
         });
     });
 
-    describe.skip('Function directExecute()', function(){
-        let fakeToken: FakeContract;
-        let recipient: FakeContract;
-        let smartWallet: SmartWallet;
-        let worker: SignerWithAddress;
-        let externalWallet: Wallet;
-        let owner: SignerWithAddress;
-        let recipientFunction: string;
+    describe('Function directKExecute()', function(){
+        let mockSmartWallet: MockContract<SmartWallet>;
         let provider: BaseProvider;
+        let owner: Wallet;
+        let recipient: FakeContract;
+        let recipientFunction: string;
         let utilWallet: SignerWithAddress;
 
-        async function prepareFixture(){
-            const smartWalletFactory = await hardhat.getContractFactory('SmartWallet');
-            smartWallet = await smartWalletFactory.deploy();
+        beforeEach(async function(){
+            let fundedAccount: SignerWithAddress;
+            [relayHub, fundedAccount, utilWallet] = await hardhat.getSigners();
+
+            const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>('CustomSmartWallet');
+
+            provider = hardhat.provider;
+            owner = hardhat.Wallet.createRandom().connect(provider);
+
+            //Fund the owner
+            await fundedAccount.sendTransaction({to: owner.address, value: hardhat.utils.parseEther('1')});
+            mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy(); 
+
+            recipient = await smock.fake('SmartWallet');
+            recipient.isInitialized.returns(true);
 
             const ABI = ['function isInitialized()'];
             const abiInterface = new hardhat.utils.Interface(ABI);
             recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
-        }
-
-        beforeEach(async function(){            
-            await loadFixture(prepareFixture);
-
-            [owner, worker, utilWallet] = await hardhat.getSigners();
-
-            recipient = await smock.fake('SmartWallet');
-            recipient.isInitialized.returns(true);
 
             fakeToken = await smock.fake('ERC20');
             fakeToken.transfer.returns(true);
         });
 
-        it.skip('Should execute a valid transaction', async function(){
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
-
+        it('Should execute a valid transaction', async function(){
             await expect(
-                smartWallet.directExecute(recipient.address, recipientFunction),
+                mockSmartWallet.directExecute(recipient.address, recipientFunction),
                 'Execution failed'
             ).not.to.be.rejected;
         });
 
         it('Should failed when not called by the owner', async function(){
-            provider = hardhat.getDefaultProvider();
-            externalWallet =  hardhat.Wallet.createRandom();
-            externalWallet.connect(provider);
-
-            await smartWallet.initialize(externalWallet.address, fakeToken.address, worker.address, 0, 0);
+            const notTheOwner = utilWallet;
 
             await expect(
-                smartWallet.directExecute(recipient.address, recipientFunction),
+                mockSmartWallet.connect(notTheOwner).directExecute(recipient.address, recipientFunction),
                 'Execution should be rejected'
             ).to.be.rejectedWith('Not the owner of the SmartWallet');
         });
 
         it('Should send balance back to owner', async function(){
-            await smartWallet.initialize(owner.address, fakeToken.address, worker.address, 0, 0);
-
-            provider = hardhat.getDefaultProvider();
             const amountToTransfer = hardhat.utils.parseEther('1000');
 
             await utilWallet.sendTransaction({
-                to: smartWallet.address,
+                to: mockSmartWallet.address,
                 value: amountToTransfer
             });
             
             const ownerBalanceBefore = await owner.getBalance();
 
             await expect(
-                smartWallet.directExecute(recipient.address, recipientFunction),
+                mockSmartWallet.directExecute(recipient.address, recipientFunction),
                 'Execution failed'
             ).not.to.be.rejected;
 
@@ -512,7 +681,7 @@ describe('SmartWallet', function(){
 
             expect(difference).approximately(amountToTransferAsNumber, 2);
         });
-    })
+    });
 
     describe.skip('Function recover()', function(){
         //TODO: This function is not implemented. Create test cases when it is.
