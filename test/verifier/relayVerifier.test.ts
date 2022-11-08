@@ -16,7 +16,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-describe('RelayVerifier Contract', function () {
+describe.skip('RelayVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeWalletFactory: FakeContract<SmartWalletFactory>;
   let relayVerifierFactoryMock: MockContractFactory<RelayVerifier__factory>;
