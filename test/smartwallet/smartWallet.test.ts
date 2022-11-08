@@ -191,23 +191,41 @@ describe('SmartWallet contract', function(){
             fakeToken = await smock.fake('ERC20');
         });
 
-        it('Should initialize a SmartWallet', async function(){
-            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
-            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
+        describe('', function() {
+            let smartWallet: SmartWallet;
 
-            const signature = signData(dataTypesToSign, valuesToSign);
+            beforeEach(async function() {
+                const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
+                const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
 
-            await smartWalletFactory.createUserSmartWallet(
-                owner.address,
-                ZERO_ADDRESS,
-                '0',
-                signature
-            );
+                const signature = signData(dataTypesToSign, valuesToSign);
 
-            const smartWallet = await getAlreadyDeployedSmartWallet();
+                await smartWalletFactory.createUserSmartWallet(
+                    owner.address,
+                    ZERO_ADDRESS,
+                    '0',
+                    signature
+                );
 
-            expect(await smartWallet.isInitialized()).to.be.true;
-        });
+                smartWallet = await getAlreadyDeployedSmartWallet();
+            })
+
+            it('Should initialize a SmartWallet', async function(){
+                expect(await smartWallet.isInitialized()).to.be.true;
+            });
+
+            it('Should fail to initialize a SmartWallet twice', async function(){
+                await expect(
+                    smartWallet.initialize(owner.address, fakeToken.address, ZERO_ADDRESS, 10, 400000),
+                    'Second initialization not rejected'
+                ).to.be.revertedWith('already initialized');
+            });
+    
+            it('Should create the domainSeparator', async function () {
+    
+                expect(await smartWallet.domainSeparator()).to.be.properHex(64);
+            });
+        })
 
         it('Should call transfer on not sponsored deployment', async function(){
             const deployRequest = createDeployRequest({
@@ -266,45 +284,6 @@ describe('SmartWallet contract', function(){
 
             expect(fakeToken.transfer).not.to.be.called;
         })
-
-        it('Should fail to initialize a SmartWallet twice', async function(){
-            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
-            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
-
-            const signature = signData(dataTypesToSign, valuesToSign);
-
-            await smartWalletFactory.createUserSmartWallet(
-                owner.address,
-                ZERO_ADDRESS,
-                '0',
-                signature
-            );
-
-            const smartWallet = await getAlreadyDeployedSmartWallet();
-
-            await expect(
-                smartWallet.initialize(owner.address, fakeToken.address, ZERO_ADDRESS, 10, 400000),
-                'Second initialization not rejected'
-            ).to.be.revertedWith('already initialized');
-        });
-
-        it('Should create the domainSeparator', async function () {
-            const dataTypesToSign = ['bytes2', 'address', 'address', 'uint256'];
-            const valuesToSign = ['0x1910', owner.address, ZERO_ADDRESS, 0 ];
-            
-            const signature = signData(dataTypesToSign, valuesToSign);
-
-            await smartWalletFactory.createUserSmartWallet(
-                owner.address,
-                ZERO_ADDRESS,
-                '0',
-                signature
-            );
-
-            const smartWallet = await getAlreadyDeployedSmartWallet();
-
-            expect(await smartWallet.domainSeparator()).to.be.properHex(64);
-        });
 
         it('Should fail when the token transfer method fails', async function () {
             const deployRequest = createDeployRequest({
@@ -612,7 +591,7 @@ describe('SmartWallet contract', function(){
         });
     });
 
-    describe('Function directKExecute()', function(){
+    describe('Function directExecute()', function(){
         let mockSmartWallet: MockContract<SmartWallet>;
         let provider: BaseProvider;
         let owner: Wallet;
@@ -680,13 +659,6 @@ describe('SmartWallet contract', function(){
             const amountToTransferAsNumber = Number(hardhat.utils.formatEther(amountToTransfer));
 
             expect(difference).approximately(amountToTransferAsNumber, 2);
-        });
-    });
-
-    describe.skip('Function recover()', function(){
-        //TODO: This function is not implemented. Create test cases when it is.
-        it('Should recover founds....', function () {
-            console.log('Not implemented yet')
         });
     });
 });
