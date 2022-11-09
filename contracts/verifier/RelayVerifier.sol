@@ -73,8 +73,4 @@ contract RelayVerifier is IRelayVerifier, TokenHandler {
             )
         );
     }
-
-    function nothing() public override returns (uint256) {
-        return 3;
-    }
 }

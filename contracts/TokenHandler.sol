@@ -18,6 +18,7 @@ abstract contract TokenHandler is Ownable {
     function removeToken(address token, uint256 index) external onlyOwner {
         require(token != address(0), "Token cannot be zero address");
         require(tokens[token] == true, "Token is not accepted");
+        require(token == acceptedTokens[index], "Wrong token index");
         delete tokens[token];
         acceptedTokens[index] = acceptedTokens[acceptedTokens.length - 1];
         acceptedTokens.pop();
@@ -30,6 +31,4 @@ abstract contract TokenHandler is Ownable {
     function acceptsToken(address token) external view returns (bool) {
         return tokens[token];
     }
-
-    function nothing() public virtual returns (uint256);
 }
