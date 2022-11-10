@@ -5,23 +5,16 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../Ownable.sol";
+import "../TokenHandler.sol";
 import "../factory/CustomSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
-import "../interfaces/ITokenHandler.sol";
 import "../interfaces/EnvelopingTypes.sol";
 
 /**
  * A Verifier to be used on deploys.
  */
-contract CustomSmartWalletDeployVerifier is
-    IDeployVerifier,
-    ITokenHandler,
-    Ownable
-{
+contract CustomSmartWalletDeployVerifier is IDeployVerifier, TokenHandler {
     address private _factory;
-    mapping(address => bool) public tokens;
-    address[] public acceptedTokens;
 
     constructor(address walletFactory) public {
         _factory = walletFactory;
@@ -80,35 +73,6 @@ contract CustomSmartWalletDeployVerifier is
                 relayRequest.request.tokenContract
             )
         );
-    }
-
-    function acceptToken(address token) external onlyOwner {
-        require(token != address(0), "Token cannot be zero address");
-        require(tokens[token] == false, "Token is already accepted");
-        tokens[token] = true;
-        acceptedTokens.push(token);
-    }
-
-    function removeToken(address token, uint256 index) external onlyOwner {
-        require(token != address(0), "Token cannot be zero address");
-        require(tokens[token], "Token is not accepted");
-        require(token == acceptedTokens[index], "Wrong token index");
-        delete tokens[token];
-        acceptedTokens[index] = acceptedTokens[acceptedTokens.length - 1];
-        acceptedTokens.pop();
-    }
-
-    function getAcceptedTokens()
-        external
-        view
-        override
-        returns (address[] memory)
-    {
-        return acceptedTokens;
-    }
-
-    function acceptsToken(address token) external view override returns (bool) {
-        return tokens[token];
     }
 
     /**
