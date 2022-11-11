@@ -88,6 +88,8 @@ export const removeTokens = async (
   for (const tokenAddress of tokenAddresses) {
     for (const [key, verifier] of verifierMap) {
       try {
+        // const array = await verifier.getAcceptedTokens();
+        // const index = array.indexOf(tokenAddress);
         const index = (await verifier.getAcceptedTokens()).indexOf(
           tokenAddress
         );
