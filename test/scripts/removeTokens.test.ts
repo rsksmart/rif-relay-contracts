@@ -11,7 +11,7 @@ import {
 
 use(chaiAsPromised);
 
-describe.skip('Remove Tokens Script', function () {
+describe('Remove Tokens Script', function () {
   describe('removeTokens', function () {
     const taskArgs = { tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7' };
 
@@ -51,11 +51,17 @@ describe.skip('Remove Tokens Script', function () {
     it('should remove a list of tokens', async function () {
       const stubContract = sinon.createStubInstance(Contract);
       stubContract.removeToken = () => undefined;
+      stubContract.getAcceptedTokens = () => {
+        return [
+          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D8',
+          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7'
+        ];
+      };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await /*expect(*/removeTokens(taskArgs, hre)//).to.not.be.rejected;
+      await expect(removeTokens(taskArgs, hre)).to.not.be.rejected;
     });
 
-    it('should throw error and print it if token cannot be allowed', async function () {
+    it('should throw error and print it if token cannot be removed', async function () {
       const stubContract = sinon.createStubInstance(Contract);
       stubContract.removeToken = () => {
         throw new Error();
