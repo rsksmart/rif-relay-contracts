@@ -4,6 +4,7 @@ import 'hardhat-docgen';
 import 'hardhat-watcher';
 import '@nomiclabs/hardhat-ethers';
 import { allowTokens } from './scripts/allowTokens';
+import { removeTokens } from './scripts/removeTokens';
 import { deploy } from './scripts/deploy';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
@@ -92,6 +93,13 @@ task('allow-tokens', 'Allows a list of tokens')
 task('allowed-tokens', 'Retrieves a list of allowed tokens')
   .setAction(async (taskArgs, hre) => {
     await getAllowedTokens(hre);
+  }
+);
+
+task('remove-tokens', 'Removes a list of tokens')
+  .addOptionalParam('tokenList', 'list of tokens')
+  .setAction(async (taskArgs: {tokenlist: string}, hre) => {
+    await removeTokens(taskArgs, hre);
   }
 );
 
