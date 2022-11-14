@@ -621,6 +621,10 @@ export interface CollectorInstance extends Truffle.ContractInstance {
 
   token(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
+  getPartners(
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<{ beneficiary: string; share: string }[]>;
+
   updateShares: {
     (
       _partners: { beneficiary: string | BN; share: number | BN | string }[],
@@ -914,15 +918,6 @@ export interface CustomSmartWalletDeployVerifierInstance
 
   owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
-  renounceOwnership: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
-  };
-
   tokens(
     arg0: string | BN,
     txDetails?: Truffle.TransactionDetails
@@ -1065,6 +1060,29 @@ export interface CustomSmartWalletDeployVerifierInstance
     ): Promise<string>;
     estimateGas(
       token: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  removeToken: {
+    (
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      token: string | BN,
+      index: number | BN | string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -1245,15 +1263,6 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
 
   owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
-  renounceOwnership: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
-  };
-
   tokens(
     arg0: string | BN,
     txDetails?: Truffle.TransactionDetails
@@ -1396,6 +1405,29 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
     ): Promise<string>;
     estimateGas(
       token: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  removeToken: {
+    (
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      token: string | BN,
+      index: number | BN | string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -1773,6 +1805,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -1790,6 +1823,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -1807,6 +1841,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -1824,6 +1859,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -3133,6 +3169,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       signature: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -3150,6 +3187,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       signature: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -3167,6 +3205,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       signature: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -3184,6 +3223,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       signature: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -3901,15 +3941,6 @@ export interface NonRevertTestTokenInstance extends Truffle.ContractInstance {
 export interface OwnableInstance extends Truffle.ContractInstance {
   owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
-  renounceOwnership: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
-  };
-
   transferOwnership: {
     (newOwner: string | BN, txDetails?: Truffle.TransactionDetails): Promise<
       Truffle.TransactionResponse
@@ -4071,6 +4102,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -4088,6 +4120,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -4105,6 +4138,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -4122,6 +4156,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -4557,15 +4592,6 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
 
   owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
-  renounceOwnership: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
-  };
-
   tokens(
     arg0: string | BN,
     txDetails?: Truffle.TransactionDetails
@@ -4704,6 +4730,29 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
     ): Promise<string>;
     estimateGas(
       token: string | BN,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  removeToken: {
+    (
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      token: string | BN,
+      index: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      token: string | BN,
+      index: number | BN | string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -5263,6 +5312,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
@@ -5280,6 +5330,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -5297,6 +5348,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
@@ -5314,6 +5366,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         tokenGas: number | BN | string;
         data: string;
       },
+      feesReceiver: string | BN,
       sig: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
@@ -8047,15 +8100,6 @@ export interface UpgradedStandardTokenInstance
 
 export interface VersionRegistryInstance extends Truffle.ContractInstance {
   owner(txDetails?: Truffle.TransactionDetails): Promise<string>;
-
-  renounceOwnership: {
-    (txDetails?: Truffle.TransactionDetails): Promise<
-      Truffle.TransactionResponse
-    >;
-    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
-    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
-    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
-  };
 
   transferOwnership: {
     (newOwner: string | BN, txDetails?: Truffle.TransactionDetails): Promise<
