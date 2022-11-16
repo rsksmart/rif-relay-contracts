@@ -16,11 +16,10 @@ library RSKAddrValidator {
      * Safely compares two addresses, checking they do not originate from
      * a zero private key
      */
-    function safeEquals(address addr1, address addr2)
-        internal
-        pure
-        returns (bool)
-    {
+    function safeEquals(
+        address addr1,
+        address addr2
+    ) internal pure returns (bool) {
         return (addr1 == addr2 &&
             addr1 != 0xdcc703c0E500B653Ca82273B7BFAd8045D85a470 &&
             addr1 != address(0));

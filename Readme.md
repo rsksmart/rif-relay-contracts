@@ -11,7 +11,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Deployment**](#deployment)
   - [**Addresses**](#addresses)
 - [**System usage**](#system-usage)
-  - [**Allowing tokens**](#allowing-tokens)
+  - [**Managing tokens**](#managing-tokens)
   - [**UtilToken Minting**](#UtilToken-minting)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
@@ -104,14 +104,17 @@ This file also is being exported on the distributable version to provide the con
 
 ## System usage 
 
-### Allowing tokens
+### Managing tokens
 
-Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. There are some helpful commands for this:
+Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. In the same way, tokens can be removed from the list of previously allowed tokens. There are some helpful commands for this:
 
 1. To allow a specific token, run `npm run allow-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
 2. To query allowed tokens run `npm run allowed-tokens <NETWORK_NAME>`. This will display them on the console.
+3. To remove a sepecific token, run `npm run remove-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
 
 ### UtilToken Minting
 

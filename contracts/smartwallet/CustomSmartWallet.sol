@@ -119,12 +119,10 @@ contract CustomSmartWallet is IForwarder {
         }
     }
 
-    function directExecute(address to, bytes calldata data)
-        external
-        payable
-        override
-        returns (bool success, bytes memory ret)
-    {
+    function directExecute(
+        address to,
+        bytes calldata data
+    ) external payable override returns (bool success, bytes memory ret) {
         //Verify Owner
         require(
             _getOwner() == keccak256(abi.encodePacked(msg.sender)),
@@ -254,11 +252,10 @@ contract CustomSmartWallet is IForwarder {
         );
     }
 
-    function _getEncoded(bytes32 suffixData, ForwardRequest memory req)
-        private
-        pure
-        returns (bytes memory)
-    {
+    function _getEncoded(
+        bytes32 suffixData,
+        ForwardRequest memory req
+    ) private pure returns (bytes memory) {
         return
             abi.encodePacked(
                 keccak256(
