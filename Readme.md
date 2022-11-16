@@ -113,8 +113,8 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
 2. To query allowed tokens run `npm run allowed-tokens <NETWORK_NAME>`. This will display them on the console.
 3. To remove a sepecific token, run `npm run remove-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
-    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers
-    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
+    - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers.
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
 
 ### UtilToken Minting
 
