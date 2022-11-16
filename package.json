@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rif-relay-contracts",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "This project contains all the contracts needed for the rif relay system.",
   "main": "dist/index.js",
   "private": false,
@@ -87,7 +87,6 @@
     "eth-sig-util": "2.5.2",
     "ethereumjs-tx": "~2.1.2",
     "ethereumjs-util": "~6.2.1",
-    "chai": "^4.3.6",
     "npmignore": "^0.3.0",
     "patch-package": "~6.4.6",
     "truffle-hdwallet-provider": "~1.0.17"
