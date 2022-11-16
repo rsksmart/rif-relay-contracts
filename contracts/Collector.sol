@@ -50,6 +50,10 @@ contract Collector is ICollector{
             partners.push(_partners[i]);
     }
 
+    function getPartners() external view returns (RevenuePartner[] memory){
+        return partners;
+    }
+
     function updateShares(RevenuePartner[] memory _partners) 
     external
     validShares(_partners)

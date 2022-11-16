@@ -25,6 +25,7 @@ const CustomSmartWalletFactory = require('./build/contracts/CustomSmartWalletFac
 const DeployVerifier = require('./build/contracts/DeployVerifier.json');
 const Penalizer = require('./build/contracts/Penalizer.json');
 const RelayHub = require('./build/contracts/RelayHub.json');
+const Collector = require('./build/contracts/Collector.json');
 const RelayVerifier = require('./build/contracts/RelayVerifier.json');
 const SmartWallet = require('./build/contracts/SmartWallet.json');
 const SmartWalletFactory = require('./build/contracts/SmartWalletFactory.json');
@@ -49,6 +50,7 @@ export {
     IRelayHub,
     IRelayVerifier,
     ISmartWalletFactory,
+    Collector,
     ITokenHandler,
     IVersionRegistry,
     IWalletCustomLogic,
