@@ -76,6 +76,7 @@
     "lint:sol": "solhint --fix 'contracts/**/*.sol'",
     "lint:ts": "eslint test --ext .ts --fix",
     "prepare": "./scripts/prepare.npm",
+    "remove-tokens": "hardhat remove-tokens --network",
     "pretdd": "npm run build",
     "tdd": "TEST=true REPORT_GAS=true hardhat watch tdd",
     "test": "TEST=true REPORT_GAS=true hardhat test"
