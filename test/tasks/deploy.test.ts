@@ -55,7 +55,10 @@ describe('Deploy Script', function () {
 
     it('should not deploy UtilToken in mainnet', async function () {
       hre.hardhatArguments.network = 'mainnet';
-      const result = await deployContracts(ethers, hre.hardhatArguments.network);
+      const result = await deployContracts(
+        ethers,
+        hre.hardhatArguments.network
+      );
       expect(result.UtilToken).to.be.undefined;
     });
   });
@@ -122,7 +125,9 @@ describe('Deploy Script', function () {
         .returns(JSON.stringify(chainContractAddresses));
       hre.hardhatArguments.network = undefined;
       hre.config.networks.regtest.chainId = 33;
-      expect(() => updateConfig(contractAddresses, hre)).to.throw('Unknown Network');
+      expect(() => updateConfig(contractAddresses, hre)).to.throw(
+        'Unknown Network'
+      );
     });
 
     it('should throw if chainId is undefined', function () {

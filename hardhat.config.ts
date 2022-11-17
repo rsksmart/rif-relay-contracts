@@ -80,8 +80,8 @@ const config: HardhatUserConfig = {
   },
 };
 
-task('deploy', 'Deploys rif-relay contracts to selected network')
-  .setAction(async (_, hre) => {
+task('deploy', 'Deploys rif-relay contracts to selected network').setAction(
+  async (_, hre) => {
     await deploy(hre);
   }
 );
@@ -98,11 +98,10 @@ task('allow-tokens', 'Allows a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
   .setAction(async (taskArgs: { tokenlist: string }, hre) => {
     await allowTokens(taskArgs, hre);
-  }
-);
+  });
 
-task('allowed-tokens', 'Retrieves a list of allowed tokens')
-  .setAction(async (_, hre) => {
+task('allowed-tokens', 'Retrieves a list of allowed tokens').setAction(
+  async (_, hre) => {
     await getAllowedTokens(hre);
   }
 );
@@ -118,10 +117,9 @@ task('collector:withdraw', 'Withdraws funds from a collector contract')
 
 task('remove-tokens', 'Removes a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
-  .setAction(async (taskArgs: {tokenlist: string}, hre) => {
+  .setAction(async (taskArgs: { tokenlist: string }, hre) => {
     await removeTokens(taskArgs, hre);
-  }
-);
+  });
 
 task('collector:change-partners', 'Change collector partners')
   .addParam('collectorAddress', 'address of the collector we want to modify')

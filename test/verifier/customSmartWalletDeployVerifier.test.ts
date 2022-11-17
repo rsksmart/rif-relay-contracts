@@ -1,5 +1,10 @@
 import { ethers } from 'hardhat';
-import { FakeContract, MockContract, MockContractFactory, smock } from '@defi-wonderland/smock';
+import {
+  FakeContract,
+  MockContract,
+  MockContractFactory,
+  smock,
+} from '@defi-wonderland/smock';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { BigNumber, constants } from 'ethers';
@@ -8,7 +13,7 @@ import {
   CustomSmartWalletDeployVerifier,
   CustomSmartWalletDeployVerifier__factory,
   CustomSmartWalletFactory,
-  CustomSmartWallet__factory
+  CustomSmartWallet__factory,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -21,20 +26,20 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   let fakeWalletFactory: FakeContract<CustomSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<CustomSmartWalletDeployVerifier__factory>;
   let deployVerifierMock: MockContract<CustomSmartWalletDeployVerifier>;
-  
-  beforeEach(async function() {
+
+  beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeWalletFactory = await smock.fake<CustomSmartWalletFactory>(
       'SmartWalletFactory'
     );
-    deployVerifierFactoryMock = await smock.mock<CustomSmartWalletDeployVerifier__factory>(
-      'DeployVerifier'
-    );
+    deployVerifierFactoryMock =
+      await smock.mock<CustomSmartWalletDeployVerifier__factory>(
+        'DeployVerifier'
+      );
     deployVerifierMock = await deployVerifierFactoryMock.deploy(
       fakeWalletFactory.address
     );
-  })
-
+  });
 
   describe('constructor', function () {
     it('Should deploy', async function () {
@@ -49,14 +54,16 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   describe('acceptToken', function () {
     it('should set a token address in the acceptedTokens list', async function () {
       await deployVerifierMock.acceptToken(fakeToken.address);
-      const acceptsToken = await deployVerifierMock.acceptsToken(fakeToken.address);
+      const acceptsToken = await deployVerifierMock.acceptsToken(
+        fakeToken.address
+      );
       expect(acceptsToken).to.be.true;
     });
 
     it('should revert if token is already in the acceptedTokens list', async function () {
       await deployVerifierMock.setVariable('tokens', {
-        [fakeToken.address]: true
-      })
+        [fakeToken.address]: true,
+      });
       const result = deployVerifierMock.acceptToken(fakeToken.address);
       await expect(result).to.be.revertedWith('Token is already accepted');
     });
@@ -64,8 +71,7 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
     it('should revert if accepting a token with ZERO ADDRESS', async function () {
       const result = deployVerifierMock.acceptToken(constants.AddressZero);
 
-      await expect(result).to.be
-        .revertedWith('Token cannot be zero address');
+      await expect(result).to.be.revertedWith('Token cannot be zero address');
     });
 
     it('should revert if caller is not the owner', async function () {
@@ -78,35 +84,30 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   });
 
   describe('removeToken', function () {
-
     it('should remove a token from tokens map', async function () {
-
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true
-          },
-          acceptedTokens: [ ethers.utils.getAddress(fakeToken.address) ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+      });
 
       await deployVerifierMock.removeToken(fakeToken.address, 0);
 
-      const tokenMapValue = await deployVerifierMock.getVariable('tokens', [ fakeToken.address ]) as boolean;
+      const tokenMapValue = (await deployVerifierMock.getVariable('tokens', [
+        fakeToken.address,
+      ])) as boolean;
 
       expect(tokenMapValue).to.be.false;
     });
 
     it('should remove a token from acceptedTokens array', async function () {
-
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true
-          },
-          acceptedTokens: [ fakeToken.address ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        acceptedTokens: [fakeToken.address],
+      });
 
       await deployVerifierMock.removeToken(fakeToken.address, 0);
 
@@ -124,27 +125,22 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
     it('should revert if token removed is ZERO ADDRESS', async function () {
       const result = deployVerifierMock.removeToken(constants.AddressZero, 0);
 
-      await expect(result).to.be
-        .revertedWith('Token cannot be zero address');
+      await expect(result).to.be.revertedWith('Token cannot be zero address');
     });
 
     it('should revert if token index does not correspond to token address to be removed', async function () {
-
       const fakeToken1 = await smock.fake<ERC20>('ERC20');
 
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true,
-            [fakeToken1.address]: true,
-          },
-          acceptedTokens: [ fakeToken.address, fakeToken1.address ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+          [fakeToken1.address]: true,
+        },
+        acceptedTokens: [fakeToken.address, fakeToken1.address],
+      });
 
       const result = deployVerifierMock.removeToken(fakeToken.address, 1);
-      await expect(result).to.be
-      .revertedWith('Wrong token index');
+      await expect(result).to.be.revertedWith('Wrong token index');
     });
 
     it('should revert if caller is not the owner', async function () {
@@ -167,21 +163,25 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   });
 
   describe('acceptsToken()', function () {
-    beforeEach(async function(){
+    beforeEach(async function () {
       const { address } = fakeToken;
       await deployVerifierMock.setVariable('tokens', {
-          [address]: true
-      })
-    })
+        [address]: true,
+      });
+    });
 
     it('should return true if token is accepted', async function () {
-      const acceptsToken = await deployVerifierMock.acceptsToken(fakeToken.address);
+      const acceptsToken = await deployVerifierMock.acceptsToken(
+        fakeToken.address
+      );
       expect(acceptsToken).to.be.true;
     });
 
     it('should return false if token is not accepted', async function () {
       const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
-      const acceptsToken = await deployVerifierMock.acceptsToken(fakeTokenUnaccepted.address);
+      const acceptsToken = await deployVerifierMock.acceptsToken(
+        fakeTokenUnaccepted.address
+      );
       expect(acceptsToken).to.be.false;
     });
   });
@@ -194,10 +194,10 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   });
 
   describe.skip('_isContract()', function () {
-    //Currently it's not possible to test internal functions. 
+    //Currently it's not possible to test internal functions.
     // It might be in the future: https://github.com/defi-wonderland/smock/issues/106
     it('should return true if a contract has code in it', function () {
-        console.log('Currently unmockable with smock')
+      console.log('Currently unmockable with smock');
     });
   });
 
@@ -207,19 +207,19 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
     let relayWorker: SignerWithAddress;
     let fakeRelayHub: FakeContract<RelayHub>;
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       [owner, recipient, relayWorker] = await ethers.getSigners();
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
-    })
+    });
 
     it('should not revert', async function () {
       await deployVerifierMock.setVariables({
         acceptedTokens: [fakeToken.address],
         tokens: {
-            [fakeToken.address]: true
+          [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address
-      })
+        _factory: fakeWalletFactory.address,
+      });
       fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
@@ -244,7 +244,10 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         },
       };
 
-      const result = deployVerifierMock.verifyRelayedCall(deployRequest, '0x00');
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
       await expect(result).to.not.be.reverted;
     });
 
@@ -271,104 +274,75 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         },
       };
 
-      const result = deployVerifierMock.verifyRelayedCall(deployRequest, '0x00');
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
       await expect(result).to.be.revertedWith('Token contract not allowed');
     });
 
     it('should revert if factory address in request is different than factory address in contract', async function () {
-        fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-  
-        await deployVerifierMock.setVariables({
-            acceptedTokens: [fakeToken.address],
-            tokens: {
-                [fakeToken.address]: true
-            },
-            _factory: fakeWalletFactory.address
-          })
-        const differentFactoryFake = await smock.fake('SmartWalletFactory');
-  
-        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-          relayData: {
-            callForwarder: differentFactoryFake.address,
-            callVerifier: deployVerifierMock.address,
-            gasPrice: '10',
-            feesReceiver: relayWorker.address,
-          },
-          request: {
-            recoverer: constants.AddressZero,
-            index: '0',
-            data: '0x00',
-            from: owner.address,
-            to: recipient.address,
-            nonce: '0',
-            tokenGas: '50000',
-            relayHub: fakeRelayHub.address,
-            tokenAmount: '100000000000',
-            tokenContract: fakeToken.address,
-            value: '0',
-          },
-        };
-  
-        const result = deployVerifierMock.verifyRelayedCall(deployRequest, '0x00');
-        await expect(result).to.be.revertedWith("Invalid factory");
-      });
-
-      it('should revert if Smart Wallet is already created', async function () {
-        fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-        await deployVerifierMock.setVariables({
-            acceptedTokens: [fakeToken.address],
-            tokens: {
-                [fakeToken.address]: true
-            },
-            _factory: fakeWalletFactory.address
-          })
-
-        const fakeSmartWalletFactory = await smock.mock<CustomSmartWallet__factory>('SmartWallet');
-        const mockSmartWallet = await fakeSmartWalletFactory.deploy();
-        await mockSmartWallet.setVariables({
-            nonce: 1,
-            domainSeparator: '0x6c00000000000000000000000000000000000000000000000000000000000000'
-        })
-
-        fakeWalletFactory.getSmartWalletAddress.returns(mockSmartWallet.address)
-  
-        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-          relayData: {
-            callForwarder: fakeWalletFactory.address,
-            callVerifier: deployVerifierMock.address,
-            gasPrice: '10',
-            feesReceiver: relayWorker.address,
-          },
-          request: {
-            recoverer: constants.AddressZero,
-            index: '0',
-            data: '0x00',
-            from: owner.address,
-            to: recipient.address,
-            nonce: '0',
-            tokenGas: '50000',
-            relayHub: fakeRelayHub.address,
-            tokenAmount: '100000000000',
-            tokenContract: fakeToken.address,
-            value: '0',
-          },
-        };
-  
-        const result = deployVerifierMock.verifyRelayedCall(deployRequest, '0x00');
-        await expect(result).to.be.revertedWith("Address already created!");
-      });
-
-    it('should revert if token balance is too low', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('10'));
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
       await deployVerifierMock.setVariables({
         acceptedTokens: [fakeToken.address],
         tokens: {
-            [fakeToken.address]: true
+          [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address
-      })
-      
+        _factory: fakeWalletFactory.address,
+      });
+      const differentFactoryFake = await smock.fake('SmartWalletFactory');
+
+      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: differentFactoryFake.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Invalid factory');
+    });
+
+    it('should revert if Smart Wallet is already created', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+      await deployVerifierMock.setVariables({
+        acceptedTokens: [fakeToken.address],
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        _factory: fakeWalletFactory.address,
+      });
+
+      const fakeSmartWalletFactory =
+        await smock.mock<CustomSmartWallet__factory>('SmartWallet');
+      const mockSmartWallet = await fakeSmartWalletFactory.deploy();
+      await mockSmartWallet.setVariables({
+        nonce: 1,
+        domainSeparator:
+          '0x6c00000000000000000000000000000000000000000000000000000000000000',
+      });
+
+      fakeWalletFactory.getSmartWalletAddress.returns(mockSmartWallet.address);
+
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
           callForwarder: fakeWalletFactory.address,
@@ -391,7 +365,50 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         },
       };
 
-      const result = deployVerifierMock.verifyRelayedCall(deployRequest, '0x00');
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Address already created!');
+    });
+
+    it('should revert if token balance is too low', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('10'));
+
+      await deployVerifierMock.setVariables({
+        acceptedTokens: [fakeToken.address],
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        _factory: fakeWalletFactory.address,
+      });
+
+      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: fakeWalletFactory.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          value: '0',
+        },
+      };
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
       await expect(result).to.be.revertedWith('balance too low');
     });
   });
