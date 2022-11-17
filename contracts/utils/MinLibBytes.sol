@@ -20,11 +20,10 @@ library MinLibBytes {
     /// @param b Byte array containing an address.
     /// @param index Index in byte array of address.
     /// @return result address from byte array.
-    function readAddress(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (address result)
-    {
+    function readAddress(
+        bytes memory b,
+        uint256 index
+    ) internal pure returns (address result) {
         require(b.length >= index + 20, "readAddress: data too short");
 
         // Add offset to index:
@@ -45,11 +44,10 @@ library MinLibBytes {
         return result;
     }
 
-    function readBytes32(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (bytes32 result)
-    {
+    function readBytes32(
+        bytes memory b,
+        uint256 index
+    ) internal pure returns (bytes32 result) {
         require(b.length >= index + 32, "readBytes32: data too short");
 
         // Read the bytes32 from array memory
@@ -63,20 +61,18 @@ library MinLibBytes {
     /// @param b Byte array containing a uint256 value.
     /// @param index Index in byte array of uint256 value.
     /// @return result uint256 value from byte array.
-    function readUint256(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (uint256 result)
-    {
+    function readUint256(
+        bytes memory b,
+        uint256 index
+    ) internal pure returns (uint256 result) {
         result = uint256(readBytes32(b, index));
         return result;
     }
 
-    function readBytes4(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (bytes4 result)
-    {
+    function readBytes4(
+        bytes memory b,
+        uint256 index
+    ) internal pure returns (bytes4 result) {
         require(b.length >= index + 4, "readBytes4: data too short");
 
         // Read the bytes4 from array memory
