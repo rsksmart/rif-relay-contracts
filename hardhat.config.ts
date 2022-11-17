@@ -97,7 +97,7 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
 );
 
 task('remove-tokens', 'Removes a list of tokens')
-  .addPositionalParam('tokenlist', 'list of tokens')
+  .addPositionalParam('tokenList', 'list of tokens')
   .setAction(async (taskArgs: {tokenlist: string}, hre) => {
     await removeTokens(taskArgs, hre);
   }
