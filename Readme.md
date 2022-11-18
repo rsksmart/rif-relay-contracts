@@ -85,18 +85,18 @@ Pre-requirements:
 - there must be no shares to be distributed among the partners otherwise the transaction will fail; please be sure that the current balance is less than or equal to the number of partners;
 - only the owner can execute this transaction.
 
-The `change-partner-shares.js` is a utility script that can be run to change the partner shares of a collector already deployed. It receives the following parameters:
-- `collectorAddress`: mandatory, it's the address of the collector we want to change
-- `partnerConfig`: optional, it includes the new partner shares we want to set; if not specified we use `partner-shares.json` as default value; check the `partner-shares.sample.json` to verify the format.
-- `txGas`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `150000`;
+The `collector:change-partners` is a utility script that can be run to change the partner shares of a collector already deployed. It receives the following parameters:
+- `collector-address`: mandatory, it's the address of the collector we want to change;
+- `partner-config`: it includes the new partner shares we want to set;
+- `gas-limit`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `150000`;
 
 Usage:
 ```bash
-npx truffle --network <network_name> exec tasks/change-partner-shares.js --partnerConfig="<file_including_partners_config.json>" --collectorAddress="<collector_address>" --txGas="<gas_limit>"
+npm run collector:change-partners -- --collector-address "<collector_address>" --partner-config "<file_including_partners_config.json>" --gas-limit "<gas_limit>" --network regtest
 ```
 Example:
 ```bash
-npx truffle --network testnet exec tasks/change-partner-shares.js --partnerConfig="partner-shares.json" --collectorAddress="0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --txGas="200000"
+npm run collector:change-partners -- --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
 ```
 
 ### Addresses
