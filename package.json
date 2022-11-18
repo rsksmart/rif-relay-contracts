@@ -67,6 +67,7 @@
     "postclean": "hardhat clean",
     "compile": "npm run clean && hardhat compile --force",
     "deploy": "hardhat deploy --network",
+    "deploy-collector": "hardhat deploy-collector --network",
     "deploy-configure": "hardhat deploy --network",
     "docs": "hardhat docgen",
     "format": "npm run format:sol && npm run format:ts",
