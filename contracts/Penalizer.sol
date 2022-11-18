@@ -17,9 +17,11 @@ contract Penalizer is IPenalizer {
 
     using ECDSA for bytes32;
 
-    function _decodeTransaction(
-        bytes memory rawTransaction
-    ) private pure returns (Transaction memory transaction) {
+    function _decodeTransaction(bytes memory rawTransaction)
+        private
+        pure
+        returns (Transaction memory transaction)
+    {
         (
             transaction.nonce,
             transaction.gasPrice,
