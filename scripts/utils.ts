@@ -15,5 +15,5 @@ export const parseJsonFile = <T>(filePath: string, raiseError = true) => {
     console.warn(e);
   }
 
-  return {};
+  return undefined;
 };

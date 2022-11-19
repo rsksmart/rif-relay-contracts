@@ -5,11 +5,10 @@ import { parseJsonFile } from './utils';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
+export type AddressesConfig = { [key: string]: ContractAddresses };
+
 export const getExistingConfig = () => {
-  return parseJsonFile<{ [key: string]: ContractAddresses }>(
-    ADDRESS_FILE,
-    false
-  );
+  return parseJsonFile<AddressesConfig>(ADDRESS_FILE, false);
 };
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
