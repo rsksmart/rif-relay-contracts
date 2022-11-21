@@ -6,11 +6,11 @@ import {mine} from '@nomicfoundation/hardhat-network-helpers';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import chai, {assert, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {BigNumber} from 'ethers';
+import {BigNumber, BigNumberish} from 'ethers';
 import {ethers} from 'hardhat';
 import {Penalizer} from 'typechain-types/contracts/Penalizer';
 import {RelayHub} from 'typechain-types/contracts/RelayHub';
-import {createContractDeployer} from './utils';
+import {createContractDeployer, MINIMUM_UNSTAKE_DELAY} from './utils';
 
 import {
   ERR_HUB_BAD_PARAMS,
@@ -513,6 +513,47 @@ describe('RelayHub Contract', function () {
           'Stake was made with less value than the minimum'
         );
       });
+
+
+      it("Should fail if 'unstakeDelay' is less than 'minimumUnstakeDelay'", async function() {
+        const lowerUnstakeDelay = BigNumber.from(MINIMUM_UNSTAKE_DELAY).sub(2);
+        await assert.isRejected(
+          mockRelayHub.stakeForAddress(relayManagerAddr, lowerUnstakeDelay, {
+            value: ethers.utils.parseEther('10'),
+            from: relayOwnerAddr,
+          }),
+          'unstakeDelay is too low',
+          'Stake was made with an unstakeDelay lower than minimumUnstakeDelay'
+        );
+      })
+
+      describe('', function () {
+        async function stakeAndVerify(unstakeDelay: BigNumberish) {
+          await mockRelayHub.stakeForAddress(relayManagerAddr, unstakeDelay, {
+            value: ethers.utils.parseEther('10'),
+            from: relayOwnerAddr,
+          });
+  
+          const stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
+  
+          assert.strictEqual(
+            stakeInfo.unstakeDelay,
+            ethers.BigNumber.from(unstakeDelay),
+            "UnstakeDelay isn't the one specified in the 'stakeForAddress' call"
+          );
+        }
+
+        it("Should succeed if 'unstakeDelay' is equal to 'minimumUnstakeDelay'", async function() {
+          await stakeAndVerify(MINIMUM_UNSTAKE_DELAY);
+        });
+  
+        it("Should succeed if 'unstakeDelay' is greater than 'minimumUnstakeDelay'", async function() {
+          const greaterUnstakeDelay = BigNumber.from(MINIMUM_UNSTAKE_DELAY).add(2);
+          await stakeAndVerify(greaterUnstakeDelay);
+        });
+
+      })
+      
     });
   }
 );

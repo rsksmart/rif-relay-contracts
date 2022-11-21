@@ -307,6 +307,10 @@ contract RelayHub is IRelayHub {
             "not owner"
         );
         require(
+            unstakeDelay >= minimumUnstakeDelay, //isDelaySufficient
+            "unstakeDelay is too low"
+        );
+        require(
             unstakeDelay >= stakeInfo.unstakeDelay,
             "unstakeDelay cannot be decreased"
         );

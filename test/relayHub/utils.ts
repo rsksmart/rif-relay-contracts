@@ -7,7 +7,7 @@ import { RelayHubOptions } from 'utils/deployment/relayHub.utils';
 
 export const MAX_WORKER_COUNT: BigNumberish = 1,
   MINIMUM_ENTRY_DEPOSIT_VALUE: BigNumberish = 1,
-  MINIMUM_UNSTAKE_DELAY: BigNumberish = 1,
+  MINIMUM_UNSTAKE_DELAY: BigNumberish = 10,
   MINIMUM_STAKE: BigNumberish = 1;
 
 export const createContractDeployer =
