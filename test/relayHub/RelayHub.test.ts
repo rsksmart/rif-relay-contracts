@@ -616,19 +616,27 @@ contract(
                 );
 
                 const initialUnstakeDelay = 1500; // it should be >= minimumUnstakeDelay
-                await relayHubInstance.stakeForAddress(relayManager, initialUnstakeDelay, {
-                    value: ether('1'),
-                    from: relayOwner
-                });
+                await relayHubInstance.stakeForAddress(
+                    relayManager,
+                    initialUnstakeDelay,
+                    {
+                        value: ether('1'),
+                        from: relayOwner
+                    }
+                );
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
                 const decreasedUnstakeDelay = 1300; // it should be >= minimumUnstakeDelay
                 await expect(
-                    relayHubInstance.stakeForAddress(relayManager, decreasedUnstakeDelay, {
-                        value: ether('10'),
-                        from: relayOwner
-                    })
+                    relayHubInstance.stakeForAddress(
+                        relayManager,
+                        decreasedUnstakeDelay,
+                        {
+                            value: ether('10'),
+                            from: relayOwner
+                        }
+                    )
                 ).to.be.rejectedWith(
                     'unstakeDelay cannot be decreased',
                     'Stake was made properly'
