@@ -315,6 +315,10 @@ contract RelayHub is IRelayHub {
             "not owner"
         );
         require(
+            unstakeDelay >= minimumUnstakeDelay, //isDelaySufficient
+            "unstakeDelay is too low"
+        );
+        require(
             unstakeDelay >= stakeInfo.unstakeDelay,
             "unstakeDelay cannot be decreased"
         );
@@ -328,7 +332,7 @@ contract RelayHub is IRelayHub {
         if (stakeInfo.owner == address(0)) {
             require(
                 msg.value >= minimumEntryDepositValue,
-                "Insufficient intitial stake"
+                "Insufficient initial stake"
             );
         }
 
