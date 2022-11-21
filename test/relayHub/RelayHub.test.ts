@@ -615,15 +615,17 @@ contract(
                     'Stakes is not ZERO'
                 );
 
-                await relayHubInstance.stakeForAddress(relayManager, 1000, {
+                const initialUnstakeDelay = 1500; // it should be >= minimumUnstakeDelay
+                await relayHubInstance.stakeForAddress(relayManager, initialUnstakeDelay, {
                     value: ether('1'),
                     from: relayOwner
                 });
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
+                const decreasedUnstakeDelay = 1300; // it should be >= minimumUnstakeDelay
                 await expect(
-                    relayHubInstance.stakeForAddress(relayManager, 100, {
+                    relayHubInstance.stakeForAddress(relayManager, decreasedUnstakeDelay, {
                         value: ether('10'),
                         from: relayOwner
                     })
@@ -706,7 +708,7 @@ contract(
                         from: relayOwner
                     })
                 ).to.be.rejectedWith(
-                    'Insufficient intitial stake',
+                    'Insufficient initial stake',
                     'Stake was made with less value than the minimum'
                 );
             });
@@ -722,7 +724,7 @@ contract(
                 );
 
                 expect(stakeInfo.owner).to.be.equal(
-                    constants.ZERO_ADDRESS,
+                    relayOwner,
                     'sender is a relayManager itself'
                 );
 
