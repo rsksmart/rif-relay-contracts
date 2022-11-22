@@ -19,7 +19,8 @@ import {
     createSmartWalletFactory,
     evmMineMany,
     mintTokens,
-    getTokenBalance
+    getTokenBalance,
+    defaultEnvironment
 } from '../utils';
 
 import { constants } from '../constants';
@@ -38,6 +39,7 @@ import {
     TestDeployVerifierConfigurableMisbehaviorInstance,
     TestDeployVerifierEverythingAcceptedInstance
 } from '../../types/truffle-contracts';
+
 import { toBN } from 'web3-utils';
 
 import { use, expect } from 'chai';
@@ -613,18 +615,28 @@ contract(
                     'Stakes is not ZERO'
                 );
 
-                await relayHubInstance.stakeForAddress(relayManager, 1000, {
-                    value: ether('1'),
-                    from: relayOwner
-                });
+                const initialUnstakeDelay = 1500; // it should be >= minimumUnstakeDelay
+                await relayHubInstance.stakeForAddress(
+                    relayManager,
+                    initialUnstakeDelay,
+                    {
+                        value: ether('1'),
+                        from: relayOwner
+                    }
+                );
 
                 stakeInfo = await relayHubInstance.getStakeInfo(relayManager);
 
+                const decreasedUnstakeDelay = 1300; // it should be >= minimumUnstakeDelay
                 await expect(
-                    relayHubInstance.stakeForAddress(relayManager, 100, {
-                        value: ether('10'),
-                        from: relayOwner
-                    })
+                    relayHubInstance.stakeForAddress(
+                        relayManager,
+                        decreasedUnstakeDelay,
+                        {
+                            value: ether('10'),
+                            from: relayOwner
+                        }
+                    )
                 ).to.be.rejectedWith(
                     'unstakeDelay cannot be decreased',
                     'Stake was made properly'
@@ -704,13 +716,13 @@ contract(
                         from: relayOwner
                     })
                 ).to.be.rejectedWith(
-                    'Insufficient intitial stake',
+                    'Insufficient initial stake',
                     'Stake was made with less value than the minimum'
                 );
             });
 
             it('Should fail when sender is a RelayManager', async () => {
-                relayHubInstance.stakeForAddress(relayManager, 1000, {
+                await relayHubInstance.stakeForAddress(relayManager, 1000, {
                     value: ether('1'),
                     from: relayOwner
                 });
@@ -720,7 +732,7 @@ contract(
                 );
 
                 expect(stakeInfo.owner).to.be.equal(
-                    constants.ZERO_ADDRESS,
+                    relayOwner,
                     'sender is a relayManager itself'
                 );
 
@@ -733,6 +745,65 @@ contract(
                     'sender is a relayManager itself',
                     'Stake was made with proper relayManager'
                 );
+            });
+
+            describe('', async () => {
+                async function stakeAndVerify(unstakeDelay: number) {
+                    await relayHubInstance.stakeForAddress(
+                        relayManager,
+                        unstakeDelay,
+                        {
+                            value: ether('1'),
+                            from: relayOwner
+                        }
+                    );
+
+                    const stakeInfo = await relayHubInstance.getStakeInfo(
+                        relayManager
+                    );
+                    expect(stakeInfo.unstakeDelay).to.be.equal(
+                        unstakeDelay.toString(),
+                        "UnstakeDelay isn't the one specified in the 'stakeForAddress' call"
+                    );
+                }
+
+                it("Should fail if 'unstakeDelay' is less than 'minimumUnstakeDelay'", async () => {
+                    const defaultMinimumUnstakeDelay =
+                        defaultEnvironment.relayHubConfiguration
+                            .minimumUnstakeDelay;
+                    const unstakeDelay = defaultMinimumUnstakeDelay - 10;
+
+                    await expect(
+                        relayHubInstance.stakeForAddress(
+                            relayManager,
+                            unstakeDelay,
+                            {
+                                value: ether('1'),
+                                from: relayOwner
+                            }
+                        )
+                    ).to.be.rejectedWith(
+                        'unstakeDelay is too low',
+                        'Stake was made with an unstakeDelay lower than minimumUnstakeDelay'
+                    );
+                });
+
+                it("Should succeed if 'unstakeDelay' is equal to 'minimumUnstakeDelay'", async () => {
+                    const defaultMinimumUnstakeDelay =
+                        defaultEnvironment.relayHubConfiguration
+                            .minimumUnstakeDelay;
+
+                    await stakeAndVerify(defaultMinimumUnstakeDelay);
+                });
+
+                it("Should succeed if 'unstakeDelay' is greater than 'minimumUnstakeDelay'", async () => {
+                    const defaultMinimumUnstakeDelay =
+                        defaultEnvironment.relayHubConfiguration
+                            .minimumUnstakeDelay;
+                    const unstakeDelay = defaultMinimumUnstakeDelay + 10;
+
+                    await stakeAndVerify(unstakeDelay);
+                });
             });
         });
 
