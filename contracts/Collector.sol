@@ -5,8 +5,11 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/ICollector.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 contract Collector is ICollector{
+    using SafeERC20 for IERC20;
+
     address private remainderAddress;
     RevenuePartner[] private partners;
     IERC20 public token;
@@ -76,7 +79,7 @@ contract Collector is ICollector{
         uint256 balance = token.balanceOf(address(this));
 
         if(balance != 0) {
-            token.transfer(remainderAddress, balance);
+            token.safeTransfer(remainderAddress, balance);
         }
 
         // solhint-disable-next-line
@@ -99,7 +102,7 @@ contract Collector is ICollector{
         require(balance >= partners.length, "Not enough balance to split");
 
         for(uint256 i = 0; i < partners.length; i++)
-            token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
+            token.safeTransfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
     }
 
     function transferOwnership(address _owner)
