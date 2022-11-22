@@ -8,7 +8,7 @@ import { removeTokens } from './scripts/removeTokens';
 import { deploy } from './scripts/deploy';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
-import { deployCollector } from './scripts/deployCollector';
+import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -105,12 +105,9 @@ task('remove-tokens', 'Removes a list of tokens')
 );
 
 task('deploy-collector', 'Deploys the collector')
-  .addOptionalPositionalParam('collectorConfigFileName', 'Relative path to an alternative config file')
-  .addOptionalPositionalParam('outputFileName', 'Relative path to the output file')
-  .setAction(async (taskArgs: { 
-    collectorConfigFileName: string,
-    outputFileName: string
-  }, hre) => {
+  .addOptionalParam('collectorConfigFileName', 'Path to an alternative config file')
+  .addOptionalParam('outputFileName', 'Path to the output file')
+  .setAction(async (taskArgs: DeployCollectorArg, hre) => {
     await deployCollector(taskArgs, hre);
   }
 );

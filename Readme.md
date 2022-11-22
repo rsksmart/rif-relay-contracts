@@ -64,13 +64,18 @@ Parameters:
 
 #### Collector Deployment
 
-To deploy a collector, we need to run the script `deploy-collector.js`; it receives two parameters:
-- `collectorConfig`: used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
-- `outputFile`: used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
+To deploy a collector, we need to the script `collector:deploy`. It receives the following parameters:
+- `collector-config-file-name`: optional, used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
+- `outputFile`: optional, used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
 
-E.g.:
+Usage:
 ```bash
-npx truffle --network <network_name> exec tasks/deploy-collector.js --collectorConfig="<collector_configuration.json>" --outputFile="output.json"
+npm run collector:deploy -- --network "<network>" --collector-config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
+```
+
+Example:
+```bash
+npm run collector:deploy -- --network regtest --collector-config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
 ```
 
 #### Change partner shares

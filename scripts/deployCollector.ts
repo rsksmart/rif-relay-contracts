@@ -3,10 +3,10 @@ import * as fs from 'fs';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Collector } from 'typechain-types';
 
-const DEFAULT_CONFIG_FILE_NAME = 'deploy-collector.input.json';
-const DEFAULT_OUTPUT_FILE_NAME = 'revenue-sharing-addresses.json';
+export const DEFAULT_CONFIG_FILE_NAME = 'deploy-collector.input.json';
+export const DEFAULT_OUTPUT_FILE_NAME = 'revenue-sharing-addresses.json';
 
-interface Partner {
+export interface Partner {
   beneficiary: string;
   share: number;
 }
@@ -18,11 +18,17 @@ interface CollectorConfig {
   remainderAddress: string;
 }
 
+export type DeployCollectorArg = {
+  collectorConfigFileName?: string;
+  outputFileName?: string;
+};
+
+type ChainId = string;
+type OutputCollectorConfig = CollectorConfig | { collectorContract: string };
+export type OutputConfig = Record<ChainId, OutputCollectorConfig>;
+
 export const deployCollector = async (
-  taskArgs: {
-    collectorConfigFileName: string;
-    outputFileName: string;
-  },
+  taskArgs: DeployCollectorArg,
   hre: HardhatRuntimeEnvironment
 ) => {
   const { ethers, network } = hre;
@@ -101,12 +107,12 @@ export const deployCollector = async (
 
   const outputFileName = taskArgs.outputFileName ?? DEFAULT_OUTPUT_FILE_NAME;
 
-  let jsonConfig: Record<string, Record<string, Partner | string>>;
+  let jsonConfig: OutputConfig;
 
   if (fs.existsSync(outputFileName)) {
     jsonConfig = JSON.parse(
       fs.readFileSync(outputFileName, { encoding: 'utf-8' })
-    ) as Record<string, Record<string, Partner | string>>;
+    ) as OutputConfig;
   } else {
     jsonConfig = {};
   }
@@ -116,22 +122,9 @@ export const deployCollector = async (
   jsonConfig[networkId] = {
     collectorContract: collector.address,
     collectorOwner: await collector.owner(),
-    collectorToken: await collector.token(),
+    tokenAddress: await collector.token(),
     remainderAddress: remainderAddress,
-  };
-
-  const partnersForOutputFile: Record<string, Partner> = {};
-
-  partners.forEach(function (partner, i) {
-    partnersForOutputFile[`partner ${i + 1}`] = {
-      beneficiary: partner.beneficiary,
-      share: partner.share,
-    };
-  });
-
-  jsonConfig[networkId] = {
-    ...jsonConfig[networkId],
-    ...partnersForOutputFile,
+    partners,
   };
 
   fs.writeFileSync(outputFileName, JSON.stringify(jsonConfig));
