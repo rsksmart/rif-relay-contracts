@@ -40,7 +40,11 @@ library Eip712Library {
         bytes calldata signature
     )
         internal
-        returns (bool forwarderSuccess, bool relaySuccess, bytes memory ret)
+        returns (
+            bool forwarderSuccess,
+            bool relaySuccess,
+            bytes memory ret
+        )
     {
         /* solhint-disable-next-line avoid-low-level-calls */
         (forwarderSuccess, ret) = relayRequest.relayData.callForwarder.call(
@@ -60,9 +64,11 @@ library Eip712Library {
         MinLibBytes.truncateInPlace(ret, 1024); // maximum length of return value/revert reason for 'execute' method. Will truncate result if exceeded.
     }
 
-    function hashRelayData(
-        EnvelopingTypes.RelayData calldata req
-    ) internal pure returns (bytes32) {
+    function hashRelayData(EnvelopingTypes.RelayData calldata req)
+        internal
+        pure
+        returns (bytes32)
+    {
         return
             keccak256(
                 abi.encode(

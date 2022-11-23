@@ -54,9 +54,12 @@ contract Collector is ICollector {
         return _partners;
     }
 
-    function updateShares(
-        RevenuePartner[] memory partners
-    ) external validShares(partners) onlyOwner noBalanceToShare {
+    function updateShares(RevenuePartner[] memory partners)
+        external
+        validShares(partners)
+        onlyOwner
+        noBalanceToShare
+    {
         delete _partners;
 
         for (uint256 i = 0; i < partners.length; i++)
@@ -65,9 +68,11 @@ contract Collector is ICollector {
 
     //@notice Withdraw the actual remainder and then update the remainder's address
     //for a new one. This function is the only way to withdraw the remainder.
-    function updateRemainderAddress(
-        address remainderAddress
-    ) external onlyOwner noBalanceToShare {
+    function updateRemainderAddress(address remainderAddress)
+        external
+        onlyOwner
+        noBalanceToShare
+    {
         uint256 balance = token.balanceOf(address(this));
 
         if (balance != 0) {
