@@ -25,9 +25,7 @@ export const changePartnerShares = async (
 ) => {
   const { ethers } = hre;
 
-  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(
-    partnerConfig
-  ) as PartnerConfig;
+  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(partnerConfig);
   const collector = await ethers.getContractAt('Collector', collectorAddress);
 
   try {

@@ -8,7 +8,13 @@ const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 export type AddressesConfig = { [key: string]: ContractAddresses };
 
 export const getExistingConfig = () => {
-  return parseJsonFile<AddressesConfig>(ADDRESS_FILE, false);
+  try {
+    return parseJsonFile<AddressesConfig>(ADDRESS_FILE);
+  } catch (error) {
+    console.warn(error);
+  }
+
+  return undefined;
 };
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
