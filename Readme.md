@@ -64,18 +64,18 @@ Parameters:
 
 #### Collector Deployment
 
-To deploy a collector, we need to the script `collector:deploy`. It receives the following parameters:
-- `collector-config-file-name`: optional, used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
+To deploy a collector, we need to the script `deploy:collector`. It receives the following parameters:
+- `config-file-name`: optional, used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
 - `outputFile`: optional, used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
 
 Usage:
 ```bash
-npm run collector:deploy -- --network "<network>" --collector-config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
+npx hardhat deploy:collector --network "<network>" --config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
 ```
 
 Example:
 ```bash
-npm run collector:deploy -- --network regtest --collector-config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
+npx hardhat deploy:collector --network regtest --config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
 ```
 
 #### Change partner shares
@@ -113,11 +113,11 @@ This file also is being exported on the distributable version to provide the con
 
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. In the same way, tokens can be removed from the list of previously allowed tokens. There are some helpful commands for this:
 
-1. To allow a specific token, run `npm run allow-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+1. To allow a specific token, run `npx hardhat allow-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
-2. To query allowed tokens run `npm run allowed-tokens <NETWORK_NAME>`. This will display them on the console.
-3. To remove a sepecific token, run `npm run remove-tokens <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+2. To query allowed tokens run `npx hardhat allowed-tokens --network <NETWORK_NAME>`. This will display them on the console.
+3. To remove a sepecific token, run `npx hardhat remove-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers.
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
 

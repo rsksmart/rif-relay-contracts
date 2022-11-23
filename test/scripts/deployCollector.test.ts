@@ -100,22 +100,22 @@ describe('Deploy Script', function () {
       });
 
       it('should use the configuration file specified', async function () {
-        const collectorConfigFileName = 'inputFile.json';
+        const configFileName = 'inputFile.json';
         const taskArgs: DeployCollectorArg = {
-          collectorConfigFileName,
+          configFileName,
         };
         await expect(deployCollector(taskArgs, hre)).not.to.be.rejected;
         expect(
-          readFileSyncStub.calledWithExactly(collectorConfigFileName, {
+          readFileSyncStub.calledWithExactly(configFileName, {
             encoding: 'utf-8',
           })
         ).to.be.true;
       });
 
       it('deploy a collector', async function () {
-        const collectorConfigFileName = 'inputFile.json';
+        const configFileName = 'inputFile.json';
         const taskArgs: DeployCollectorArg = {
-          collectorConfigFileName,
+          configFileName,
         };
         await expect(deployCollector(taskArgs, hre)).not.to.be.rejected;
 
@@ -162,9 +162,9 @@ describe('Deploy Script', function () {
         }
 
         it("should use the default output file if no 'outputFileName' is specified", async function () {
-          const collectorConfigFileName = 'inputFile.json';
+          const configFileName = 'inputFile.json';
           const taskArgs: DeployCollectorArg = {
-            collectorConfigFileName,
+            configFileName,
           };
           await expect(deployCollector(taskArgs, hre)).not.to.be.rejected;
 
@@ -172,10 +172,10 @@ describe('Deploy Script', function () {
         });
 
         it("should use the output file specified by the 'outputFileName' argument", async function () {
-          const collectorConfigFileName = 'inputFile.json';
+          const configFileName = 'inputFile.json';
           const outputFileName = 'outputFile.json';
           const taskArgs: DeployCollectorArg = {
-            collectorConfigFileName,
+            configFileName,
             outputFileName,
           };
           await expect(deployCollector(taskArgs, hre)).not.to.be.rejected;

@@ -84,6 +84,14 @@ task('deploy', 'Deploys rif-relay contracts to selected network')
   }
 );
 
+task('deploy:collector', 'Deploys the collector')
+  .addOptionalParam('configFileName', 'Path of the collector config file')
+  .addOptionalParam('outputFileName', 'Path of the output file')
+  .setAction(async (taskArgs: DeployCollectorArg, hre) => {
+    await deployCollector(taskArgs, hre);
+  }
+);
+
 task('allow-tokens', 'Allows a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
   .setAction(async (taskArgs: { tokenlist: string }, hre) => {
@@ -101,14 +109,6 @@ task('remove-tokens', 'Removes a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
   .setAction(async (taskArgs: {tokenlist: string}, hre) => {
     await removeTokens(taskArgs, hre);
-  }
-);
-
-task('deploy-collector', 'Deploys the collector')
-  .addOptionalParam('collectorConfigFileName', 'Path to an alternative config file')
-  .addOptionalParam('outputFileName', 'Path to the output file')
-  .setAction(async (taskArgs: DeployCollectorArg, hre) => {
-    await deployCollector(taskArgs, hre);
   }
 );
 

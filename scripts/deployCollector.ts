@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Collector } from 'typechain-types';
+import { Collector } from '../typechain-types';
 
 export const DEFAULT_CONFIG_FILE_NAME = 'deploy-collector.input.json';
 export const DEFAULT_OUTPUT_FILE_NAME = 'revenue-sharing-addresses.json';
@@ -19,7 +19,7 @@ interface CollectorConfig {
 }
 
 export type DeployCollectorArg = {
-  collectorConfigFileName?: string;
+  configFileName?: string;
   outputFileName?: string;
 };
 
@@ -37,21 +37,21 @@ export const deployCollector = async (
     throw new Error('Unknown Network');
   }
 
-  let collectorConfigFileName = taskArgs.collectorConfigFileName;
+  let configFileName = taskArgs.configFileName;
 
-  if (!collectorConfigFileName) {
+  if (!configFileName) {
     console.warn(
-      "Missing '--collectorConfig' parameter, 'deploy-collector.input.json' will be used"
+      "Missing '--config-file-name' parameter, 'deploy-collector.input.json' will be used"
     );
-    collectorConfigFileName = DEFAULT_CONFIG_FILE_NAME;
+    configFileName = DEFAULT_CONFIG_FILE_NAME;
   }
 
-  if (!fs.existsSync(collectorConfigFileName)) {
+  if (!fs.existsSync(configFileName)) {
     throw new Error('Could not find Collector configuration file');
   }
 
   const inputConfig = JSON.parse(
-    fs.readFileSync(collectorConfigFileName, { encoding: 'utf-8' })
+    fs.readFileSync(configFileName, { encoding: 'utf-8' })
   ) as CollectorConfig;
 
   const { collectorOwner, partners, tokenAddress, remainderAddress } =
@@ -67,41 +67,26 @@ export const deployCollector = async (
 
   await printReceipt(collector);
 
-  console.log();
+  const partnerPrintings = partners.reduce<Record<string, string>>(function (
+    accumulator,
+    { beneficiary, share },
+    i
+  ) {
+    return {
+      ...accumulator,
+      [`Partner ${i}`]: `${beneficiary}, ${share}%`,
+    };
+  },
+  {});
 
-  console.log(
-    '|=============================================|==================================================|'
-  );
-  console.log(
-    '| Entity                                      | Address                                          |'
-  );
-  console.log(
-    '|=============================================|==================================================|'
-  );
-  partners.forEach(function (partner, i) {
-    console.log(
-      `| Revenue Partner #${i + 1}, share` +
-        ' '.repeat(20 - (i + 1).toString().length) +
-        `| ${partner.beneficiary}, ${partner.share}%` +
-        ' '.repeat(4 - partner.share.toString().length) +
-        `|`
-    );
-  });
-  console.log(
-    `| Collector Contract                          | ${collector.address}       |`
-  );
-  console.log(
-    `| Collector Owner                             | ${await collector.owner()}       |`
-  );
-  console.log(
-    `| Collector Token                             | ${await collector.token()}       |`
-  );
-  console.log(
-    `| Collector Remainder                         | ${remainderAddress}       |`
-  );
-  console.log(
-    '|=============================================|==================================================|\n'
-  );
+  const objToPrint = {
+    'Collector Contract': collector.address,
+    'Collector Owner': await collector.owner(),
+    'Collector Token': await collector.token(),
+    'Collector Remainder': remainderAddress,
+    ...partnerPrintings,
+  };
+  console.table(objToPrint);
 
   console.log('Generating json config file...');
 
@@ -118,7 +103,6 @@ export const deployCollector = async (
   }
 
   const networkId = (await ethers.provider.getNetwork()).chainId;
-
   jsonConfig[networkId] = {
     collectorContract: collector.address,
     collectorOwner: await collector.owner(),
