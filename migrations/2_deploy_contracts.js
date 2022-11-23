@@ -12,6 +12,7 @@ const TestToken = artifacts.require('TestToken');
 
 // For testing purposes
 const SampleRecipient = artifacts.require('TestRecipient');
+const Dummy = artifacts.require('Dummy');
 
 // For CustomSmartWallet support
 const CustomSmartWallet = artifacts.require('CustomSmartWallet');
@@ -42,6 +43,7 @@ module.exports = async function (deployer, network) {
 
     await deployer.deploy(TestToken);
     await deployer.deploy(SampleRecipient);
+    await deployer.deploy(Dummy);
 
     console.log(
         '|===================================|============================================|'
@@ -91,6 +93,7 @@ module.exports = async function (deployer, network) {
         `| SampleRecipient                   | ${SampleRecipient.address} |`
     );
     console.log(`| TestToken                         | ${TestToken.address} |`);
+    console.log(`| Dummy                             | ${Dummy.address} |`);
     console.log(
         '|===================================|============================================|\n'
     );
