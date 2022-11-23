@@ -1,11 +1,13 @@
 import { expect, use } from 'chai';
 import Collector from '../build/contracts/Collector.json';
 import TestToken from '../build/contracts/TestToken.json';
+import IERC20 from '../build/contracts/IERC20.json';
 import {
     deployContract,
     loadFixture,
     MockProvider,
-    solidity
+    solidity,
+    deployMockContract
 } from 'ethereum-waffle';
 import { Wallet } from '@ethersproject/wallet';
 
@@ -285,6 +287,41 @@ describe('Collector', () => {
                 )
             ).to.be.revertedWith('Only owner can call this');
         });
+
+        it('Should fail if the transfer returns false', async () => {
+            const [
+                owner,
+                oldRemainder,
+                newRemainder,
+                partner1,
+                partner2,
+                partner3,
+                partner4
+            ] = new MockProvider().getWallets();
+
+            const mockERC20 = await deployMockContract(owner, IERC20.abi);
+            await mockERC20.mock.transfer.returns(false);
+            await mockERC20.mock.balanceOf.returns(2);
+
+            const partners = await buildPartners(
+                [partner1, partner2, partner3, partner4],
+                PARTNER_SHARES
+            );
+
+            const collector = await deployContract(owner, Collector, [
+                owner.address,
+                mockERC20.address,
+                partners,
+                oldRemainder.address
+            ]);
+
+            await expect(
+                collector.updateRemainderAddress(newRemainder.address, {
+                    from: owner.address,
+                    gasLimit: 100000
+                })
+            ).to.be.reverted;
+        });
     });
 
     describe('getBalance', () => {
@@ -376,6 +413,31 @@ describe('Collector', () => {
             await expect(
                 externallyLinkedCollector.withdraw()
             ).to.be.revertedWith('Only owner can call this');
+        });
+
+        it('Should fail when the transfer fails', async () => {
+            const [owner, remainder, partner1, partner2, partner3, partner4] =
+                new MockProvider().getWallets();
+
+            const mockERC20 = await deployMockContract(owner, IERC20.abi);
+            await mockERC20.mock.transfer.returns(false);
+            await mockERC20.mock.balanceOf.returns(100);
+
+            const partners = await buildPartners(
+                [partner1, partner2, partner3, partner4],
+                PARTNER_SHARES
+            );
+
+            const collector = await deployContract(owner, Collector, [
+                owner.address,
+                mockERC20.address,
+                partners,
+                remainder.address
+            ]);
+
+            await expect(
+                collector.withdraw({ from: owner.address, gasLimit: 100000 })
+            ).to.be.reverted;
         });
     });
 
