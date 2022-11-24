@@ -27,17 +27,12 @@ library RLPReader {
      * @return tuple (nonce,gasPrice,gasLimit,to,value,data)
      */
 
-    function decodeTransaction(bytes memory rawTransaction)
+    function decodeTransaction(
+        bytes memory rawTransaction
+    )
         internal
         pure
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            address,
-            uint256,
-            bytes memory
-        )
+        returns (uint256, uint256, uint256, address, uint256, bytes memory)
     {
         RLPReader.RLPItem[] memory values = rawTransaction.toRlpItem().toList(); // must convert to an rlpItem first!
         return (
@@ -53,11 +48,9 @@ library RLPReader {
     /*
      * @param item RLP encoded bytes
      */
-    function toRlpItem(bytes memory item)
-        internal
-        pure
-        returns (RLPItem memory)
-    {
+    function toRlpItem(
+        bytes memory item
+    ) internal pure returns (RLPItem memory) {
         if (item.length == 0) return RLPItem(0, 0);
         uint256 memPtr;
         assembly {
@@ -69,11 +62,9 @@ library RLPReader {
     /*
      * @param item RLP encoded list in bytes
      */
-    function toList(RLPItem memory item)
-        internal
-        pure
-        returns (RLPItem[] memory result)
-    {
+    function toList(
+        RLPItem memory item
+    ) internal pure returns (RLPItem[] memory result) {
         require(isList(item), "isList failed");
         uint256 items = numItems(item);
         result = new RLPItem[](items);
@@ -161,11 +152,9 @@ library RLPReader {
 
     /** RLPItem conversions into data types **/
     // @returns raw rlp encoding in bytes
-    function toRlpBytes(RLPItem memory item)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function toRlpBytes(
+        RLPItem memory item
+    ) internal pure returns (bytes memory) {
         bytes memory result = new bytes(item.len);
         uint256 ptr;
         assembly {
@@ -226,11 +215,7 @@ library RLPReader {
      * @param dest Pointer to destination
      * @param len Amount of memory to copy from the source
      */
-    function copy(
-        uint256 src,
-        uint256 dest,
-        uint256 len
-    ) internal pure {
+    function copy(uint256 src, uint256 dest, uint256 len) internal pure {
         // copy as many word sizes as possible
         for (; len >= WORD_SIZE; len -= WORD_SIZE) {
             assembly {
@@ -240,7 +225,7 @@ library RLPReader {
             dest += WORD_SIZE;
         }
         // left over bytes. Mask is used to remove unwanted bytes from the word
-        uint256 mask = 256**(WORD_SIZE - len) - 1;
+        uint256 mask = 256 ** (WORD_SIZE - len) - 1;
         assembly {
             let srcpart := and(mload(src), not(mask)) // zero out src
             let destpart := and(mload(dest), mask) // retrieve the bytes
