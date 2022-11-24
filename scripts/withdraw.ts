@@ -49,7 +49,7 @@ export const withdraw = async (
     throw new Error(`invalid partners in ${partnerConfig}`);
   }
 
-  const { tokenAddress, collectorOwner } = parsedPartnerConfig;
+  const { tokenAddress } = parsedPartnerConfig;
 
   const minABI = [
     // balanceOf
@@ -76,7 +76,7 @@ export const withdraw = async (
   );
 
   try {
-    await collector.withdraw({ from: collectorOwner, gasLimit });
+    await collector.withdraw({ gasLimit });
   } catch (error) {
     console.error(
       `Error withdrawing funds from collector with address ${collectorAddress}`
