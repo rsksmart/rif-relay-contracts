@@ -149,8 +149,6 @@ npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_addr
 ```
 
 Parameters:
-* `safeAddress`: Address of the Safe account set as owner of the Collector. It must be used only when then collector owner is a multisig account;
-* `safeOwners`: Comma-separated list of addresses that are the owners of the Safe account
 * `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
 * `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
 * `partners`: Comma-separated list of addresses to which the Collector distributes the token.
