@@ -27,7 +27,7 @@ export const withdraw = async (
   {
     collectorAddress,
     partnerConfig,
-    gasLimit = defaultTxGas
+    gasLimit = defaultTxGas,
   }: {
     collectorAddress: string;
     partnerConfig: string;
@@ -35,14 +35,15 @@ export const withdraw = async (
   },
   hre: HardhatRuntimeEnvironment
 ) => {
-
   const parsedPartnerConfig = parseJsonFile<PartnerConfig>(
     partnerConfig
   ) as PartnerConfig;
 
-  const parsedPartners = await Promise.all(parsedPartnerConfig.partners.map(partnerConfig => {
-    return partnerConfig.beneficiary
-  }));
+  const parsedPartners = await Promise.all(
+    parsedPartnerConfig.partners.map((partnerConfig) => {
+      return partnerConfig.beneficiary;
+    })
+  );
 
   if (!parsedPartners.length) {
     throw new Error(`invalid partners in ${partnerConfig}`);
@@ -73,7 +74,7 @@ export const withdraw = async (
     'Collector',
     collectorAddress
   );
-  
+
   try {
     await collector.withdraw({ from: collectorOwner, gasLimit });
   } catch (error) {
