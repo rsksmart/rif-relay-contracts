@@ -113,7 +113,7 @@ task('remove-tokens', 'Removes a list of tokens')
   }
 );
 
-task('change-partner-shares', 'Change partner shares of a collector')
+task('collector:change-partners', 'Change collector partners')
   .addParam('collectorAddress', 'address of the collector we want to modify')
   .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')

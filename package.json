@@ -63,8 +63,6 @@
     "ci:test": "npm run test",
     "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed",
     "postclean": "hardhat clean",
-    "collector:deploy": "hardhat deploy-collector",
-    "collector:change-partners": "hardhat change-partner-shares",
     "compile": "npm run clean && hardhat compile --force",
     "deploy": "hardhat deploy --network",
     "docs": "hardhat docgen",
