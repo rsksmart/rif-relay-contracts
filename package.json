@@ -54,8 +54,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "allow-tokens": "hardhat allow-tokens --network",
-    "allowed-tokens": "hardhat allowed-tokens --network",
     "prebuild": "npm run clean",
     "build": "hardhat compile --force",
     "postbuild": "tsc --project tsconfig.build.json",
@@ -65,9 +63,9 @@
     "ci:test": "npm run test",
     "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed",
     "postclean": "hardhat clean",
+    "collector:deploy": "hardhat deploy-collector",
     "compile": "npm run clean && hardhat compile --force",
     "deploy": "hardhat deploy --network",
-    "deploy-configure": "hardhat deploy --network",
     "docs": "hardhat docgen",
     "format": "npm run format:sol && npm run format:ts",
     "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",
@@ -76,7 +74,6 @@
     "lint:sol": "solhint --fix 'contracts/**/*.sol'",
     "lint:ts": "eslint test --ext .ts --fix",
     "prepare": "./scripts/prepare.npm",
-    "remove-tokens": "hardhat remove-tokens --network",
     "pretdd": "npm run build",
     "tdd": "TEST=true REPORT_GAS=true hardhat watch tdd",
     "test": "TEST=true REPORT_GAS=true hardhat test"
