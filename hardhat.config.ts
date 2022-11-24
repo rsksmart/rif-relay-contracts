@@ -9,6 +9,7 @@ import { deploy } from './scripts/deploy';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
 import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
+import { changePartnerShares, ChangePartnerSharesArg } from './scripts/changePartnerShares';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -109,6 +110,15 @@ task('remove-tokens', 'Removes a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
   .setAction(async (taskArgs: {tokenlist: string}, hre) => {
     await removeTokens(taskArgs, hre);
+  }
+);
+
+task('collector:change-partners', 'Change collector partners')
+  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
+  .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
+  .setAction(async (taskArgs: ChangePartnerSharesArg, hre) => {
+    await changePartnerShares(taskArgs, hre);
   }
 );
 
