@@ -3,10 +3,10 @@ import chaiAsPromised from 'chai-as-promised';
 import { BigNumber, Contract } from 'ethers';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
-import { withdraw } from '../../scripts/withdraw';
-import sinon, { SinonStub, SinonStubbedInstance } from 'sinon';
-import * as utils from '../../scripts/utils';
-import { ChangePartnerSharesArg, PartnerConfig } from 'scripts/changePartnerShares';
+import { withdraw } from '../../tasks/withdraw';
+import sinon, { SinonSpy, SinonStub, SinonStubbedInstance } from 'sinon';
+import * as utils from '../../tasks/utils';
+import { ChangePartnerSharesArg, PartnerConfig } from 'tasks/changePartnerShares';
 import console from 'console';
 
 use(chaiAsPromised);
@@ -31,11 +31,17 @@ describe('Withdraw Script', function () {
 
     let stubbedFileParser: SinonStub;
     let stubbedERC20: SinonStubbedInstance<Contract>;
+    let stubbedCollector: SinonStubbedInstance<Contract>;
+    let withdrawSpy: SinonSpy;
 
     beforeEach(function () {
       stubbedFileParser = sinon.stub(utils, 'parseJsonFile').returns(parsedPartnerConfig);
       stubbedERC20 = sinon.createStubInstance(Contract);
       stubbedERC20['balanceOf'] = () => BigNumber.from(300000000);
+      stubbedCollector = sinon.createStubInstance(Contract);
+      stubbedCollector['withdraw'] = () => undefined;
+      withdrawSpy = sinon.spy(stubbedCollector, 'withdraw');
+
       console.log = () => undefined;
       console.error = () => undefined;
     });
@@ -59,15 +65,14 @@ describe('Withdraw Script', function () {
     });
 
     it('should throw error if withdrawal fails', async function () {
-      const stubCollector = sinon.createStubInstance(Contract);
       const errorMessage = 'Error on withdrawal!';
-      stubCollector['withdraw'] = () => { 
+      stubbedCollector['withdraw'] = () => { 
         throw new Error(errorMessage) 
       };
 
       sinon.stub(ethers, 'getContractAt')
         .onFirstCall().resolves(stubbedERC20)
-        .onSecondCall().resolves(stubCollector);
+        .onSecondCall().resolves(stubbedCollector);
 
       await expect(
         withdraw(
@@ -77,21 +82,31 @@ describe('Withdraw Script', function () {
       ).to.be.rejectedWith(errorMessage);
     });
 
-    it('should withdraw tokens from collector contract', async function () {
-      const stubCollector = sinon.createStubInstance(Contract);
-
-      stubCollector['withdraw'] = () => undefined;
-
+    it('should withdraw tokens from collector contract using default tx gas', async function () {
+      
       sinon.stub(ethers, 'getContractAt')
         .onFirstCall().resolves(stubbedERC20)
-        .onSecondCall().resolves(stubCollector);
+        .onSecondCall().resolves(stubbedCollector);
 
-      await expect(
-        withdraw(
-          mandatoryArgs,
-          hre
-        )
-      ).to.not.be.rejected;
+      await withdraw(mandatoryArgs, hre);
+      expect(withdrawSpy.withArgs({ gasLimit: 200000 }).calledOnce).to.be.true;
+    });
+
+    it('should withdraw tokens from collector contract using specified tx gas', async function () {
+      
+      sinon.stub(ethers, 'getContractAt')
+        .onFirstCall().resolves(stubbedERC20)
+        .onSecondCall().resolves(stubbedCollector);
+
+      const gasLimit = 200001;
+
+      const argsWithGasLimit = {
+        ...mandatoryArgs,
+        gasLimit
+      }
+
+      await withdraw(argsWithGasLimit, hre);
+      expect(withdrawSpy.withArgs({ gasLimit }).calledOnce).to.be.true;
     });
   });
 });

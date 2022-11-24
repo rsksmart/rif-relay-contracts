@@ -44,38 +44,24 @@ The project is ready to be used at this point.
 The contracts can be deployed in the following way:
 
 1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
-2. Run `npm run deploy <NETWORK_NAME>` 
+2. Run `npx run deploy --network <NETWORK_NAME>` 
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
-#### Create a Multisig account
-
-The repo includes a script that can be run to create a multisig account.
-
-Pre-requirements: [Safe contracts v1.2.0](https://github.com/gnosis/safe-contracts/tree/v1.2.0) deployed within the network.
-Please check that the Safe addresses defined at `scripts/utils.js#69-78` reflect the addresses of the deployed Safe contracts.
-
-```bash
-npx truffle --network regtest exec tasks/create-safe.js --owners="<0xaddr_1>,<0xaddr_2>,..."
-```
-
-Parameters:
-- `owners`: a comma-separated list of addresses (e.g.: `"0x7986b3DF570230288501EEa3D890bd66948C9B79,0x0a3aA774752ec2042c46548456c094A76C7F3a79,0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036,0x39B12C05E8503356E3a7DF0B7B33efA4c054C409"`); if not specified, the script uses the first 4 accounts retrieved from `web3.eth.getAccounts` (useful for local development only).
-
 #### Collector Deployment
 
-To deploy a collector, we need to the script `deploy:collector`. It receives the following parameters:
+To deploy a collector, we need to the script `collector:deploy`. It receives the following parameters:
 - `config-file-name`: optional, used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
 - `outputFile`: optional, used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
 
 Usage:
 ```bash
-npx hardhat deploy:collector --network "<network>" --config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
+npx hardhat collector:deploy --network "<network>" --config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
 ```
 
 Example:
 ```bash
-npx hardhat deploy:collector --network regtest --config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
+npx hardhat collector:deploy --network regtest --config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
 ```
 
 #### Change partner shares
@@ -224,7 +210,7 @@ We use Husky to check linters and code style for every commit. If commiting chan
 
 1. Modify deployment scripts if needed
 2. Add configuration for your network
-3. Run `npm run deploy` to run deployment scripts
+3. Run `npx hardhat deploy --network <NETWORK>` to run deployment scripts
 
 ### Generating a new distributable version
 

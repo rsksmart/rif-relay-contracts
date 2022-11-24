@@ -2,6 +2,13 @@ import { BigNumber, BigNumberish } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { parseJsonFile } from './utils';
 import type { PartnerConfig } from './changePartnerShares';
+import { PromiseOrValue } from 'typechain-types/common';
+
+export type WithdrawSharesArg = {
+  collectorAddress: string;
+  partnerConfig: string;
+  gasLimit?: BigNumberish;
+};
 
 type MinimumErc20TokenContract = {
   balanceOf: (address: string) => Promise<BigNumber>;
@@ -9,41 +16,33 @@ type MinimumErc20TokenContract = {
 
 const printStatus = async (
   collectorAddress: string,
-  partners: string[],
+  partners: PromiseOrValue<string>[],
   erc20TokenInstance: MinimumErc20TokenContract
 ) => {
   const collectorBalance = await erc20TokenInstance.balanceOf(collectorAddress);
 
   console.log(`Collector balance: ${collectorBalance.toNumber()}`);
   for (const partner of partners) {
-    const balance = await erc20TokenInstance.balanceOf(partner);
-    console.log(`Address ${partner} balance: ${balance.toNumber()}`);
+    const balance = await erc20TokenInstance.balanceOf(await partner);
+    console.log(`Address ${await partner} balance: ${balance.toNumber()}`);
   }
 };
 
-const defaultTxGas = 200000;
+const DEFAULT_TX_GAS = 200000;
 
 export const withdraw = async (
   {
     collectorAddress,
     partnerConfig,
-    gasLimit = defaultTxGas,
-  }: {
-    collectorAddress: string;
-    partnerConfig: string;
-    gasLimit?: BigNumberish;
-  },
+    gasLimit = DEFAULT_TX_GAS,
+  }: WithdrawSharesArg,
   hre: HardhatRuntimeEnvironment
 ) => {
-  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(
-    partnerConfig
-  ) as PartnerConfig;
+  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(partnerConfig);
 
-  const parsedPartners = await Promise.all(
-    parsedPartnerConfig.partners.map((partnerConfig) => {
-      return partnerConfig.beneficiary;
-    })
-  );
+  const parsedPartners = parsedPartnerConfig.partners.map((partnerConfig) => {
+    return partnerConfig.beneficiary;
+  });
 
   if (!parsedPartners.length) {
     throw new Error(`invalid partners in ${partnerConfig}`);

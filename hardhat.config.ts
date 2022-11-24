@@ -3,15 +3,14 @@ import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
 import 'hardhat-watcher';
 import '@nomiclabs/hardhat-ethers';
-import { allowTokens } from './scripts/allowTokens';
-import { removeTokens } from './scripts/removeTokens';
-import { deploy } from './scripts/deploy';
-import { withdraw } from './scripts/withdraw';
+import { allowTokens } from './tasks/allowTokens';
+import { removeTokens } from './tasks/removeTokens';
+import { deploy } from './tasks/deploy';
+import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import { HardhatUserConfig, task } from 'hardhat/config';
-import { getAllowedTokens } from './scripts/getAllowedTokens';
-import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
-import { changePartnerShares, ChangePartnerSharesArg } from './scripts/changePartnerShares';
-import { BigNumberish } from 'ethers';
+import { getAllowedTokens } from './tasks/getAllowedTokens';
+import { deployCollector, DeployCollectorArg } from './tasks/deployCollector';
+import { changePartnerShares, ChangePartnerSharesArg } from './tasks/changePartnerShares';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -87,7 +86,7 @@ task('deploy', 'Deploys rif-relay contracts to selected network')
   }
 );
 
-task('deploy:collector', 'Deploys the collector')
+task('collector:deploy', 'Deploys the collector')
   .addOptionalParam('configFileName', 'Path of the collector config file')
   .addOptionalParam('outputFileName', 'Path of the output file')
   .setAction(async (taskArgs: DeployCollectorArg, hre) => {
@@ -111,11 +110,7 @@ task('collector:withdraw', 'Withdraws funds from a collector contract')
   .addParam('collectorAddress', 'address of the collector we want to withdraw from')
   .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
-  .setAction(async (taskArgs: { 
-    collectorAddress: string,
-    partnerConfig: string,
-    gasLimit?: BigNumberish
-  }, hre) => {
+  .setAction(async (taskArgs: WithdrawSharesArg, hre) => {
     await withdraw(taskArgs, hre);
   }
 );

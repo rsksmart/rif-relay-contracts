@@ -6,15 +6,13 @@ import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
 import {
-  removeTokens
-} from '../../scripts/removeTokens';
+  getAllowedTokens
+} from '../../tasks/getAllowedTokens';
 
 use(chaiAsPromised);
 
-describe('Remove Tokens Script', function () {
-  describe('removeTokens', function () {
-    const taskArgs = { tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7' };
-
+describe('Get Allowed Tokens Script', function () {
+  describe('getAllowedTokens', function () {
     const contractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       RelayHub: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
@@ -48,26 +46,20 @@ describe('Remove Tokens Script', function () {
       sinon.restore();
     });
 
-    it('should remove a list of tokens', async function () {
+    it('should get several lists of allowed tokens succesfully', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['removeToken'] = () => undefined;
-      stubContract['getAcceptedTokens'] = () => {
-        return [
-          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D8',
-          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7'
-        ];
-      };
+      stubContract.getAcceptedTokens = () => undefined;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(removeTokens(taskArgs, hre)).to.not.be.rejected;
+      await expect(getAllowedTokens(hre)).to.not.be.rejected;
     });
 
-    it('should throw error and print it if token cannot be removed', async function () {
+    it('should throw error and print it if error while getting allowed tokens', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['removeToken'] = () => {
+      stubContract.acceptToken = () => {
         throw new Error();
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(removeTokens(taskArgs, hre)).to.be.rejected;
+      await expect(getAllowedTokens(hre)).to.be.rejected;
     });
   });
 });

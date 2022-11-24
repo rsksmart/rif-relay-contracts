@@ -4,9 +4,9 @@ import { Contract } from 'ethers';
 import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
-import * as utils from '../../scripts/utils';
-import { changePartnerShares, ChangePartnerSharesArg, PartnerConfig } from '../../scripts/changePartnerShares';
-import sinon from 'sinon';
+import * as utils from '../../tasks/utils';
+import { changePartnerShares, ChangePartnerSharesArg, PartnerConfig } from '../../tasks/changePartnerShares';
+import sinon, { SinonSpy } from 'sinon';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 import Sinon from 'sinon';
 
@@ -48,25 +48,27 @@ describe('Change Partner Shares Script', function () {
 
     describe('', function () {
       let stubContract: Sinon.SinonStubbedInstance<Contract>;
+      let updateSharesSpy: SinonSpy;
 
       beforeEach(function() {
         sinon.stub(utils, 'parseJsonFile').returns(parsedPartnerConfig);
         stubContract = sinon.createStubInstance(Contract);
-        stubContract.updateShares = sinon.spy(() => ({} as TransactionResponse));
+        stubContract['updateShares'] = () => ({} as TransactionResponse);
+        updateSharesSpy = sinon.spy(stubContract, 'updateShares');
         sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       })
 
       it("should successfully call the 'updateShares' method with the partners and the default gas limit", async function () {
         await expect(changePartnerShares(mandatoryArgs, hre)).not.to.be.rejected;
         expect(
-          stubContract.updateShares.calledWithExactly(parsedPartnerConfig.partners, {gasLimit: 150000})
+          updateSharesSpy.calledWithExactly(parsedPartnerConfig.partners, {gasLimit: 150000})
         ).to.be.true;
       });
 
       it("should successfully call the 'updateShares' method with the partners and the gas limit", async function () {
         await expect(changePartnerShares(allArgs, hre)).not.to.be.rejected;
         expect(
-          stubContract.updateShares.calledWithExactly(parsedPartnerConfig.partners, {gasLimit: allArgs.gasLimit})
+          updateSharesSpy.calledWithExactly(parsedPartnerConfig.partners, {gasLimit: allArgs.gasLimit})
         ).to.be.true;
       });
     })
@@ -75,7 +77,7 @@ describe('Change Partner Shares Script', function () {
       sinon.stub(utils, 'parseJsonFile').returns(parsedPartnerConfig);
       const stubContract = sinon.createStubInstance(Contract);
       const errorMsg = 'Transaction reverted for some reason';
-      stubContract.updateShares = () => {
+      stubContract['updateShares'] = () => {
         throw new Error(errorMsg);
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
