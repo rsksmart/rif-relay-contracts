@@ -61,8 +61,8 @@ interface IForwarder {
         bytes calldata signature
     ) external payable returns (bool success, bytes memory ret);
 
-    function directExecute(address to, bytes calldata data)
-        external
-        payable
-        returns (bool success, bytes memory ret);
+    function directExecute(
+        address to,
+        bytes calldata data
+    ) external payable returns (bool success, bytes memory ret);
 }

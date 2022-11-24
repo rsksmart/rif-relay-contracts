@@ -8,6 +8,7 @@ import { removeTokens } from './scripts/removeTokens';
 import { deploy } from './scripts/deploy';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
+import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -80,6 +81,14 @@ const config: HardhatUserConfig = {
 task('deploy', 'Deploys rif-relay contracts to selected network')
   .setAction(async (_, hre) => {
     await deploy(hre);
+  }
+);
+
+task('deploy:collector', 'Deploys the collector')
+  .addOptionalParam('configFileName', 'Path of the collector config file')
+  .addOptionalParam('outputFileName', 'Path of the output file')
+  .setAction(async (taskArgs: DeployCollectorArg, hre) => {
+    await deployCollector(taskArgs, hre);
   }
 );
 

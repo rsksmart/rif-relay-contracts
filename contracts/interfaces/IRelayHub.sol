@@ -84,8 +84,10 @@ interface IRelayHub {
         bytes calldata signature
     ) external;
 
-    function penalize(address relayWorker, address payable beneficiary)
-        external;
+    function penalize(
+        address relayWorker,
+        address payable beneficiary
+    ) external;
 
     /* getters */
     function penalizer() external view returns (address);
@@ -103,16 +105,14 @@ interface IRelayHub {
 
     function workerCount(address manager) external view returns (uint256);
 
-    function isRelayManagerStaked(address relayManager)
-        external
-        view
-        returns (bool);
+    function isRelayManagerStaked(
+        address relayManager
+    ) external view returns (bool);
 
     // get the relay info from the manager address
-    function getRelayInfo(address relayManager)
-        external
-        view
-        returns (RelayManagerData memory relayManagerData);
+    function getRelayInfo(
+        address relayManager
+    ) external view returns (RelayManagerData memory relayManagerData);
 
     // Represents the relay data for a particular relay manager
     struct RelayManagerData {
@@ -169,18 +169,18 @@ interface IRelayHub {
     // If the entry already exists, only the owner can call this function.
     // @param relayManager - address that represents a stake entry and controls relay registrations on relay hubs
     // @param unstakeDelay - number of blocks to elapse before the owner can retrieve the stake after calling 'unlock'
-    function stakeForAddress(address relayManager, uint256 unstakeDelay)
-        external
-        payable;
+    function stakeForAddress(
+        address relayManager,
+        uint256 unstakeDelay
+    ) external payable;
 
     function unlockStake(address relayManager) external;
 
     function withdrawStake(address relayManager) external;
 
-    function getStakeInfo(address relayManager)
-        external
-        view
-        returns (StakeInfo memory stakeInfo);
+    function getStakeInfo(
+        address relayManager
+    ) external view returns (StakeInfo memory stakeInfo);
 
     //For initial stakes, this is the minimum stake value allowed for taking ownership of this address' stake
     function minimumEntryDepositValue() external view returns (uint256);
