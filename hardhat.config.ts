@@ -6,6 +6,7 @@ import '@nomiclabs/hardhat-ethers';
 import { allowTokens } from './scripts/allowTokens';
 import { removeTokens } from './scripts/removeTokens';
 import { deploy } from './scripts/deploy';
+import { withdraw } from './scripts/withdraw';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
 import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
@@ -106,8 +107,12 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
   }
 );
 task('withdraw', 'Retrieves a list of allowed tokens')
-  .setAction(async (_, hre) => {
-    await getAllowedTokens(hre);
+  .setAction(async (taskArgs: { 
+    collectorAddress: string,
+    tokenAddress: string,
+    partners: string 
+  }, hre) => {
+    await withdraw(taskArgs, hre);
   }
 );
 
