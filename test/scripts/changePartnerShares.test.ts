@@ -17,7 +17,7 @@ describe('Change Partner Shares Script', function () {
   const mandatoryArgs: ChangePartnerSharesArg = { collectorAddress: '0xabc123', partnerConfig: 'path/to/config/file' };
   const allArgs: ChangePartnerSharesArg = { ...mandatoryArgs, gasLimit: 20000 };
 
-  const parsedPartnerConfig: PartnerConfig = {
+  const parsedPartnerConfig: Partial<PartnerConfig> = {
     partners: [
       {
         beneficiary: '0x123abc',

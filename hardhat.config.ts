@@ -11,6 +11,7 @@ import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './scripts/getAllowedTokens';
 import { deployCollector, DeployCollectorArg } from './scripts/deployCollector';
 import { changePartnerShares, ChangePartnerSharesArg } from './scripts/changePartnerShares';
+import { BigNumberish } from 'ethers';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -107,10 +108,13 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
   }
 );
 task('withdraw', 'Retrieves a list of allowed tokens')
+  .addParam('collectorAddress', 'address of the collector we want to withdraw from')
+  .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
+  .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: { 
     collectorAddress: string,
-    tokenAddress: string,
-    partners: string 
+    partnerConfig: string,
+    gasLimit?: BigNumberish
   }, hre) => {
     await withdraw(taskArgs, hre);
   }

@@ -1,5 +1,7 @@
-import { BigNumber, utils } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { parseJsonFile } from './utils';
+import type { PartnerConfig } from './changePartnerShares';
 
 type MinimumErc20TokenContract = {
   balanceOf: (address: string) => Promise<BigNumber>;
@@ -13,32 +15,40 @@ const printStatus = async (
   const collectorBalance = await erc20TokenInstance.balanceOf(collectorAddress);
 
   console.log(`Collector balance: ${collectorBalance.toNumber()}`);
-  for (const owner of partners) {
-    const balance = await erc20TokenInstance.balanceOf(owner);
-    console.log(`Address ${owner} balance: ${balance.toNumber()}`);
+  for (const partner of partners) {
+    const balance = await erc20TokenInstance.balanceOf(partner);
+    console.log(`Address ${partner} balance: ${balance.toNumber()}`);
   }
 };
+
+const defaultTxGas = 200000;
 
 export const withdraw = async (
   {
     collectorAddress,
-    tokenAddress,
-    partners,
+    partnerConfig,
+    gasLimit = defaultTxGas
   }: {
     collectorAddress: string;
-    tokenAddress: string;
-    partners: string;
+    partnerConfig: string;
+    gasLimit?: BigNumberish;
   },
   hre: HardhatRuntimeEnvironment
 ) => {
-  if (!utils.isAddress(collectorAddress)) {
-    throw new Error(`invalid "collectorAddress": ${collectorAddress}`);
+
+  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(
+    partnerConfig
+  ) as PartnerConfig;
+
+  const parsedPartners = await Promise.all(parsedPartnerConfig.partners.map(partnerConfig => {
+    return partnerConfig.beneficiary
+  }));
+
+  if (!parsedPartners.length) {
+    throw new Error(`invalid partners in ${partnerConfig}`);
   }
 
-  const parsedPartners = partners && partners.split(',');
-  if (!parsedPartners) {
-    throw new Error(`invalid "partners": ${partners}`);
-  }
+  const { tokenAddress, collectorOwner } = parsedPartnerConfig;
 
   const minABI = [
     // balanceOf
@@ -59,15 +69,19 @@ export const withdraw = async (
   console.log('---Token balance before---');
   await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
 
-  const collectorInstance = await hre.ethers.getContractAt(
+  const collector = await hre.ethers.getContractAt(
     'Collector',
     collectorAddress
   );
-
-  const gasRequired = '200000';
-  await collectorInstance.withdraw({
-    gasPrice: gasRequired,
-  });
+  
+  try {
+    await collector.withdraw({ from: collectorOwner, gasLimit });
+  } catch (error) {
+    console.error(
+      `Error withdrawing funds from collector with address ${collectorAddress}`
+    );
+    throw error;
+  }
 
   console.log('---Token balance after---');
   await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
