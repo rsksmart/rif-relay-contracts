@@ -105,6 +105,11 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
     await getAllowedTokens(hre);
   }
 );
+task('withdraw', 'Retrieves a list of allowed tokens')
+  .setAction(async (_, hre) => {
+    await getAllowedTokens(hre);
+  }
+);
 
 task('remove-tokens', 'Removes a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
