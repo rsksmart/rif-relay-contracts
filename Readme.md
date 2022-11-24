@@ -142,16 +142,20 @@ For further info about `truffle exec`, please have a look at its [official docum
 
 ### Withdraw
 
-To call the `withdraw` method available on the Collector contract, the repo provides the script `/tasks/withdraw.js`. It allows the user to call the `withdraw` whether the contract owner is a Multisig account or an EOA.
+To call the withdraw() method available on the Collector contract, the repo provides the utility script `collector:withdraw`. It allows the user to call the `withdraw()` function from the Collector contract. It receives the following parameters:
+
+- `collector-address`: mandatory, it's the address of the collector we want to change;
+- `partner-config`: a path specifying the file that contains the partner configuration for the deployed collector;
+- `gas-limit`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `200000`;
 
 ```bash
-npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_address>' --safeOwners='<0xsafe_owner1,0xsafe_owner2>' --collectorAddress='<0xcollector_address>' --tokenAddress='<0xtoken_address>' --partners='<0xpartner1,0xpartner2>' 
+npx hardhat collector:withdraw --collector-address='<0xcollector_address>' --partner-config "<file_including_partners_config.json>"  --gas-limit='<gas_limit>' --network regtest
 ```
 
-Parameters:
-* `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
-* `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
-* `partners`: Comma-separated list of addresses to which the Collector distributes the token.
+Example:
+```bash
+npx hardhat collector:withdraw --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "300000" --network regtest
+```
 
 ## Library usage
 
