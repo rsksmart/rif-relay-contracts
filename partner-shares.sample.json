@@ -1,16 +1,21 @@
 {
+    "tokenAddress": "0xb824784A5bF2Bc7139d1786639444e4Da259934B",
     "partners": [
         {
-            "beneficiary": "0xD27eE084157342438D3e3709784fAc92cC984931",
-            "share": 50
+          "beneficiary": "0x7986b3DF570230288501EEa3D890bd66948C9B79",
+          "share": 20
         },
         {
-            "beneficiary": "0x1b5449Ca10E7a23BD2EfbE6cc8E807C87D022250",
-            "share": 10
+          "beneficiary": "0x0a3aA774752ec2042c46548456c094A76C7F3a79",
+          "share": 35
         },
         {
-            "beneficiary": "0xDe199c66f49B34EF09655Af839A0BfD7775D50cd",
-            "share": 40
+          "beneficiary": "0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036",
+          "share": 13
+        },
+        {
+          "beneficiary": "0x39B12C05E8503356E3a7DF0B7B33efA4c054C409",
+          "share": 32
         }
-    ]
+      ]
 }

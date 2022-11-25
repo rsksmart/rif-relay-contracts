@@ -106,6 +106,7 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
     await getAllowedTokens(hre);
   }
 );
+
 task('collector:withdraw', 'Withdraws funds from a collector contract')
   .addParam('collectorAddress', 'address of the collector we want to withdraw from')
   .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')

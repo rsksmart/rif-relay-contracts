@@ -44,7 +44,7 @@ The project is ready to be used at this point.
 The contracts can be deployed in the following way:
 
 1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
-2. Run `npx run deploy --network <NETWORK_NAME>` 
+2. Run `npx hardhat deploy --network <NETWORK_NAME>` 
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
@@ -140,7 +140,7 @@ npx hardhat collector:withdraw --collector-address='<0xcollector_address>' --par
 
 Example:
 ```bash
-npx hardhat collector:withdraw --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "300000" --network regtest
+npx hardhat collector:withdraw --collector-address "0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "300000" --network regtest
 ```
 
 ## Library usage
