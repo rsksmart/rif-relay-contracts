@@ -9,7 +9,7 @@ import {
   deployContracts,
   updateConfig,
   
-} from '../../scripts/deploy';
+} from '../../tasks/deploy';
 import { ContractAddresses } from '../../utils/scripts/types'
 
 use(chaiAsPromised);
