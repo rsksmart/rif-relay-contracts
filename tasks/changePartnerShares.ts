@@ -10,7 +10,9 @@ export type ChangePartnerSharesArg = {
 };
 
 export type PartnerConfig = {
+  collectorOwner: string;
   partners: ICollector.RevenuePartnerStruct[];
+  tokenAddress: string;
 };
 
 const defaultTxGas = 150000;

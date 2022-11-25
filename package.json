@@ -64,7 +64,6 @@
     "clean": "rm -rf typechain-types cache bin dist artifacts contracts-exposed",
     "postclean": "hardhat clean",
     "compile": "npm run clean && hardhat compile --force",
-    "deploy": "hardhat deploy --network",
     "docs": "hardhat docgen",
     "format": "npm run format:sol && npm run format:ts",
     "format:sol": "prettier -c -w --no-editorconfig contracts/**/*.sol contracts/**/**/*.sol",

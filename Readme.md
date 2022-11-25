@@ -44,38 +44,24 @@ The project is ready to be used at this point.
 The contracts can be deployed in the following way:
 
 1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
-2. Run `npm run deploy <NETWORK_NAME>` 
+2. Run `npx hardhat deploy --network <NETWORK_NAME>` 
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
-#### Create a Multisig account
-
-The repo includes a script that can be run to create a multisig account.
-
-Pre-requirements: [Safe contracts v1.2.0](https://github.com/gnosis/safe-contracts/tree/v1.2.0) deployed within the network.
-Please check that the Safe addresses defined at `scripts/utils.js#69-78` reflect the addresses of the deployed Safe contracts.
-
-```bash
-npx truffle --network regtest exec tasks/create-safe.js --owners="<0xaddr_1>,<0xaddr_2>,..."
-```
-
-Parameters:
-- `owners`: a comma-separated list of addresses (e.g.: `"0x7986b3DF570230288501EEa3D890bd66948C9B79,0x0a3aA774752ec2042c46548456c094A76C7F3a79,0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036,0x39B12C05E8503356E3a7DF0B7B33efA4c054C409"`); if not specified, the script uses the first 4 accounts retrieved from `web3.eth.getAccounts` (useful for local development only).
-
 #### Collector Deployment
 
-To deploy a collector, we need to the script `deploy:collector`. It receives the following parameters:
+To deploy a collector, we need to the script `collector:deploy`. It receives the following parameters:
 - `config-file-name`: optional, used to specify the collector owner and the partners configuration (addresses and shares). If not specified, the file `deploy-collector.input.json` will be used. Please have a look at `deploy-collector.input.sample.json` for a sample file.
 - `outputFile`: optional, used to log the main information of the collector deployment. If not specified, the file `revenue-sharing-addresses.json` will be used. 
 
 Usage:
 ```bash
-npx hardhat deploy:collector --network "<network>" --config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
+npx hardhat collector:deploy --network "<network>" --config-file-name "<input_config_file.json>" --output-file-name "output_config_file.json"
 ```
 
 Example:
 ```bash
-npx hardhat deploy:collector --network regtest --config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
+npx hardhat collector:deploy --network regtest --config-file-name "deploy-collector.input.json" --output-file-name "collector-output.json"
 ```
 
 #### Change partner shares
@@ -142,18 +128,20 @@ For further info about `truffle exec`, please have a look at its [official docum
 
 ### Withdraw
 
-To call the `withdraw` method available on the Collector contract, the repo provides the script `/tasks/withdraw.js`. It allows the user to call the `withdraw` whether the contract owner is a Multisig account or an EOA.
+To call the withdraw() method available on the Collector contract, the repo provides the utility script `collector:withdraw`. It allows the user to call the `withdraw()` function from the Collector contract. It receives the following parameters:
+
+- `collector-address`: mandatory, it's the address of the collector we want to change;
+- `partner-config`: a path specifying the file that contains the partner configuration for the deployed collector;
+- `gas-limit`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `200000`;
 
 ```bash
-npx truffle --network regtest exec tasks/withdraw.js --safeAddress='<0xsafe_address>' --safeOwners='<0xsafe_owner1,0xsafe_owner2>' --collectorAddress='<0xcollector_address>' --tokenAddress='<0xtoken_address>' --partners='<0xpartner1,0xpartner2>' 
+npx hardhat collector:withdraw --collector-address='<0xcollector_address>' --partner-config "<file_including_partners_config.json>"  --gas-limit='<gas_limit>' --network regtest
 ```
 
-Parameters:
-* `safeAddress`: Address of the Safe account set as owner of the Collector. It must be used only when then collector owner is a multisig account;
-* `safeOwners`: Comma-separated list of addresses that are the owners of the Safe account
-* `collectorAddress`: Address of the Collector deployed; if not specified, the `collectorContract` field of the `revenue-sharing-addresses.json` file is used.
-* `tokenAddress`: Address of the ERC-20 token used by the Collector; if not specified, the `collectorToken` field of the `revenue-sharing-addresses.json` file is used.
-* `partners`: Comma-separated list of addresses to which the Collector distributes the token.
+Example:
+```bash
+npx hardhat collector:withdraw --collector-address "0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "300000" --network regtest
+```
 
 ## Library usage
 
@@ -222,7 +210,7 @@ We use Husky to check linters and code style for every commit. If commiting chan
 
 1. Modify deployment scripts if needed
 2. Add configuration for your network
-3. Run `npm run deploy` to run deployment scripts
+3. Run `npx hardhat deploy --network <NETWORK>` to run deployment scripts
 
 ### Generating a new distributable version
 
