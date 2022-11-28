@@ -77,6 +77,7 @@ contract Collector is ICollector{
         address tokenAddr = address(token);
 
         if(balance != 0) {
+            // solhint-disable-next-line avoid-low-level-calls
             (bool success, bytes memory ret ) = tokenAddr.call{gas: 200000}(abi.encodeWithSelector(
                 hex"a9059cbb",
                 remainderAddress,
@@ -110,6 +111,7 @@ contract Collector is ICollector{
         address tokenAddr = address(token);
 
         for(uint256 i = 0; i < partners.length; i++){
+            // solhint-disable-next-line avoid-low-level-calls
             (bool success, bytes memory ret ) = tokenAddr.call(abi.encodeWithSelector(
                 hex"a9059cbb",
                 partners[i].beneficiary,
