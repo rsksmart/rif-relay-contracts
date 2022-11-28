@@ -320,7 +320,7 @@ describe('Collector', () => {
                     from: owner.address,
                     gasLimit: 100000
                 })
-            ).to.be.reverted;
+            ).to.be.revertedWith('Unable to transfer remainder');
         });
     });
 
@@ -415,7 +415,7 @@ describe('Collector', () => {
             ).to.be.revertedWith('Only owner can call this');
         });
 
-        it('Should fail when the transfer fails', async () => {
+        it('Should fail if the transfer returns false', async () => {
             const [owner, remainder, partner1, partner2, partner3, partner4] =
                 new MockProvider().getWallets();
 
@@ -436,8 +436,8 @@ describe('Collector', () => {
             ]);
 
             await expect(
-                collector.withdraw({ from: owner.address, gasLimit: 100000 })
-            ).to.be.reverted;
+                collector.withdraw({ from: owner.address, gasLimit: 1000000 })
+            ).to.be.revertedWith('Unable to withdraw');
         });
     });
 

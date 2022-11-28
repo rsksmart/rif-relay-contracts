@@ -5,11 +5,8 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/ICollector.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 contract Collector is ICollector{
-    using SafeERC20 for IERC20;
-
     address private remainderAddress;
     RevenuePartner[] private partners;
     IERC20 public token;
@@ -77,9 +74,18 @@ contract Collector is ICollector{
     noBalanceToShare
     {
         uint256 balance = token.balanceOf(address(this));
+        address tokenAddr = address(token);
 
         if(balance != 0) {
-            token.safeTransfer(remainderAddress, balance);
+            (bool success, bytes memory ret ) = tokenAddr.call{gas: 200000}(abi.encodeWithSelector(
+                hex"a9059cbb",
+                remainderAddress,
+                balance));
+
+            require(
+                success && (ret.length == 0 || abi.decode(ret, (bool))),
+                "Unable to transfer remainder"
+            );
         }
 
         // solhint-disable-next-line
@@ -101,8 +107,19 @@ contract Collector is ICollector{
         uint256 balance = token.balanceOf(address(this));
         require(balance >= partners.length, "Not enough balance to split");
 
-        for(uint256 i = 0; i < partners.length; i++)
-            token.safeTransfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
+        address tokenAddr = address(token);
+
+        for(uint256 i = 0; i < partners.length; i++){
+            (bool success, bytes memory ret ) = tokenAddr.call(abi.encodeWithSelector(
+                hex"a9059cbb",
+                partners[i].beneficiary,
+                SafeMath.div(SafeMath.mul(balance, partners[i].share), 100)));
+
+            require(
+                success && (ret.length == 0 || abi.decode(ret, (bool))),
+                "Unable to withdraw"
+            );
+        }
     }
 
     function transferOwnership(address _owner)
