@@ -161,6 +161,7 @@ contract(
                             index: index,
                             tokenContract: token.address,
                             tokenAmount: tokensPaid.toString(),
+                            validUntilTime: '0',
                             tokenGas: '50000'
                         },
                         relayData: {

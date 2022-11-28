@@ -712,6 +712,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
       nonce: number | BN | string;
       tokenAmount: number | BN | string;
       tokenGas: number | BN | string;
+      validUntilTime: number | BN | string;
       data: string;
     },
     sig: string,
@@ -801,6 +802,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -819,6 +821,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -837,6 +840,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -855,6 +859,7 @@ export interface CustomSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -956,6 +961,7 @@ export interface CustomSmartWalletDeployVerifierInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -981,6 +987,7 @@ export interface CustomSmartWalletDeployVerifierInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1006,6 +1013,7 @@ export interface CustomSmartWalletDeployVerifierInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1031,6 +1039,7 @@ export interface CustomSmartWalletDeployVerifierInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1158,6 +1167,7 @@ export interface CustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -1177,6 +1187,7 @@ export interface CustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -1196,6 +1207,7 @@ export interface CustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -1215,6 +1227,7 @@ export interface CustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -1247,6 +1260,7 @@ export interface CustomSmartWalletFactoryInstance
       nonce: number | BN | string;
       tokenAmount: number | BN | string;
       tokenGas: number | BN | string;
+      validUntilTime: number | BN | string;
       index: number | BN | string;
       data: string;
     },
@@ -1301,6 +1315,7 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1326,6 +1341,7 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1351,6 +1367,7 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1376,6 +1393,7 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -1803,6 +1821,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -1821,6 +1840,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -1839,6 +1859,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -1857,6 +1878,7 @@ export interface FailureCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -1982,6 +2004,7 @@ export interface ICustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -2001,6 +2024,7 @@ export interface ICustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -2020,6 +2044,7 @@ export interface ICustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -2039,6 +2064,7 @@ export interface ICustomSmartWalletFactoryInstance
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -2116,6 +2142,7 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2141,6 +2168,7 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2166,6 +2194,7 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2191,6 +2220,7 @@ export interface IDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2310,6 +2340,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
       nonce: number | BN | string;
       tokenAmount: number | BN | string;
       tokenGas: number | BN | string;
+      validUntilTime: number | BN | string;
       data: string;
     },
     signature: string,
@@ -2329,6 +2360,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -2347,6 +2379,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -2365,6 +2398,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -2383,6 +2417,7 @@ export interface IForwarderInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -2521,6 +2556,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2545,6 +2581,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2569,6 +2606,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2593,6 +2631,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2620,6 +2659,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2645,6 +2685,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2670,6 +2711,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2695,6 +2737,7 @@ export interface IRelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -2858,6 +2901,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2882,6 +2926,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2906,6 +2951,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2930,6 +2976,7 @@ export interface IRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -2962,6 +3009,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -2981,6 +3029,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3000,6 +3049,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3019,6 +3069,7 @@ export interface ISmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3167,6 +3218,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -3185,6 +3237,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -3203,6 +3256,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -3221,6 +3275,7 @@ export interface IWalletCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -3270,6 +3325,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3289,6 +3345,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3308,6 +3365,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -3327,6 +3385,7 @@ export interface IWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -4100,6 +4159,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4118,6 +4178,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4136,6 +4197,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4154,6 +4216,7 @@ export interface ProxyCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4285,6 +4348,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -4310,6 +4374,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -4335,6 +4400,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -4360,6 +4426,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -4388,6 +4455,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4412,6 +4480,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4436,6 +4505,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4460,6 +4530,7 @@ export interface RelayHubInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4630,6 +4701,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4654,6 +4726,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4678,6 +4751,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4702,6 +4776,7 @@ export interface RelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -4784,6 +4859,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
       nonce: number | BN | string;
       tokenAmount: number | BN | string;
       tokenGas: number | BN | string;
+      validUntilTime: number | BN | string;
       data: string;
     },
     sig: string,
@@ -4865,6 +4941,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4883,6 +4960,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4901,6 +4979,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -4919,6 +4998,7 @@ export interface SmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -5019,6 +5099,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -5038,6 +5119,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -5057,6 +5139,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -5076,6 +5159,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         index: number | BN | string;
         data: string;
       },
@@ -5106,6 +5190,7 @@ export interface SmartWalletFactoryInstance extends Truffle.ContractInstance {
       nonce: number | BN | string;
       tokenAmount: number | BN | string;
       tokenGas: number | BN | string;
+      validUntilTime: number | BN | string;
       index: number | BN | string;
       data: string;
     },
@@ -5310,6 +5395,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -5328,6 +5414,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -5346,6 +5433,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -5364,6 +5452,7 @@ export interface SuccessCustomLogicInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -5412,6 +5501,7 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5437,6 +5527,7 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5462,6 +5553,7 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5487,6 +5579,7 @@ export interface TestDeployVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5702,6 +5795,7 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5727,6 +5821,7 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5752,6 +5847,7 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5777,6 +5873,7 @@ export interface TestDeployVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5820,6 +5917,7 @@ export interface TestDeployVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5845,6 +5943,7 @@ export interface TestDeployVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5870,6 +5969,7 @@ export interface TestDeployVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -5895,6 +5995,7 @@ export interface TestDeployVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -6156,6 +6257,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6180,6 +6282,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6204,6 +6307,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6228,6 +6332,7 @@ export interface TestRelayVerifierInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6277,6 +6382,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6302,6 +6408,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6327,6 +6434,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6352,6 +6460,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6380,6 +6489,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -6406,6 +6516,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -6432,6 +6543,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -6458,6 +6570,7 @@ export interface TestRelayWorkerContractInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           index: number | BN | string;
           data: string;
         };
@@ -6510,6 +6623,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -6529,6 +6643,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -6548,6 +6663,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -6567,6 +6683,7 @@ export interface TestSmartWalletInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       },
       feesReceiver: string | BN,
@@ -6764,6 +6881,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       };
       relayData: {
@@ -6790,6 +6908,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6814,6 +6933,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6838,6 +6958,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6862,6 +6983,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -6888,6 +7010,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         nonce: number | BN | string;
         tokenAmount: number | BN | string;
         tokenGas: number | BN | string;
+        validUntilTime: number | BN | string;
         data: string;
       };
       relayData: {
@@ -6910,6 +7033,7 @@ export interface TestUtilInstance extends Truffle.ContractInstance {
         nonce: string;
         tokenAmount: string;
         tokenGas: string;
+        validUntilTime: string;
         data: string;
       },
       string,
@@ -7120,6 +7244,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7144,6 +7269,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7168,6 +7294,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7192,6 +7319,7 @@ export interface TestVerifierConfigurableMisbehaviorInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7234,6 +7362,7 @@ export interface TestVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7258,6 +7387,7 @@ export interface TestVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7282,6 +7412,7 @@ export interface TestVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7306,6 +7437,7 @@ export interface TestVerifierEverythingAcceptedInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7398,6 +7530,7 @@ export interface TestVerifierVariableGasLimitsInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7422,6 +7555,7 @@ export interface TestVerifierVariableGasLimitsInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7446,6 +7580,7 @@ export interface TestVerifierVariableGasLimitsInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
@@ -7470,6 +7605,7 @@ export interface TestVerifierVariableGasLimitsInstance
           nonce: number | BN | string;
           tokenAmount: number | BN | string;
           tokenGas: number | BN | string;
+          validUntilTime: number | BN | string;
           data: string;
         };
         relayData: {
