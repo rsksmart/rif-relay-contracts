@@ -74,9 +74,19 @@ contract Collector is ICollector{
     noBalanceToShare
     {
         uint256 balance = token.balanceOf(address(this));
+        address tokenAddr = address(token);
 
         if(balance != 0) {
-            token.transfer(remainderAddress, balance);
+            // solhint-disable-next-line avoid-low-level-calls
+            (bool success, bytes memory ret ) = tokenAddr.call{gas: 200000}(abi.encodeWithSelector(
+                hex"a9059cbb",
+                remainderAddress,
+                balance));
+
+            require(
+                success && (ret.length == 0 || abi.decode(ret, (bool))),
+                "Unable to transfer remainder"
+            );
         }
 
         // solhint-disable-next-line
@@ -98,8 +108,20 @@ contract Collector is ICollector{
         uint256 balance = token.balanceOf(address(this));
         require(balance >= partners.length, "Not enough balance to split");
 
-        for(uint256 i = 0; i < partners.length; i++)
-            token.transfer(partners[i].beneficiary, SafeMath.div(SafeMath.mul(balance, partners[i].share), 100));
+        address tokenAddr = address(token);
+
+        for(uint256 i = 0; i < partners.length; i++){
+            // solhint-disable-next-line avoid-low-level-calls
+            (bool success, bytes memory ret ) = tokenAddr.call(abi.encodeWithSelector(
+                hex"a9059cbb",
+                partners[i].beneficiary,
+                SafeMath.div(SafeMath.mul(balance, partners[i].share), 100)));
+
+            require(
+                success && (ret.length == 0 || abi.decode(ret, (bool))),
+                "Unable to withdraw"
+            );
+        }
     }
 
     function transferOwnership(address _owner)
