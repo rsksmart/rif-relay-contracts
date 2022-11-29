@@ -1,6 +1,4 @@
-import {
-  MockContract, smock
-} from '@defi-wonderland/smock';
+import { MockContract, smock } from '@defi-wonderland/smock';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Contract, ContractFactory } from 'ethers';
@@ -150,7 +148,7 @@ describe('Deploy Script', function () {
               collectorOwner: await collector.owner(),
               tokenAddress: await collector.token(),
               remainderAddress: collectorConfiguration.remainderAddress,
-              partners: collectorConfiguration.partners
+              partners: collectorConfiguration.partners,
             },
           };
           expect(

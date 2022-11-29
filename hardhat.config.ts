@@ -10,7 +10,10 @@ import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { getAllowedTokens } from './tasks/getAllowedTokens';
 import { deployCollector, DeployCollectorArg } from './tasks/deployCollector';
-import { changePartnerShares, ChangePartnerSharesArg } from './tasks/changePartnerShares';
+import {
+  changePartnerShares,
+  ChangePartnerSharesArg,
+} from './tasks/changePartnerShares';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -91,8 +94,7 @@ task('collector:deploy', 'Deploys the collector')
   .addOptionalParam('outputFileName', 'Path of the output file')
   .setAction(async (taskArgs: DeployCollectorArg, hre) => {
     await deployCollector(taskArgs, hre);
-  }
-);
+  });
 
 task('allow-tokens', 'Allows a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
@@ -107,13 +109,18 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens').setAction(
 );
 
 task('collector:withdraw', 'Withdraws funds from a collector contract')
-  .addParam('collectorAddress', 'address of the collector we want to withdraw from')
-  .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
+  .addParam(
+    'collectorAddress',
+    'address of the collector we want to withdraw from'
+  )
+  .addParam(
+    'partnerConfig',
+    'path of the file that includes the partner shares configuration'
+  )
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: WithdrawSharesArg, hre) => {
     await withdraw(taskArgs, hre);
-  }
-);
+  });
 
 task('remove-tokens', 'Removes a list of tokens')
   .addPositionalParam('tokenlist', 'list of tokens')
@@ -123,11 +130,13 @@ task('remove-tokens', 'Removes a list of tokens')
 
 task('collector:change-partners', 'Change collector partners')
   .addParam('collectorAddress', 'address of the collector we want to modify')
-  .addParam('partnerConfig', 'path of the file that includes the partner shares configuration')
+  .addParam(
+    'partnerConfig',
+    'path of the file that includes the partner shares configuration'
+  )
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: ChangePartnerSharesArg, hre) => {
     await changePartnerShares(taskArgs, hre);
-  }
-);
+  });
 
 export default config;

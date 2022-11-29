@@ -5,9 +5,7 @@ import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import {
-  removeTokens
-} from '../../tasks/removeTokens';
+import { removeTokens } from '../../tasks/removeTokens';
 
 use(chaiAsPromised);
 

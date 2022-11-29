@@ -1,4 +1,4 @@
-export * from './typechain-types'; 
+export * from './typechain-types';
 export * from './tasks/deploy';
 
 // We need to explicitly export those types because they're not automatically exported by typechain
