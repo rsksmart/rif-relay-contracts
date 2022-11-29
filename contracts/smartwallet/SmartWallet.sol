@@ -16,6 +16,9 @@ contract SmartWallet is IForwarder {
     bytes32 public constant DATA_VERSION_HASH = keccak256("2");
     bytes32 public domainSeparator;
 
+    event GasLeft(uint256);
+    
+
     constructor() public {
         setOwner(msg.sender);
     }
@@ -172,9 +175,11 @@ contract SmartWallet is IForwarder {
             //For that reason, the next require line must be left uncommented, to avoid malicious relayer attacks to destination contract
             //methods that revert if the gasleft() is not enough to execute whatever logic they have.
 
+            emit GasLeft(gasleft());
             require(gasleft() > req.gas,"Not enough gas left");
             (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
-     
+            emit GasLeft(gasleft());
+
             //If any balance has been added then trasfer it to the owner EOA
             uint256 balanceToTransfer = address(this).balance;
             if ( balanceToTransfer > 0) {

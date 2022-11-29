@@ -52,6 +52,18 @@ export interface DeployVerifierContract
   ): Promise<DeployVerifierInstance>;
 }
 
+export interface DummyContract extends Truffle.Contract<DummyInstance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<DummyInstance>;
+}
+
+export interface Dummy2Contract extends Truffle.Contract<Dummy2Instance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<Dummy2Instance>;
+}
+
+export interface Dummy3Contract extends Truffle.Contract<Dummy3Instance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<Dummy3Instance>;
+}
+
 export interface ERC20Contract extends Truffle.Contract<ERC20Instance> {
   "new"(
     name: string,
@@ -1438,6 +1450,204 @@ export interface DeployVerifierInstance extends Truffle.ContractInstance {
     token: string | BN,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
+}
+
+export interface DummyInstance extends Truffle.ContractInstance {
+  pushToArray: {
+    (
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  pushArrayToArray: {
+    (
+      _array: (number | BN | string)[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _array: (number | BN | string)[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _array: (number | BN | string)[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _array: (number | BN | string)[],
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  getArray(txDetails?: Truffle.TransactionDetails): Promise<BN[]>;
+
+  getArrayWithPop: {
+    (
+      _remove: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _remove: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<BN[]>;
+    sendTransaction(
+      _remove: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _remove: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  stress: {
+    (
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<void>;
+    sendTransaction(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  deleteStressArray: {
+    (txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse
+    >;
+    call(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    sendTransaction(txDetails?: Truffle.TransactionDetails): Promise<string>;
+    estimateGas(txDetails?: Truffle.TransactionDetails): Promise<number>;
+  };
+
+  print(
+    _value: number | BN | string,
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<BN>;
+}
+
+export interface Dummy2Instance extends Truffle.ContractInstance {
+  callExternal: {
+    (
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<[boolean, string]>;
+    sendTransaction(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  callExternalRefund: {
+    (
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<[boolean, string]>;
+    sendTransaction(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+}
+
+export interface Dummy3Instance extends Truffle.ContractInstance {
+  callExternal: {
+    (
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<[boolean, string]>;
+    sendTransaction(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _to: string | BN,
+      _data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
+  callExternalRefund: {
+    (
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<[boolean, string]>;
+    sendTransaction(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      _to: string | BN,
+      _data: string,
+      _value: number | BN | string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
 }
 
 export interface ERC20Instance extends Truffle.ContractInstance {

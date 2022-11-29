@@ -21,6 +21,9 @@ declare global {
         name: "CustomSmartWalletFactory"
       ): TruffleContracts.CustomSmartWalletFactoryContract;
       require(name: "DeployVerifier"): TruffleContracts.DeployVerifierContract;
+      require(name: "Dummy"): TruffleContracts.DummyContract;
+      require(name: "Dummy2"): TruffleContracts.Dummy2Contract;
+      require(name: "Dummy3"): TruffleContracts.Dummy3Contract;
       require(name: "ERC20"): TruffleContracts.ERC20Contract;
       require(name: "ERC20Basic"): TruffleContracts.ERC20BasicContract;
       require(name: "ERC20Mod"): TruffleContracts.ERC20ModContract;
