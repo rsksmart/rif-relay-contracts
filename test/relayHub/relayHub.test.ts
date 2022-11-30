@@ -6,11 +6,11 @@ import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { BigNumber } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
 import { ethers } from 'hardhat';
 import { Penalizer } from 'typechain-types/contracts/Penalizer';
 import { RelayHub } from 'typechain-types/contracts/RelayHub';
-import { createContractDeployer } from './utils';
+import { createContractDeployer, MINIMUM_UNSTAKE_DELAY } from './utils';
 
 import {
   ERR_HUB_BAD_PARAMS,
@@ -408,15 +408,21 @@ describe('RelayHub Contract', function () {
       let stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
       assert.isTrue(Number(stakeInfo.stake) === 0, 'Stakes is not ZERO');
 
-      await mockRelayHub.stakeForAddress(relayManagerAddr, 1000, {
-        value: oneRBTC,
-        from: relayOwnerAddr,
-      });
+      const initialUnstakeDelay = 1500; // it should be >= minimumUnstakeDelay
+      await mockRelayHub.stakeForAddress(
+        relayManagerAddr,
+        initialUnstakeDelay,
+        {
+          value: oneRBTC,
+          from: relayOwnerAddr,
+        }
+      );
 
       stakeInfo = await mockRelayHub.getStakeInfo(relayManagerAddr);
 
+      const decreasedUnstakeDelay = 1300; // it should be >= minimumUnstakeDelay
       await assert.isRejected(
-        mockRelayHub.stakeForAddress(relayManagerAddr, 100, {
+        mockRelayHub.stakeForAddress(relayManagerAddr, decreasedUnstakeDelay, {
           value: ethers.utils.parseEther('10'),
           from: relayOwnerAddr,
         }),
@@ -499,7 +505,7 @@ describe('RelayHub Contract', function () {
           value: ethers.utils.parseEther('0'),
           from: relayOwnerAddr,
         }),
-        'Insufficient intitial stake',
+        'Insufficient initial stake',
         'Stake was made with less value than the minimum'
       );
     });
@@ -514,6 +520,45 @@ describe('RelayHub Contract', function () {
         'caller is the relayManager',
         'Stake was made with less value than the minimum'
       );
+    });
+
+    describe('', function () {
+      async function stakeAndVerify(unstakeDelay: BigNumberish) {
+        await mockRelayHub.stakeForAddress(relayManager.address, unstakeDelay, {
+          value: 1,
+          from: relayOwner.address,
+        });
+
+        const stakeInfo = await mockRelayHub.getStakeInfo(relayManager.address);
+        expect(stakeInfo.unstakeDelay).to.be.equal(
+          unstakeDelay.toString(),
+          "UnstakeDelay isn't the one specified in the 'stakeForAddress' call"
+        );
+      }
+
+      it("Should fail if 'unstakeDelay' is less than 'minimumUnstakeDelay'", async function () {
+        const unstakeDelay = BigNumber.from(MINIMUM_UNSTAKE_DELAY).sub(5);
+
+        await expect(
+          mockRelayHub.stakeForAddress(relayManager.address, unstakeDelay, {
+            value: 1,
+            from: relayOwner.address,
+          })
+        ).to.be.rejectedWith(
+          'unstakeDelay is too low',
+          'Stake was made with an unstakeDelay lower than minimumUnstakeDelay'
+        );
+      });
+
+      it("Should succeed if 'unstakeDelay' is equal to 'minimumUnstakeDelay'", async function () {
+        await stakeAndVerify(BigNumber.from(MINIMUM_UNSTAKE_DELAY));
+      });
+
+      it("Should succeed if 'unstakeDelay' is greater than 'minimumUnstakeDelay'", async function () {
+        const unstakeDelay = BigNumber.from(MINIMUM_UNSTAKE_DELAY).add(5);
+
+        await stakeAndVerify(unstakeDelay);
+      });
     });
   });
 });

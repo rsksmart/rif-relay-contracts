@@ -71,12 +71,15 @@ contract Collector is ICollector {
         uint256 balance = token.balanceOf(address(this));
         address tokenAddr = address(token);
 
-        if(balance != 0) {
+        if (balance != 0) {
             // solhint-disable-next-line avoid-low-level-calls
-            (bool success, bytes memory ret ) = tokenAddr.call{gas: 200000}(abi.encodeWithSelector(
-                hex"a9059cbb",
-                remainderAddress,
-                balance));
+            (bool success, bytes memory ret) = tokenAddr.call{gas: 200000}(
+                abi.encodeWithSelector(
+                    hex"a9059cbb",
+                    _remainderAddress,
+                    balance
+                )
+            );
 
             require(
                 success && (ret.length == 0 || abi.decode(ret, (bool))),
@@ -98,12 +101,15 @@ contract Collector is ICollector {
 
         address tokenAddr = address(token);
 
-        for(uint256 i = 0; i < partners.length; i++){
+        for (uint256 i = 0; i < _partners.length; i++) {
             // solhint-disable-next-line avoid-low-level-calls
-            (bool success, bytes memory ret ) = tokenAddr.call(abi.encodeWithSelector(
-                hex"a9059cbb",
-                partners[i].beneficiary,
-                SafeMath.div(SafeMath.mul(balance, partners[i].share), 100)));
+            (bool success, bytes memory ret) = tokenAddr.call(
+                abi.encodeWithSelector(
+                    hex"a9059cbb",
+                    _partners[i].beneficiary,
+                    SafeMath.div(SafeMath.mul(balance, _partners[i].share), 100)
+                )
+            );
 
             require(
                 success && (ret.length == 0 || abi.decode(ret, (bool))),

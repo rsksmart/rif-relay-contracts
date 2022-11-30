@@ -8,8 +8,7 @@ import chaiAsPromised from 'chai-as-promised';
 import chai from 'chai';
 import { ethers as hardhat } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { Collector__factory } from 'typechain-types';
-import { Collector } from 'typechain-types';
+import { Collector, Collector__factory } from '../typechain-types';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -71,6 +70,7 @@ describe('Collector', function () {
       await hardhat.getSigners();
 
     fakeToken = await smock.fake('ERC20');
+    fakeToken['transfer'].returns(true);
 
     collectorFactory = await smock.mock<Collector__factory>('Collector');
   });
@@ -251,9 +251,9 @@ describe('Collector', function () {
     });
 
     it('Should update remainder address when token balance is zero', async function () {
-      const [, , , , , , newReminderDestination] = await hardhat.getSigners();
+      const [, , , , , , newRemainderDestination] = await hardhat.getSigners();
 
-      await collector.updateRemainderAddress(newReminderDestination.address);
+      await collector.updateRemainderAddress(newRemainderDestination.address);
 
       expect(collector.updateRemainderAddress).to.have.been.called;
     });
@@ -317,295 +317,118 @@ describe('Collector', function () {
       expect(await collector.getBalance()).to.equal(0);
     });
 
-    describe('updateRemainderAddress', () => {
-        it('Should update remainder address when token balance is zero', async () => {
-            const { collector, utilWallet } = await loadFixture(
-                prepareAllFixture
-            );
+    describe('updateRemainderAddress', function () {
+      it('Should fail if the transfer returns false', async function () {
+        const [owner, , newRemainder] = await hardhat.getSigners();
 
-            await collector.updateRemainderAddress(utilWallet.address);
-            expect('updateRemainderAddress').to.be.calledOnContract(collector);
-        });
+        fakeToken['transfer'].returns(false);
+        fakeToken['balanceOf'].returns(2);
 
-        it('Should update remainder when token balance is a remainder and should withdraw remainder', async () => {
-            const { collector, testToken, remainder, utilWallet } =
-                await loadFixture(prepareAllFixture);
-            await testToken.mint(2, collector.address);
+        await expect(
+          collector.updateRemainderAddress(newRemainder.address, {
+            from: owner.address,
+            gasLimit: 100000,
+          })
+        ).to.be.revertedWith('Unable to transfer remainder');
+      });
 
-            await collector.updateRemainderAddress(utilWallet.address);
+      it('Should return 100 after that value has been minted', async function () {
+        fakeToken.balanceOf.returns(100);
 
-            expect(
-                await testToken.balanceOf(collector.address),
-                'The balance of collector'
-            ).to.equal(0);
-            expect(
-                await testToken.balanceOf(remainder.address),
-                'The balance of remainder'
-            ).to.equal(2);
-        });
-
-        it('Should withdraw when the remainders address sent is the same as the current one', async () => {
-            const { collector, testToken, remainder } = await loadFixture(
-                prepareAllFixture
-            );
-
-            await testToken.mint(3, collector.address);
-
-            await collector.updateRemainderAddress(remainder.address);
-
-            expect(
-                await testToken.balanceOf(collector.address),
-                'The balance of collector'
-            ).to.equal(0);
-            expect(
-                await testToken.balanceOf(remainder.address),
-                'The balance of remainder'
-            ).to.equal(3);
-        });
-
-        it('Should fail when token balance > = remainder', async () => {
-            const { collector, testToken, utilWallet } = await loadFixture(
-                prepareAllFixture
-            );
-
-            await testToken.mint(4, collector.address);
-
-            await expect(
-                collector.updateRemainderAddress(utilWallet.address)
-            ).to.be.revertedWith('There is balance to share');
-        });
-
-        it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(
-                prepareAllFixture
-            );
-            const externallyLinkedCollector = collector.connect(
-                utilWallet.address
-            );
-
-            await expect(
-                externallyLinkedCollector.updateRemainderAddress(
-                    utilWallet.address
-                )
-            ).to.be.revertedWith('Only owner can call this');
-        });
-
-        it('Should fail if the transfer returns false', async () => {
-            const [
-                owner,
-                oldRemainder,
-                newRemainder,
-                partner1,
-                partner2,
-                partner3,
-                partner4
-            ] = new MockProvider().getWallets();
-
-            const mockERC20 = await deployMockContract(owner, IERC20.abi);
-            await mockERC20.mock.transfer.returns(false);
-            await mockERC20.mock.balanceOf.returns(2);
-
-            const partners = await buildPartners(
-                [partner1, partner2, partner3, partner4],
-                PARTNER_SHARES
-            );
-
-            const collector = await deployContract(owner, Collector, [
-                owner.address,
-                mockERC20.address,
-                partners,
-                oldRemainder.address
-            ]);
-
-            await expect(
-                collector.updateRemainderAddress(newRemainder.address, {
-                    from: owner.address,
-                    gasLimit: 100000
-                })
-            ).to.be.revertedWith('Unable to transfer remainder');
-        });
-    it('Should return 100 after that value has been minted', async function () {
-      fakeToken.balanceOf.returns(100);
-
-      expect(await collector.getBalance()).to.equal(100);
-    });
-  });
-
-  describe('withdraw', function () {
-    beforeEach(async function () {
-      await deployCollector();
+        expect(await collector.getBalance()).to.equal(100);
+      });
     });
 
-    it('Should withdraw', async function () {
-      fakeToken.balanceOf.returns(100);
-      await collector.withdraw();
+    describe('withdraw', function () {
+      beforeEach(async function () {
+        await deployCollector();
+      });
 
-      expect(fakeToken.transfer, 'Partner[0] balance').to.have.been.calledWith(
-        partners[0].beneficiary,
-        PARTNER_SHARES[0]
-      );
+      it('Should withdraw', async function () {
+        fakeToken.balanceOf.returns(100);
+        await collector.withdraw();
 
-      expect(fakeToken.transfer, 'Partner[1] balance').to.have.been.calledWith(
-        partners[1].beneficiary,
-        PARTNER_SHARES[1]
-      );
+        expect(
+          fakeToken.transfer,
+          'Partner[0] balance'
+        ).to.have.been.calledWith(partners[0].beneficiary, PARTNER_SHARES[0]);
 
-      expect(fakeToken.transfer, 'Partner[2] balance').to.have.been.calledWith(
-        partners[2].beneficiary,
-        PARTNER_SHARES[2]
-      );
+        expect(
+          fakeToken.transfer,
+          'Partner[1] balance'
+        ).to.have.been.calledWith(partners[1].beneficiary, PARTNER_SHARES[1]);
 
-      expect(fakeToken.transfer, 'Partner[3] balance').to.have.been.calledWith(
-        partners[3].beneficiary,
-        PARTNER_SHARES[3]
-      );
+        expect(
+          fakeToken.transfer,
+          'Partner[2] balance'
+        ).to.have.been.calledWith(partners[2].beneficiary, PARTNER_SHARES[2]);
+
+        expect(
+          fakeToken.transfer,
+          'Partner[3] balance'
+        ).to.have.been.calledWith(partners[3].beneficiary, PARTNER_SHARES[3]);
+      });
+
+      it('Should not fail if the revenue to share is equal to the number of partners', async function () {
+        // We assume the current balance of the collector to be
+        // equal to the number of partners
+        fakeToken.balanceOf.returns(NUMBER_OF_PARTNERS);
+
+        await collector.withdraw();
+
+        expect(fakeToken.transfer).to.have.callCount(4);
+      });
+
+      it('Should fail when no revenue to share', async function () {
+        fakeToken.balanceOf.returns(NUMBER_OF_PARTNERS - 1);
+
+        await expect(collector.withdraw()).to.be.revertedWith(
+          'Not enough balance to split'
+        );
+      });
+
+      it('Should fail when is called by an address that is not the owner', async function () {
+        fakeToken.balanceOf.returns(100);
+
+        const [, , , , , , notTheOwner] = await hardhat.getSigners();
+
+        await expect(
+          collector.connect(notTheOwner).withdraw()
+        ).to.be.revertedWith('Only owner can call this');
+      });
+
+      it('Should fail if the transfer returns false', async function () {
+        const [owner] = await hardhat.getSigners();
+
+        fakeToken['transfer'].returns(false);
+        fakeToken['balanceOf'].returns(100);
+
+        await expect(
+          collector.withdraw({ from: owner.address, gasLimit: 1000000 })
+        ).to.be.revertedWith('Unable to withdraw');
+      });
     });
 
-    it('Should not fail if the revenue to share is equal to the number of partners', async function () {
-      // We assume the current balance of the collector to be
-      // equal to the number of partners
-      fakeToken.balanceOf.returns(NUMBER_OF_PARTNERS);
+    describe('transferOwnership', function () {
+      beforeEach(async function () {
+        await deployCollector();
+      });
 
-      await collector.withdraw();
+      it('Should transfer ownership', async function () {
+        const [, , , , , , newOwner] = await hardhat.getSigners();
 
-      expect(fakeToken.transfer).to.have.callCount(4);
-    });
+        await collector.transferOwnership(newOwner.address);
 
-    describe('withdraw', () => {
-        it('Should withdraw', async () => {
-            const { collector, testToken, partners } = await loadFixture(
-                prepareAllFixture
-            );
+        expect(await collector.owner()).to.be.equal(newOwner.address);
+      });
 
-            await testToken.mint(100, collector.address);
-            await collector.withdraw();
-            expect(
-                await testToken.balanceOf(partners[0].beneficiary),
-                'Partner[0] balance'
-            ).to.equal(PARTNER_SHARES[0]);
+      it('Should fail when is called by an address that is not the owner', async function () {
+        const [, , , , , , newOwner, notTheOwner] = await hardhat.getSigners();
 
-            expect(
-                await testToken.balanceOf(partners[1].beneficiary),
-                'Partner[1] balance'
-            ).to.equal(PARTNER_SHARES[1]);
-
-            expect(
-                await testToken.balanceOf(partners[2].beneficiary),
-                'Partner[2] balance'
-            ).to.equal(PARTNER_SHARES[2]);
-
-            expect(
-                await testToken.balanceOf(partners[3].beneficiary),
-                'Partner[3] balance'
-            ).to.equal(PARTNER_SHARES[3]);
-
-            expect(
-                await testToken.balanceOf(collector.address),
-                'Balance of the collector'
-            ).to.equal(0);
-        });
-
-        it('Should not fail if the revenue to share is equal to the number of partners', async () => {
-            const { collector, testToken } = await loadFixture(
-                prepareAllFixture
-            );
-            // We assume the current balance of the collector to be
-            // equal to the number of partners
-            await testToken.mint(NUMBER_OF_PARTNERS, collector.address);
-
-            await collector.withdraw();
-            expect(
-                await testToken.balanceOf(collector.address),
-                'Balance of the collector'
-            ).to.be.equal('2');
-        });
-
-        it('Should fail when no revenue to share', async () => {
-            const { collector, testToken } = await loadFixture(
-                prepareAllFixture
-            );
-
-            await testToken.mint(1, collector.address);
-            await expect(collector.withdraw()).to.be.revertedWith(
-                'Not enough balance to split'
-            );
-        });
-
-        it('Should fail when is called by an address that is not the owner', async () => {
-            const { collector, utilWallet } = await loadFixture(
-                prepareAllFixture
-            );
-            const externallyLinkedCollector = collector.connect(
-                utilWallet.address
-            );
-
-            await expect(
-                externallyLinkedCollector.withdraw()
-            ).to.be.revertedWith('Only owner can call this');
-        });
-
-        it('Should fail if the transfer returns false', async () => {
-            const [owner, remainder, partner1, partner2, partner3, partner4] =
-                new MockProvider().getWallets();
-
-            const mockERC20 = await deployMockContract(owner, IERC20.abi);
-            await mockERC20.mock.transfer.returns(false);
-            await mockERC20.mock.balanceOf.returns(100);
-
-            const partners = await buildPartners(
-                [partner1, partner2, partner3, partner4],
-                PARTNER_SHARES
-            );
-
-            const collector = await deployContract(owner, Collector, [
-                owner.address,
-                mockERC20.address,
-                partners,
-                remainder.address
-            ]);
-
-            await expect(
-                collector.withdraw({ from: owner.address, gasLimit: 1000000 })
-            ).to.be.revertedWith('Unable to withdraw');
-        });
-    it('Should fail when no revenue to share', async function () {
-      fakeToken.balanceOf.returns(NUMBER_OF_PARTNERS - 1);
-
-      await expect(collector.withdraw()).to.be.revertedWith(
-        'Not enough balance to split'
-      );
-    });
-
-    it('Should fail when is called by an address that is not the owner', async function () {
-      fakeToken.balanceOf.returns(100);
-
-      const [, , , , , , notTheOwner] = await hardhat.getSigners();
-
-      await expect(
-        collector.connect(notTheOwner).withdraw()
-      ).to.be.revertedWith('Only owner can call this');
-    });
-  });
-
-  describe('transferOwnership', function () {
-    beforeEach(async function () {
-      await deployCollector();
-    });
-
-    it('Should transfer ownership', async function () {
-      const [, , , , , , newOwner] = await hardhat.getSigners();
-
-      await collector.transferOwnership(newOwner.address);
-
-      expect(await collector.owner()).to.be.equal(newOwner.address);
-    });
-
-    it('Should fail when is called by an address that is not the owner', async function () {
-      const [, , , , , , newOwner, notTheOwner] = await hardhat.getSigners();
-
-      await expect(
-        collector.connect(notTheOwner).transferOwnership(newOwner.address)
-      ).to.be.revertedWith('Only owner can call this');
+        await expect(
+          collector.connect(notTheOwner).transferOwnership(newOwner.address)
+        ).to.be.revertedWith('Only owner can call this');
+      });
     });
   });
 });
