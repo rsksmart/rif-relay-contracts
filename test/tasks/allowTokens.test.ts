@@ -5,15 +5,15 @@ import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import {
-  allowTokens
-} from '../../tasks/allowTokens';
+import { allowTokens } from '../../tasks/allowTokens';
 
 use(chaiAsPromised);
 
 describe('Allow Tokens Script', function () {
   describe('allowTokens', function () {
-    const taskArgs = { tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7' };
+    const taskArgs = {
+      tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+    };
 
     const contractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',

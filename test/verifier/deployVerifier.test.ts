@@ -83,35 +83,30 @@ describe('DeployVerifier Contract', function () {
   });
 
   describe('removeToken', function () {
-
     it('should remove a token from tokens map', async function () {
-
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true
-          },
-          acceptedTokens: [ ethers.utils.getAddress(fakeToken.address) ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+      });
 
       await deployVerifierMock.removeToken(fakeToken.address, 0);
 
-      const tokenMapValue = await deployVerifierMock.getVariable('tokens', [ fakeToken.address ]) as boolean;
+      const tokenMapValue = (await deployVerifierMock.getVariable('tokens', [
+        fakeToken.address,
+      ])) as boolean;
 
       expect(tokenMapValue).to.be.false;
     });
 
     it('should remove a token from acceptedTokens array', async function () {
-
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true
-          },
-          acceptedTokens: [ fakeToken.address ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        acceptedTokens: [fakeToken.address],
+      });
 
       await deployVerifierMock.removeToken(fakeToken.address, 0);
 
@@ -129,27 +124,22 @@ describe('DeployVerifier Contract', function () {
     it('should revert if token removed is ZERO ADDRESS', async function () {
       const result = deployVerifierMock.removeToken(constants.AddressZero, 0);
 
-      await expect(result).to.be
-        .revertedWith('Token cannot be zero address');
+      await expect(result).to.be.revertedWith('Token cannot be zero address');
     });
 
     it('should revert if token index does not correspond to token address to be removed', async function () {
-
       const fakeToken1 = await smock.fake<ERC20>('ERC20');
 
-      await deployVerifierMock.setVariables(
-        {
-          tokens: {
-            [fakeToken.address]: true,
-            [fakeToken1.address]: true,
-          },
-          acceptedTokens: [ fakeToken.address, fakeToken1.address ]
-        }
-      );
+      await deployVerifierMock.setVariables({
+        tokens: {
+          [fakeToken.address]: true,
+          [fakeToken1.address]: true,
+        },
+        acceptedTokens: [fakeToken.address, fakeToken1.address],
+      });
 
       const result = deployVerifierMock.removeToken(fakeToken.address, 1);
-      await expect(result).to.be
-      .revertedWith('Wrong token index');
+      await expect(result).to.be.revertedWith('Wrong token index');
     });
 
     it('should revert if caller is not the owner', async function () {

@@ -5,15 +5,15 @@ import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import {
-  removeTokens
-} from '../../tasks/removeTokens';
+import { removeTokens } from '../../tasks/removeTokens';
 
 use(chaiAsPromised);
 
 describe('Remove Tokens Script', function () {
   describe('removeTokens', function () {
-    const taskArgs = { tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7' };
+    const taskArgs = {
+      tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+    };
 
     const contractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
@@ -54,7 +54,7 @@ describe('Remove Tokens Script', function () {
       stubContract['getAcceptedTokens'] = () => {
         return [
           '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D8',
-          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7'
+          '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
         ];
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
