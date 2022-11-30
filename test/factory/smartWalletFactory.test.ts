@@ -1,7 +1,6 @@
 import { AccountKeypair } from '@rsksmart/rif-relay-client';
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ethers } from 'ethers';
 import {
     SmartWalletFactoryInstance,
     SmartWalletInstance,
@@ -16,6 +15,7 @@ import {
     mintTokens,
     signRequest
 } from '../utils';
+import { createValidPersonalSignSignature } from './utils';
 
 use(chaiAsPromised);
 
@@ -27,6 +27,7 @@ type createUserSmartWalletParam = {
     owner: string;
     recoverer: string;
     index: string;
+    factoryAddress: string;
 };
 
 /**
@@ -43,21 +44,14 @@ function createUserSmartWalletSignature(
     ownerPrivateKey: Buffer,
     object: createUserSmartWalletParam
 ): string {
-    const { owner, recoverer, index } = object;
-
-    const toSign: string =
-        web3.utils.soliditySha3(
-            { t: 'bytes2', v: '0x1910' },
-            { t: 'address', v: owner },
-            { t: 'address', v: recoverer },
-            { t: 'uint256', v: index }
-        ) ?? '';
-    const toSignAsBinaryArray = ethers.utils.arrayify(toSign);
-    const signingKey = new ethers.utils.SigningKey(ownerPrivateKey);
-    const signature = signingKey.signDigest(toSignAsBinaryArray);
-    const signatureCollapsed = ethers.utils.joinSignature(signature);
-
-    return signatureCollapsed;
+    const { owner, recoverer, index, factoryAddress } = object;
+    const message = web3.utils.soliditySha3(
+        { t: 'address', v: factoryAddress },
+        { t: 'address', v: owner },
+        { t: 'address', v: recoverer },
+        { t: 'uint256', v: index }
+    );
+    return createValidPersonalSignSignature(ownerPrivateKey, message);
 }
 
 contract('SmartWalletFactory', ([worker, otherAccount]) => {
@@ -92,7 +86,8 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 {
                     owner: owner.address,
                     recoverer,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 
@@ -116,7 +111,8 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 {
                     owner: constants.ZERO_ADDRESS,
                     recoverer,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 
@@ -138,7 +134,8 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                 {
                     owner: owner.address,
                     recoverer,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 

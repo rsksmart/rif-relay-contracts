@@ -1,6 +1,5 @@
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ethers } from 'ethers';
 import { soliditySha3Raw } from 'web3-utils';
 import {
     CustomSmartWalletFactoryInstance,
@@ -16,6 +15,7 @@ import {
     mintTokens,
     signRequest
 } from '../utils';
+import { createValidPersonalSignSignature } from './utils';
 
 use(chaiAsPromised);
 
@@ -29,6 +29,7 @@ type createUserSmartWalletParam = {
     logicAddress: string;
     index: string;
     initParams: string;
+    factoryAddress: string;
 };
 
 /**
@@ -45,23 +46,24 @@ function createUserSmartWalletSignature(
     ownerPrivateKey: Buffer,
     object: createUserSmartWalletParam
 ): string {
-    const { owner, recoverer, logicAddress, index, initParams } = object;
+    const {
+        owner,
+        recoverer,
+        logicAddress,
+        index,
+        initParams,
+        factoryAddress
+    } = object;
 
-    const toSign: string =
-        web3.utils.soliditySha3(
-            { t: 'bytes2', v: '0x1910' },
-            { t: 'address', v: owner },
-            { t: 'address', v: recoverer },
-            { t: 'address', v: logicAddress },
-            { t: 'uint256', v: index },
-            { t: 'bytes', v: initParams }
-        ) ?? '';
-    const toSignAsBinaryArray = ethers.utils.arrayify(toSign);
-    const signingKey = new ethers.utils.SigningKey(ownerPrivateKey);
-    const signature = signingKey.signDigest(toSignAsBinaryArray);
-    const signatureCollapsed = ethers.utils.joinSignature(signature);
-
-    return signatureCollapsed;
+    const message = web3.utils.soliditySha3(
+        { t: 'address', v: factoryAddress },
+        { t: 'address', v: owner },
+        { t: 'address', v: recoverer },
+        { t: 'address', v: logicAddress },
+        { t: 'uint256', v: index },
+        { t: 'bytes', v: initParams }
+    );
+    return createValidPersonalSignSignature(ownerPrivateKey, message);
 }
 
 contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
@@ -104,7 +106,8 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     recoverer,
                     logicAddress,
                     initParams,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 
@@ -131,7 +134,8 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     recoverer,
                     logicAddress,
                     initParams,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 
@@ -157,7 +161,8 @@ contract('CustomSmartWalletFactory', ([worker, otherAccount]) => {
                     recoverer,
                     logicAddress,
                     initParams,
-                    index
+                    index,
+                    factoryAddress: factory.address
                 }
             );
 
