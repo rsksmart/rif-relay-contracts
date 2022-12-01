@@ -244,6 +244,7 @@ describe('RelayVerifier Contract', function () {
           relayHub: fakeRelayHub.address,
           tokenAmount: '100000000000',
           tokenContract: fakeToken.address,
+          validUntilTime: '0',
           value: '0',
         },
       };
@@ -270,6 +271,7 @@ describe('RelayVerifier Contract', function () {
           relayHub: fakeRelayHub.address,
           tokenAmount: '100000000000',
           tokenContract: fakeToken.address,
+          validUntilTime: '0',
           value: '0',
         },
       };
@@ -300,6 +302,7 @@ describe('RelayVerifier Contract', function () {
           relayHub: fakeRelayHub.address,
           tokenAmount: '100000000000',
           tokenContract: fakeToken.address,
+          validUntilTime: '0',
           value: '0',
         },
       };
@@ -330,6 +333,7 @@ describe('RelayVerifier Contract', function () {
           relayHub: fakeRelayHub.address,
           tokenAmount: '100000000000',
           tokenContract: fakeToken.address,
+          validUntilTime: '0',
           value: '0',
         },
       };

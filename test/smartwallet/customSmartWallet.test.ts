@@ -65,6 +65,7 @@ function createRequest(
       nonce: '0',
       tokenAmount: '0',
       tokenGas: '50000',
+      validUntilTime: '0',
       data: '0x',
     },
     relayData: {
@@ -103,6 +104,7 @@ function createDeployRequest(
       nonce: '0',
       tokenAmount: '0',
       tokenGas: '50000',
+      validUntilTime: '0',
       index: '0',
       data: '0x',
     },
@@ -566,6 +568,60 @@ describe('CustomSmartWallet contract', function () {
           .connect(relayHub)
           .execute(suffixData, relayRequest.request, owner.address, signature)
       ).to.be.rejectedWith('Not enough gas left');
+    });
+
+    it('Should fail when request is expired', async function () {
+      const relayRequest = createRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        validUntilTime: 1669903306, //Thursday, December 1, 2022 2:01:46 PM
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockCustomSmartWallet.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockCustomSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, owner.address, signature)
+      ).to.be.rejectedWith('FWD: request expired');
+    });
+
+    it('Should transfer when request is not expired', async function () {
+      const date = new Date();
+      const expirationInSeconds = Math.floor(date.getTime() / 1000) + 86400;
+
+      const relayRequest = createRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        validUntilTime: expirationInSeconds, //Always 1 day (86400 sec) ahead
+      });
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockCustomSmartWallet.address,
+        relayRequest
+      );
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+      const suffixData = getSuffixData(typedRequestData);
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      await expect(
+        mockCustomSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, owner.address, signature),
+        'The transaction was reverted'
+      ).not.to.be.rejected;
     });
 
     it('Should transfer when the sender and receiver are the same', async function () {

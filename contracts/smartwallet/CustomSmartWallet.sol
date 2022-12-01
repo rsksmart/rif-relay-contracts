@@ -162,6 +162,10 @@ contract CustomSmartWallet is IForwarder {
         require(msg.sender == req.relayHub, "Invalid caller");
 
         _verifySig(suffixData, req, sig);
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "FWD: request expired"
+        );
         nonce++;
 
         if (req.tokenAmount > 0) {
@@ -259,7 +263,7 @@ contract CustomSmartWallet is IForwarder {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ), //requestTypeHash,
                 abi.encode(
                     req.relayHub,
@@ -271,6 +275,7 @@ contract CustomSmartWallet is IForwarder {
                     req.nonce,
                     req.tokenAmount,
                     req.tokenGas,
+                    req.validUntilTime,
                     keccak256(req.data)
                 ),
                 suffixData
