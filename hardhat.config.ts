@@ -1,19 +1,34 @@
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomiclabs/hardhat-ethers';
+import dotenv from 'dotenv';
 import 'hardhat-contract-sizer';
 import 'hardhat-docgen';
 import 'hardhat-watcher';
-import '@nomiclabs/hardhat-ethers';
-import { allowTokens } from './tasks/allowTokens';
-import { removeTokens } from './tasks/removeTokens';
-import { deploy } from './tasks/deploy';
-import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import { HardhatUserConfig, task } from 'hardhat/config';
-import { getAllowedTokens } from './tasks/getAllowedTokens';
-import { deployCollector, DeployCollectorArg } from './tasks/deployCollector';
+import { HttpNetworkUserConfig } from 'hardhat/types';
+import { allowTokens } from './tasks/allowTokens';
 import {
   changePartnerShares,
   ChangePartnerSharesArg,
 } from './tasks/changePartnerShares';
+import { deploy } from './tasks/deploy';
+import { deployCollector, DeployCollectorArg } from './tasks/deployCollector';
+import { getAllowedTokens } from './tasks/getAllowedTokens';
+import { removeTokens } from './tasks/removeTokens';
+import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
+dotenv.config();
+
+const DEFAULT_MNEMONIC =
+  'stuff slice staff easily soup parent arm payment cotton trade scatter struggle';
+const { PK, MNEMONIC } = process.env;
+const sharedNetworkConfig: HttpNetworkUserConfig = {};
+if (PK) {
+  sharedNetworkConfig.accounts = [PK];
+} else {
+  sharedNetworkConfig.accounts = {
+    mnemonic: MNEMONIC || DEFAULT_MNEMONIC,
+  };
+}
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -38,6 +53,11 @@ const config: HardhatUserConfig = {
     regtest: {
       url: 'http://localhost:4444',
       chainId: 33,
+    },
+    testnet: {
+      ...sharedNetworkConfig,
+      url: 'https://public-node.testnet.rsk.co',
+      chainId: 31,
     },
   },
   typechain: {
