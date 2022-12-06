@@ -159,6 +159,10 @@ contract SmartWalletFactory is ISmartWalletFactory {
     ) external override {
         require(msg.sender == req.relayHub, "Invalid caller");
         _verifySig(req, suffixData, sig);
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "SW: request expired"
+        );
         _nonces[req.from]++;
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
