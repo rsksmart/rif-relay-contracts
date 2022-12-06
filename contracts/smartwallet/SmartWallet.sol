@@ -142,7 +142,7 @@ contract SmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
         require(
             req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
-            "FWD: request expired"
+            "SW: request expired"
         );
         nonce++;
 

@@ -745,7 +745,7 @@ describe('SmartWallet contract', function () {
         mockSmartWallet
           .connect(relayHub)
           .execute(suffixData, relayRequest.request, owner.address, signature)
-      ).to.be.rejectedWith('FWD: request expired');
+      ).to.be.rejectedWith('SW: request expired');
     });
 
     it('Should transfer when request is not expired', async function () {
