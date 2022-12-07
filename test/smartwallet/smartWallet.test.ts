@@ -138,7 +138,8 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                     nonce: initialNonce.toString(),
                     relayHub: worker,
                     tokenContract: token.address,
-                    from: senderAddress
+                    from: senderAddress,
+                    validUntilTime: '0'
                 },
                 relayData
             );
@@ -160,7 +161,8 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                     nonce: initialNonce.toString(),
                     relayHub: worker,
                     tokenContract: token.address,
-                    from: senderAccount.address
+                    from: senderAccount.address,
+                    validUntilTime: '0'
                 },
                 relayData
             );
@@ -190,7 +192,8 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                     nonce: '100',
                     relayHub: worker,
                     tokenContract: token.address,
-                    from: senderAddress
+                    from: senderAddress,
+                    validUntilTime: '0'
                 },
                 relayData
             );
@@ -220,7 +223,8 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                     nonce: initialNonce.toString(),
                     relayHub: worker,
                     tokenContract: token.address,
-                    from: senderAddress
+                    from: senderAddress,
+                    validUntilTime: '0'
                 },
                 relayData
             );
@@ -253,7 +257,8 @@ contract('SmartWallet contract - Unit testing on method verify', ([worker]) => {
                     value: '0',
                     gas: '400000',
                     tokenAmount: '0',
-                    tokenGas: '400000'
+                    tokenGas: '400000',
+                    validUntilTime: '0'
                 },
                 relayData
             );
@@ -321,7 +326,8 @@ contract(
                         nonce: initialNonce.toString(),
                         relayHub: senderAddress, //To make it fail
                         tokenContract: token.address,
-                        from: senderAccount.address
+                        from: senderAccount.address,
+                        validUntilTime: '0'
                     },
                     relayData
                 );
@@ -361,7 +367,8 @@ contract(
                         nonce: initialNonce.toString(),
                         relayHub: worker,
                         tokenContract: token.address,
-                        from: senderAddress
+                        from: senderAddress,
+                        validUntilTime: '0'
                     },
                     relayData
                 );
@@ -396,7 +403,8 @@ contract(
                         nonce: initialNonce.toString(),
                         relayHub: worker,
                         tokenContract: token.address,
-                        from: senderAddress
+                        from: senderAddress,
+                        validUntilTime: '0'
                     },
                     relayData
                 );
@@ -432,7 +440,8 @@ contract(
                         nonce: initialNonce.toString(),
                         relayHub: worker,
                         tokenContract: token.address,
-                        from: senderAddress
+                        from: senderAddress,
+                        validUntilTime: '0'
                     },
                     relayData
                 );
@@ -473,7 +482,8 @@ contract(
                         relayHub: worker,
                         tokenContract: token.address,
                         from: senderAddress,
-                        tokenAmount: transferAmount.toString()
+                        tokenAmount: transferAmount.toString(),
+                        validUntilTime: '0'
                     },
                     relayData
                 );
@@ -530,7 +540,8 @@ contract(
                         relayHub: worker,
                         tokenContract: token.address,
                         from: senderAddress,
-                        tokenAmount: transferAmount.toString()
+                        tokenAmount: transferAmount.toString(),
+                        validUntilTime: '0'
                     },
                     relayData
                 );

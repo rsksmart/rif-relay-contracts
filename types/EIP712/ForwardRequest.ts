@@ -10,6 +10,7 @@ export interface ForwardRequest {
     nonce: string;
     tokenAmount: string;
     tokenGas: string;
+    validUntilTime: string;
     data: PrefixedHexString;
 }
 
@@ -24,5 +25,6 @@ export interface DeployRequestStruct {
     tokenAmount: string;
     tokenGas: string;
     index: string;
+    validUntilTime: string;
     data: PrefixedHexString;
 }

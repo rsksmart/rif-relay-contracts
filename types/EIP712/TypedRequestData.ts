@@ -39,6 +39,7 @@ export const ForwardRequestType = [
     { name: 'nonce', type: 'uint256' },
     { name: 'tokenAmount', type: 'uint256' },
     { name: 'tokenGas', type: 'uint256' },
+    { name: 'validUntilTime', type: 'uint256' },
     { name: 'data', type: 'bytes' }
 ];
 
@@ -52,6 +53,7 @@ export const DeployRequestDataType = [
     { name: 'nonce', type: 'uint256' },
     { name: 'tokenAmount', type: 'uint256' },
     { name: 'tokenGas', type: 'uint256' },
+    { name: 'validUntilTime', type: 'uint256' },
     { name: 'index', type: 'uint256' },
     { name: 'data', type: 'bytes' }
 ];

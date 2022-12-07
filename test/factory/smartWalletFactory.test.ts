@@ -187,6 +187,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
@@ -237,6 +238,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '50000',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
@@ -281,6 +283,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
@@ -304,6 +307,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
@@ -344,6 +348,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
@@ -383,6 +388,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenGas: '0',
                     recoverer: recoverer,
                     index: index,
+                    validUntilTime: '0',
                     relayHub: otherAccount
                 },
                 {
@@ -423,6 +429,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     recoverer: recoverer,
                     index: index,
                     relayHub: worker,
+                    validUntilTime: '0',
                     nonce: '1'
                 },
                 {
@@ -461,6 +468,7 @@ contract('SmartWalletFactory', ([worker, otherAccount]) => {
                     tokenAmount: '5000',
                     tokenGas: '0',
                     index: index,
+                    validUntilTime: '0',
                     relayHub: worker
                 },
                 {
