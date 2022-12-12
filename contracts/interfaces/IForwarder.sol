@@ -44,6 +44,11 @@ interface IForwarder {
     ) external view;
 
     /**
+     * returns the encrypted owner that deployed smart wallet.
+     */
+    function getOwner() external view returns (bytes32 owner);
+
+    /**
      * execute a transaction
      * @param forwardRequest - all transaction parameters
      * @param suffixData - the extension data used when signing this request.

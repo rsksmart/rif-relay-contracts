@@ -803,4 +803,40 @@ describe('SmartWallet contract', function () {
       expect(difference).approximately(amountToTransferAsNumber, 2);
     });
   });
+
+  describe('Function getOwner()', function () {
+    let mockSmartWallet: MockContract<SmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+
+    beforeEach(async function () {
+      const [, fundedAccount] = await hardhat.getSigners();
+
+      const mockSmartWalletFactory = await smock.mock<SmartWallet__factory>(
+        'CustomSmartWallet'
+      );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+    });
+
+    it('Should return the encrypted owner', async function () {
+      const returnedOwner = await mockSmartWallet.getOwner();
+      const expectedOwner = hardhat.utils.solidityKeccak256(
+        ['address'],
+        [owner.address]
+      );
+      expect(returnedOwner).to.be.equal(
+        expectedOwner,
+        'Owner is not the returned one'
+      );
+    });
+  });
 });
