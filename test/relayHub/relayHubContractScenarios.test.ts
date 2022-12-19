@@ -101,6 +101,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
           nonce: '0',
           tokenAmount: '1',
           tokenGas: '50000',
+          validUntilTime: '0',
           data: '0x',
         } as ForwardRequest,
         relayData: {
@@ -328,6 +329,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
           tokenGas: '50000',
           data: '0x',
           recoverer: '0',
+          validUntilTime: '0',
           index: 0,
         },
         relayData: {

@@ -40,6 +40,7 @@ export const forwardRequestType: MessageTypeProperty[] = [
   { name: 'nonce', type: 'uint256' },
   { name: 'tokenAmount', type: 'uint256' },
   { name: 'tokenGas', type: 'uint256' },
+  { name: 'validUntilTime', type: 'uint256' },
   { name: 'data', type: 'bytes' },
 ];
 
@@ -53,6 +54,7 @@ export const deployRequestDataType: MessageTypeProperty[] = [
   { name: 'nonce', type: 'uint256' },
   { name: 'tokenAmount', type: 'uint256' },
   { name: 'tokenGas', type: 'uint256' },
+  { name: 'validUntilTime', type: 'uint256' },
   { name: 'index', type: 'uint256' },
   { name: 'data', type: 'bytes' },
 ];

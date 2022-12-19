@@ -159,6 +159,10 @@ contract SmartWalletFactory is ISmartWalletFactory {
     ) external override {
         require(msg.sender == req.relayHub, "Invalid caller");
         _verifySig(req, suffixData, sig);
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "SW: request expired"
+        );
         _nonces[req.from]++;
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
@@ -256,7 +260,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ),
                 abi.encode(
                     req.relayHub,
@@ -268,6 +272,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
                     req.nonce,
                     req.tokenAmount,
                     req.tokenGas,
+                    req.validUntilTime,
                     req.index,
                     keccak256(req.data)
                 ),
