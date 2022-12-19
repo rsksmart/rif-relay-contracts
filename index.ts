@@ -7,4 +7,4 @@ export {
   StakeUnlockedEvent,
   IForwarder as IForwarderTypes,
 } from './typechain-types/contracts/RelayHub';
-export { TypedEvent } from './typechain-types/common';
+export { TypedEvent, PromiseOrValue } from './typechain-types/common';
