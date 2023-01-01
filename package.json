@@ -114,7 +114,7 @@
     "eslint": "~7.30.0",
     "eth-gas-reporter": "^0.2.25",
     "ethereumjs-wallet": "^1.0.2",
-    "ethereum-waffle": "^3.4.4",
+    "ethereum-waffle": "^4.0.7",
     "husky": "~6.0.0",
     "prettier": "^2.3.0",
     "solhint": "3.0.0",
