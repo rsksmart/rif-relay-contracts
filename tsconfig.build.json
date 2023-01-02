@@ -2,6 +2,8 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "test",
-    "tasks"
+    "tasks",
+    "utils",
+    "hardhat.config.ts"
   ]
 }

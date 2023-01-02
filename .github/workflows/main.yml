@@ -21,8 +21,8 @@ jobs:
 
       - name: Download rif-relay node configuration
         run: |
-          wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/node.conf
-          wget https://raw.githubusercontent.com/rsksmart/rif-relay/develop/docker/logback.xml
+          wget https://raw.githubusercontent.com/rsksmart/rif-relay/main/docker/node.conf
+          wget https://raw.githubusercontent.com/rsksmart/rif-relay/main/docker/logback.xml
 
       - name: Run docker image
         run: docker run -d -p 127.0.0.1:4444:4444 -p 127.0.0.1:4445:4445 --name enveloping-rskj -it -v $PWD/logback.xml:/etc/rsk/logback.xml -v $PWD/node.conf:/etc/rsk/node.conf rsksmart/rskj:IRIS-3 --regtest

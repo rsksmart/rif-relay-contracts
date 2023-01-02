@@ -59,7 +59,7 @@ contract CustomSmartWallet is IForwarder {
         }
     }
 
-    function _getOwner() private view returns (bytes32 owner) {
+    function getOwner() public view override returns (bytes32 owner) {
         assembly {
             owner := sload(
                 0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
@@ -125,7 +125,7 @@ contract CustomSmartWallet is IForwarder {
     ) external payable override returns (bool success, bytes memory ret) {
         //Verify Owner
         require(
-            _getOwner() == keccak256(abi.encodePacked(msg.sender)),
+            getOwner() == keccak256(abi.encodePacked(msg.sender)),
             "Not the owner of the SmartWallet"
         );
 
@@ -234,7 +234,7 @@ contract CustomSmartWallet is IForwarder {
     ) private view {
         //Verify Owner
         require(
-            _getOwner() == keccak256(abi.encodePacked(req.from)),
+            getOwner() == keccak256(abi.encodePacked(req.from)),
             "Not the owner of the SmartWallet"
         );
 
@@ -283,7 +283,7 @@ contract CustomSmartWallet is IForwarder {
     }
 
     function isInitialized() external view returns (bool) {
-        if (_getOwner() == bytes32(0)) {
+        if (getOwner() == bytes32(0)) {
             return false;
         } else {
             return true;
@@ -311,7 +311,7 @@ contract CustomSmartWallet is IForwarder {
         uint256 tokenGas,
         bytes memory initParams
     ) external {
-        require(_getOwner() == bytes32(0), "already initialized");
+        require(getOwner() == bytes32(0), "already initialized");
 
         _setOwner(owner);
 
