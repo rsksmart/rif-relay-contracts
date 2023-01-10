@@ -56,7 +56,7 @@
   "scripts": {
     "prebuild": "npm run clean",
     "build": "hardhat compile --force",
-    "postbuild": "tsc --project tsconfig.build.json && cp -R contracts dist/",
+    "postbuild": "tsc --project tsconfig.build.json",
     "ci:format": "prettier -c contracts/**/*.sol && prettier -c **/*.ts",
     "ci:lint": "solhint 'contracts/**/*.sol' && eslint test --ext .ts ",
     "preci:test": "npm run build",

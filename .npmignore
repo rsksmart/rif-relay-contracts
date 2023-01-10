@@ -1,6 +1,5 @@
 /.github
 /.husky
-/contracts
 /scripts
 /typechain-types
 /test
