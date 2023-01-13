@@ -6,6 +6,7 @@ import 'hardhat-docgen';
 import 'hardhat-watcher';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { HttpNetworkUserConfig } from 'hardhat/types';
+import { mint, MintArgs } from './tasks/mint';
 import { allowTokens } from './tasks/allowTokens';
 import {
   changePartnerShares,
@@ -157,6 +158,14 @@ task('collector:change-partners', 'Change collector partners')
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: ChangePartnerSharesArg, hre) => {
     await changePartnerShares(taskArgs, hre);
+  });
+
+task('mint', 'Mint some tokens')
+  .addParam('tokenAddress', 'address of the token we want to mint')
+  .addParam('amount', 'amount of tokens we want to mint')
+  .addParam('receiver', 'the address that will receive the minted tokens')
+  .setAction(async (taskArgs: MintArgs, hre) => {
+    await mint(taskArgs, hre);
   });
 
 export default config;
