@@ -5,5 +5,6 @@ export {
   EnvelopingTypes,
   StakeUnlockedEvent,
   IForwarder as IForwarderTypes,
+  RelayHubInterface
 } from './typechain-types/contracts/RelayHub';
 export { TypedEvent, PromiseOrValue } from './typechain-types/common';
