@@ -111,11 +111,12 @@ Once the smart contracts are deployed, tokens must be individually allowed to be
 
 Once the smart contracts are deployed, [UtilToken](./contracts/utils/UtilToken.sol)s can be minted and transferred by using the related script:
 ```bash
-npx truffle exec --network <network_name> tasks/mint.js --tokenReceiver <0xabc123> --amount <amount_in_wei>
+npx hardhat mint --token-address <0xabc123> --amount <amount_in_wei> --receiver <0xabc123> --network <network_name> 
 ```
 Parameters:
-- `tokenReceiver`: the address of the account the token will be transferred to (default value - `(await web3.eth.getAccounts())[0]`)
-- `amount`: the amount of tokens that will be minted and transferred (default value - `web3.utils.toWei('1', 'ether');`).
+- `token-address`: the address of the token that will be minted. The ERC20 token that will be used, needs to have a mint function. 
+- `amount`: the amount of tokens that will be minted and transferred.
+- `receiver`: the address of the account the token will be transferred to.
 
 #### Warning message
 Truffle doesn’t support additional arguments natively when running `truffle exec` command, so the user can ignore the warning shown when the command is executed.
