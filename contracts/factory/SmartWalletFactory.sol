@@ -120,15 +120,17 @@ contract SmartWalletFactory is ISmartWalletFactory {
         uint256 index,
         bytes calldata sig
     ) external override {
-        bytes32 _hash = keccak256(abi.encodePacked(
-            address(this),
-            owner,
-            recoverer,
-            index
-        ));
+        bytes32 _hash = keccak256(
+            abi.encodePacked(address(this), owner, recoverer, index)
+        );
         (sig);
-        bytes32 message = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash));
-        require(RSKAddrValidator.safeEquals(message.recover(sig),owner), "Invalid signature");
+        bytes32 message = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
+        );
+        require(
+            RSKAddrValidator.safeEquals(message.recover(sig), owner),
+            "Invalid signature"
+        );
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
         bytes memory initData = abi.encodeWithSelector(
@@ -158,7 +160,10 @@ contract SmartWalletFactory is ISmartWalletFactory {
         require(msg.sender == req.relayHub, "Invalid caller");
         _verifySig(req, suffixData, sig);
         // solhint-disable-next-line not-rely-on-time
-        require(req.validUntilTime == 0 || req.validUntilTime > block.timestamp, "SW: request expired");
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "SW: request expired"
+        );
         _nonces[req.from]++;
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
@@ -255,7 +260,9 @@ contract SmartWalletFactory is ISmartWalletFactory {
     ) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
-                keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"),
+                keccak256(
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                ),
                 abi.encode(
                     req.relayHub,
                     req.from,

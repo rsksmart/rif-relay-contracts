@@ -123,17 +123,24 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         bytes calldata initParams,
         bytes calldata sig
     ) external override {
-        bytes32 _hash = keccak256(abi.encodePacked(
-            address(this),
-            owner,
-            recoverer,
-            logic,
-            index,
-            initParams
-        ));
+        bytes32 _hash = keccak256(
+            abi.encodePacked(
+                address(this),
+                owner,
+                recoverer,
+                logic,
+                index,
+                initParams
+            )
+        );
         (sig);
-        bytes32 message = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash));
-        require(RSKAddrValidator.safeEquals(message.recover(sig),owner), "Invalid signature");
+        bytes32 message = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
+        );
+        require(
+            RSKAddrValidator.safeEquals(message.recover(sig), owner),
+            "Invalid signature"
+        );
 
         //e6ddc71a  =>  initialize(address owner,address logic,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,bytes initParams)
         bytes memory initData = abi.encodeWithSelector(
@@ -172,7 +179,10 @@ contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
         require(msg.sender == req.relayHub, "Invalid caller");
         _verifySig(req, suffixData, sig);
         // solhint-disable-next-line not-rely-on-time
-        require(req.validUntilTime == 0 || req.validUntilTime > block.timestamp, "SW: request expired");
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "SW: request expired"
+        );
         _nonces[req.from]++;
 
         //e6ddc71a  =>  initialize(address owner,address logic,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,bytes initParams)

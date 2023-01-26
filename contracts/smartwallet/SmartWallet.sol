@@ -10,9 +10,9 @@ import "../utils/RSKAddrValidator.sol";
 /* solhint-disable avoid-low-level-calls */
 
 contract SmartWallet is IForwarder {
-
     //slot for owner = bytes32(uint256(keccak256('eip1967.proxy.owner')) - 1) = a7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
-    bytes32 private constant _OWNER_SLOT = 0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a;
+    bytes32 private constant _OWNER_SLOT =
+        0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a;
     using ECDSA for bytes32;
 
     uint256 public override nonce;
@@ -47,10 +47,7 @@ contract SmartWallet is IForwarder {
         bytes32 ownerCell = keccak256(abi.encodePacked(owner));
 
         assembly {
-            sstore(
-                _OWNER_SLOT,
-                ownerCell
-            )
+            sstore(_OWNER_SLOT, ownerCell)
         }
     }
 
@@ -64,9 +61,7 @@ contract SmartWallet is IForwarder {
 
     function getOwner() public view override returns (bytes32 owner) {
         assembly {
-            owner := sload(
-                _OWNER_SLOT
-            )
+            owner := sload(_OWNER_SLOT)
         }
     }
 

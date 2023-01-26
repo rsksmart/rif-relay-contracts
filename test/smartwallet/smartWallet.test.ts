@@ -167,7 +167,6 @@ describe('SmartWallet contract', function () {
 
   //This function is being tested as an integration test because of the lack of tools to unit test it
   describe('Function initialize()', function () {
-
     async function getAlreadyDeployedSmartWallet() {
       const smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
         owner.address,
@@ -200,13 +199,21 @@ describe('SmartWallet contract', function () {
 
       beforeEach(async function () {
         const dataTypesToSign = ['address', 'address', 'address', 'uint256'];
-        const valuesToSign = [smartWalletFactory.address, owner.address, ZERO_ADDRESS, 0];
+        const valuesToSign = [
+          smartWalletFactory.address,
+          owner.address,
+          ZERO_ADDRESS,
+          0,
+        ];
         const toSign = hardhat.utils.solidityKeccak256(
           dataTypesToSign,
           valuesToSign
         );
 
-        const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
         const signature = createValidPersonalSignSignature(privateKey, toSign);
 
         await smartWalletFactory.createUserSmartWallet(

@@ -189,7 +189,14 @@ describe('CustomSmartWallet contract', function () {
 
       const toSign = hardhat.utils.solidityKeccak256(
         ['address', 'address', 'address', 'address', 'uint256', 'bytes'],
-        [customSmartWalletFactory.address, owner.address, ZERO_ADDRESS, ZERO_ADDRESS, 0, '0x']
+        [
+          customSmartWalletFactory.address,
+          owner.address,
+          ZERO_ADDRESS,
+          ZERO_ADDRESS,
+          0,
+          '0x',
+        ]
       );
       const signature = createValidPersonalSignSignature(privateKey, toSign);
       // const toSignAsBinaryArray = hardhat.utils.arrayify(toSign);
@@ -228,7 +235,14 @@ describe('CustomSmartWallet contract', function () {
 
       const toSign = hardhat.utils.solidityKeccak256(
         ['address', 'address', 'address', 'address', 'uint256', 'bytes'],
-        [customSmartWalletFactory.address, owner.address, ZERO_ADDRESS, ZERO_ADDRESS, 0, '0x']
+        [
+          customSmartWalletFactory.address,
+          owner.address,
+          ZERO_ADDRESS,
+          ZERO_ADDRESS,
+          0,
+          '0x',
+        ]
       );
       const signature = createValidPersonalSignSignature(privateKey, toSign);
 
