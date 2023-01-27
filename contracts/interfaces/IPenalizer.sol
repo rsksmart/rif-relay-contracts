@@ -4,7 +4,6 @@ pragma solidity ^0.6.12;
 import "./IRelayHub.sol";
 
 interface IPenalizer {
-
     struct Transaction {
         uint256 nonce;
         uint256 gasPrice;

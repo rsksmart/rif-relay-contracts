@@ -7,9 +7,7 @@ import "./EnvelopingTypes.sol";
 interface IRelayHub {
     // Emitted when a relay server registers or updates its details
     // Looking at these events lets a client discover relay servers
-    event RelayServerRegistered(
-        address indexed relayManager,
-        string relayUrl);
+    event RelayServerRegistered(address indexed relayManager, string relayUrl);
 
     // Emitted when relays are added by a relayManager
     event RelayWorkersAdded(
@@ -33,17 +31,17 @@ interface IRelayHub {
         address indexed relayManager,
         address relayWorker,
         bytes32 relayRequestSigHash,
-        bytes relayedCallReturnValue);
+        bytes relayedCallReturnValue
+    );
 
     event TransactionRelayedButRevertedByRecipient(
         address indexed relayManager,
-        address  relayWorker,
+        address relayWorker,
         bytes32 relayRequestSigHash,
-        bytes reason);
-
-    event TransactionResult(
-        bytes returnValue
+        bytes reason
     );
+
+    event TransactionResult(bytes returnValue);
 
     event Penalized(
         address indexed relayWorker,
@@ -79,18 +77,20 @@ interface IRelayHub {
     function relayCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
-    )
-    external returns (bool destinationCallSuccess);
+    ) external returns (bool destinationCallSuccess);
 
     function deployCall(
         EnvelopingTypes.DeployRequest calldata deployRequest,
-        bytes calldata signature    )
-    external;
+        bytes calldata signature
+    ) external;
 
-    function penalize(address relayWorker, address payable beneficiary) external;
+    function penalize(
+        address relayWorker,
+        address payable beneficiary
+    ) external;
 
     /* getters */
-    function penalizer() external view returns(address);
+    function penalizer() external view returns (address);
 
     // Minimum stake a relay can have. An attack to the network will never cost less than half this value.
     function minimumStake() external view returns (uint256);
@@ -101,14 +101,18 @@ interface IRelayHub {
     // maximum number of worker account allowed per manager
     function maxWorkerCount() external view returns (uint256);
 
-    function workerToManager(address worker) external view returns(bytes32);
+    function workerToManager(address worker) external view returns (bytes32);
 
-    function workerCount(address manager) external view returns(uint256);
+    function workerCount(address manager) external view returns (uint256);
 
-    function isRelayManagerStaked(address relayManager) external view returns(bool);
+    function isRelayManagerStaked(
+        address relayManager
+    ) external view returns (bool);
 
     // get the relay info from the manager address
-    function getRelayInfo(address relayManager) external view returns(RelayManagerData memory relayManagerData);
+    function getRelayInfo(
+        address relayManager
+    ) external view returns (RelayManagerData memory relayManagerData);
 
     // Represents the relay data for a particular relay manager
     struct RelayManagerData {
@@ -165,13 +169,18 @@ interface IRelayHub {
     // If the entry already exists, only the owner can call this function.
     // @param relayManager - address that represents a stake entry and controls relay registrations on relay hubs
     // @param unstakeDelay - number of blocks to elapse before the owner can retrieve the stake after calling 'unlock'
-    function stakeForAddress(address relayManager, uint256 unstakeDelay) external payable;
+    function stakeForAddress(
+        address relayManager,
+        uint256 unstakeDelay
+    ) external payable;
 
     function unlockStake(address relayManager) external;
 
     function withdrawStake(address relayManager) external;
 
-    function getStakeInfo(address relayManager) external view returns (StakeInfo memory stakeInfo);
+    function getStakeInfo(
+        address relayManager
+    ) external view returns (StakeInfo memory stakeInfo);
 
     //For initial stakes, this is the minimum stake value allowed for taking ownership of this address' stake
     function minimumEntryDepositValue() external view returns (uint256);

@@ -1,8 +1,3 @@
-/* solhint-disable avoid-low-level-calls */
-/* solhint-disable no-inline-assembly */
-/* solhint-disable not-rely-on-time */
-/* solhint-disable avoid-tx-origin */
-/* solhint-disable bracket-align */
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
@@ -46,9 +41,10 @@ contract RelayHub is IRelayHub {
     ) public {
         require(
             _maxWorkerCount > 0 &&
-            _minimumStake > 0 && 
-            _minimumEntryDepositValue > 0 && 
-            _minimumUnstakeDelay > 0, "invalid hub init params"   
+                _minimumStake > 0 &&
+                _minimumEntryDepositValue > 0 &&
+                _minimumUnstakeDelay > 0,
+            "invalid hub init params"
         );
 
         penalizer = _penalizer;
@@ -58,12 +54,10 @@ contract RelayHub is IRelayHub {
         minimumEntryDepositValue = _minimumEntryDepositValue;
     }
 
-    function registerRelayServer(
-        string calldata url
-    ) external override {
+    function registerRelayServer(string calldata url) external override {
         //relay manager is msg.sender
         //Check if Relay Manager is staked
-        requireManagerStaked(msg.sender);
+        _requireManagerStaked(msg.sender);
 
         require(workerCount[msg.sender] > 0, "no relay workers");
 
@@ -74,10 +68,9 @@ contract RelayHub is IRelayHub {
         emit RelayServerRegistered(msg.sender, url);
     }
 
-    function disableRelayWorkers(address[] calldata relayWorkers)
-        external
-        override
-    {
+    function disableRelayWorkers(
+        address[] calldata relayWorkers
+    ) external override {
         //relay manager is msg.sender
         uint256 actualWorkerCount = workerCount[msg.sender];
         require(
@@ -87,11 +80,10 @@ contract RelayHub is IRelayHub {
         workerCount[msg.sender] = actualWorkerCount - relayWorkers.length;
 
         //Check if Relay Manager is staked
-        requireManagerStaked(msg.sender);
+        _requireManagerStaked(msg.sender);
 
-        bytes32 enabledWorker =
-            bytes32(uint256(msg.sender) << 4) |
-                0x0000000000000000000000000000000000000000000000000000000000000001;
+        bytes32 enabledWorker = bytes32(uint256(msg.sender) << 4) |
+            0x0000000000000000000000000000000000000000000000000000000000000001;
         bytes32 disabledWorker = bytes32(uint256(msg.sender) << 4);
 
         for (uint256 i = 0; i < relayWorkers.length; i++) {
@@ -114,10 +106,9 @@ contract RelayHub is IRelayHub {
     /**
     New relay worker addresses can be added (as enabled workers) as long as they don't have a relay manager aldeady assigned.
      */
-    function addRelayWorkers(address[] calldata newRelayWorkers)
-        external
-        override
-    {
+    function addRelayWorkers(
+        address[] calldata newRelayWorkers
+    ) external override {
         address relayManager = msg.sender;
         workerCount[relayManager] =
             workerCount[relayManager] +
@@ -128,11 +119,10 @@ contract RelayHub is IRelayHub {
         );
 
         //Check if Relay Manager is staked
-        requireManagerStaked(relayManager);
+        _requireManagerStaked(relayManager);
 
-        bytes32 enabledWorker =
-            bytes32(uint256(relayManager) << 4) |
-                0x0000000000000000000000000000000000000000000000000000000000000001;
+        bytes32 enabledWorker = bytes32(uint256(relayManager) << 4) |
+            0x0000000000000000000000000000000000000000000000000000000000000001;
         for (uint256 i = 0; i < newRelayWorkers.length; i++) {
             require(
                 workerToManager[newRelayWorkers[i]] == bytes32(0),
@@ -167,7 +157,7 @@ contract RelayHub is IRelayHub {
         address manager = address(uint160(uint256(managerEntry >> 4)));
 
         require(msg.sender == tx.origin, "RelayWorker cannot be a contract");
-        requireManagerStaked(manager);
+        _requireManagerStaked(manager);
 
         require(
             deployRequest.relayData.gasPrice <= tx.gasprice,
@@ -176,14 +166,11 @@ contract RelayHub is IRelayHub {
 
         bool deploySuccess;
         bytes memory ret;
-        ( deploySuccess, ret) = Eip712Library.deploy(deployRequest, signature);
+        (deploySuccess, ret) = Eip712Library.deploy(deployRequest, signature);
 
         if (!deploySuccess) {
             assembly {
-                revert(
-                    add(ret, 32),
-                    mload(ret)
-                )
+                revert(add(ret, 32), mload(ret))
             }
         }
     }
@@ -191,7 +178,7 @@ contract RelayHub is IRelayHub {
     function relayCall(
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
-    ) external override returns (bool destinationCallSuccess){
+    ) external override returns (bool destinationCallSuccess) {
         (signature);
 
         require(msg.sender == tx.origin, "RelayWorker cannot be a contract");
@@ -210,14 +197,17 @@ contract RelayHub is IRelayHub {
         );
 
         address manager = address(uint160(uint256(managerEntry >> 4)));
-        
-        requireManagerStaked(manager);
+
+        _requireManagerStaked(manager);
 
         bool forwarderSuccess;
         bytes memory relayedCallReturnValue;
         //use succ as relay call success variable
-        (forwarderSuccess, destinationCallSuccess, relayedCallReturnValue) = Eip712Library
-            .execute(relayRequest, signature);
+        (
+            forwarderSuccess,
+            destinationCallSuccess,
+            relayedCallReturnValue
+        ) = Eip712Library.execute(relayRequest, signature);
 
         if (!forwarderSuccess) {
             assembly {
@@ -253,18 +243,18 @@ contract RelayHub is IRelayHub {
     /// Slash the stake of the relay relayManager. In order to prevent stake kidnapping, burns half of stake on the way.
     /// @param relayWorker - worker whose manager will be penalized
     /// @param beneficiary - address that receives half of the penalty amount
-    function penalize(address relayWorker, address payable beneficiary)
-        external
-        override
-        penalizerOnly
-    {
+    function penalize(
+        address relayWorker,
+        address payable beneficiary
+    ) external override penalizerOnly {
         //Relay worker might be enabled or disabled
-        address relayManager =
-            address(uint160(uint256(workerToManager[relayWorker] >> 4)));
+        address relayManager = address(
+            uint160(uint256(workerToManager[relayWorker] >> 4))
+        );
         require(relayManager != address(0), "Unknown relay worker");
 
         StakeInfo storage stakeInfo = stakes[relayManager];
-        
+
         uint256 amount = stakeInfo.stake;
 
         //In the case the stake owner have already withrawn their funds
@@ -284,34 +274,36 @@ contract RelayHub is IRelayHub {
         emit StakePenalized(relayManager, beneficiary, reward);
     }
 
-    function getRelayInfo(address relayManager) external view override returns (RelayManagerData memory relayManagerData) {
-        return relayData[relayManager];
-    }
-
-    function getStakeInfo(address relayManager)
+    function getRelayInfo(
+        address relayManager
+    )
         external
         view
         override
-        returns (StakeInfo memory stakeInfo)
+        returns (RelayManagerData memory relayManagerData)
     {
+        return relayData[relayManager];
+    }
+
+    function getStakeInfo(
+        address relayManager
+    ) external view override returns (StakeInfo memory stakeInfo) {
         return stakes[relayManager];
     }
+
     // Put a stake for a relayManager and set its unstake delay.
     // If the entry does not exist, it is created, and the caller of this function becomes its owner.
     // If the entry already exists, only the owner can call this function.
     // @param relayManager - address that represents a stake entry and controls relay registrations on relay hubs
     // @param unstakeDelay - number of blocks to elapse before the owner can retrieve the stake after calling 'unlock'
-    function stakeForAddress(address relayManager, uint256 unstakeDelay)
-        external
-        payable
-        override
-    {
-
+    function stakeForAddress(
+        address relayManager,
+        uint256 unstakeDelay
+    ) external payable override {
         StakeInfo storage stakeInfo = stakes[relayManager];
 
         require(
-            stakeInfo.owner == address(0) ||
-                stakeInfo.owner == msg.sender,
+            stakeInfo.owner == address(0) || stakeInfo.owner == msg.sender,
             "not owner"
         );
         require(
@@ -381,7 +373,7 @@ contract RelayHub is IRelayHub {
         _;
     }
 
-    function requireManagerStaked(address relayManager) internal view {
+    function _requireManagerStaked(address relayManager) internal view {
         StakeInfo storage info = stakes[relayManager];
 
         require(
@@ -392,9 +384,12 @@ contract RelayHub is IRelayHub {
         );
     }
 
-    function isRelayManagerStaked(address relayManager) external view override returns (bool) {
+    function isRelayManagerStaked(
+        address relayManager
+    ) external view override returns (bool) {
         StakeInfo storage info = stakes[relayManager];
-        return info.stake >= minimumStake && //isAmountSufficient
+        return
+            info.stake >= minimumStake && //isAmountSufficient
             info.unstakeDelay >= minimumUnstakeDelay && //isDelaySufficient
             info.withdrawBlock == 0; //isStakeLocked
     }
