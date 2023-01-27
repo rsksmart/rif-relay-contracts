@@ -3,7 +3,6 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 interface IForwarder {
-
     struct ForwardRequest {
         address relayHub;
         address from;
@@ -33,11 +32,7 @@ interface IForwarder {
         bytes data;
     }
 
-    
-
-    function nonce()
-    external view
-    returns(uint256);
+    function nonce() external view returns (uint256);
 
     /**
      * verify the transaction would execute.
@@ -49,6 +44,11 @@ interface IForwarder {
         ForwardRequest calldata forwardRequest,
         bytes calldata signature
     ) external view;
+
+    /**
+     * returns the encrypted owner that deployed smart wallet.
+     */
+    function getOwner() external view returns (bytes32 owner);
 
     /**
      * execute a transaction
@@ -66,12 +66,10 @@ interface IForwarder {
         ForwardRequest calldata forwardRequest,
         address feesReceiver,
         bytes calldata signature
-    )
-    external payable
-    returns (bool success, bytes memory ret);
-    
-    function directExecute(address to, bytes calldata data) external payable returns (
-        bool success,
-        bytes memory ret  
-    );
+    ) external payable returns (bool success, bytes memory ret);
+
+    function directExecute(
+        address to,
+        bytes calldata data
+    ) external payable returns (bool success, bytes memory ret);
 }
