@@ -9,15 +9,7 @@ import "./SmartWallet.sol";
 
 contract NativeHolderSmartWallet is SmartWallet {
     
-     /* solhint-disable no-unused-vars */
-    function directExecute(
-        address to,
-        bytes calldata data
-    ) external payable override returns (bool success, bytes memory ret) {
-        revert("Method not implemented");
-    }
-
-    function directExecute(
+    function directExecuteWithValue(
         address to,
         uint256 value,
         bytes calldata data

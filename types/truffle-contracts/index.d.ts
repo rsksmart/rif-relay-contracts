@@ -3457,6 +3457,29 @@ export interface NativeHolderSmartWalletInstance
   extends Truffle.ContractInstance {
   DATA_VERSION_HASH(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
+  directExecute: {
+    (
+      to: string | BN,
+      data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<Truffle.TransactionResponse>;
+    call(
+      to: string | BN,
+      data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<[boolean, string]>;
+    sendTransaction(
+      to: string | BN,
+      data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<string>;
+    estimateGas(
+      to: string | BN,
+      data: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<number>;
+  };
+
   domainSeparator(txDetails?: Truffle.TransactionDetails): Promise<string>;
 
   getOwner(txDetails?: Truffle.TransactionDetails): Promise<string>;
@@ -3558,24 +3581,28 @@ export interface NativeHolderSmartWalletInstance
     txDetails?: Truffle.TransactionDetails
   ): Promise<void>;
 
-  directExecute: {
+  directExecuteWithValue: {
     (
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse>;
     call(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<[boolean, string]>;
     sendTransaction(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       to: string | BN,
+      value: number | BN | string,
       data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;

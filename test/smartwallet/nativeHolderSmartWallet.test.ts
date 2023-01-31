@@ -1,19 +1,16 @@
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { BN, bufferToHex, privateToAddress, toBuffer } from 'ethereumjs-util';
+import { BN } from 'ethereumjs-util';
 import { toWei } from 'web3-utils';
 import {
     NativeHolderSmartWalletInstance,
     SmartWalletFactoryInstance,
-    TestRecipientInstance,
-    TestTokenInstance
+    TestRecipientInstance
 } from '../../types/truffle-contracts';
-import { constants } from '../constants';
 import {
     createRequest,
     createSmartWallet,
     createSmartWalletFactory,
-    generateBytes32,
     getGaslessAccount,
     getTestingEnvironment,
     signRequest
@@ -22,34 +19,34 @@ import {
 use(chaiAsPromised);
 
 const NativeSmartWallet = artifacts.require('NativeHolderSmartWallet');
-const TestToken = artifacts.require('TestToken');
 const TestRecipient = artifacts.require('TestRecipient');
 
-contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
+contract('NativeHolderSmartWallet', ([worker, sender, fundedAccount]) => {
+    const senderPrivateKey: Buffer = Buffer.from(
+        '0c06818f82e04c564290b32ab86b25676731fc34e9a546108bf109194c8e3aae',
+        'hex'
+    );
     describe('execute', () => {
-        let token: TestTokenInstance;
-        let senderAddress: string;
         let nativeSw: NativeHolderSmartWalletInstance;
         let factory: SmartWalletFactoryInstance;
         let chainId: number;
-        const senderPrivateKey = toBuffer(generateBytes32(1));
         let recipientContract: TestRecipientInstance;
 
         beforeEach(async () => {
             chainId = (await getTestingEnvironment()).chainId;
-            token = await TestToken.new();
-            senderAddress = bufferToHex(
-                privateToAddress(senderPrivateKey)
-            ).toLowerCase();
             const nativeSwTemplate = await NativeSmartWallet.new();
             factory = await createSmartWalletFactory(nativeSwTemplate);
-            nativeSw = await createSmartWallet(
+            const sw = await createSmartWallet(
                 worker,
-                senderAddress,
+                sender,
                 factory,
                 senderPrivateKey,
                 chainId
             );
+            const NativeHolderSmartWallet = artifacts.require(
+                'NativeHolderSmartWallet'
+            );
+            nativeSw = await NativeHolderSmartWallet.at(sw.address);
             recipientContract = await TestRecipient.new();
         });
 
@@ -71,6 +68,10 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
                 nativeSw.address
             );
 
+            console.log('--------');
+            console.log(recipientBalancePriorExecution);
+            console.log(swBalancePriorExecution);
+
             const value = toWei('2', 'ether');
 
             const relayRequest = createRequest(
@@ -79,9 +80,7 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
                     to: recipient.address,
                     nonce: initialNonce.toString(),
                     relayHub: worker,
-                    tokenContract: constants.ZERO_ADDRESS,
-                    from: senderAddress,
-                    validUntilTime: '0',
+                    from: sender,
                     value
                 },
                 {
@@ -127,7 +126,7 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
             );
         });
 
-        it.only('Should transfer native currency and execute transaction', async () => {
+        it('Should transfer native currency and execute transaction', async () => {
             const initialNonce = await nativeSw.nonce();
 
             await web3.eth.sendTransaction({
@@ -145,19 +144,17 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
 
             const value = toWei('2', 'ether');
 
-            const encodeData = recipientContract.contract.methods
+            const encodedData = recipientContract.contract.methods
                 .emitMessage('hello')
                 .encodeABI();
 
             const relayRequest = createRequest(
                 {
-                    data: encodeData,
+                    data: encodedData,
                     to: recipientContract.address,
                     nonce: initialNonce.toString(),
                     relayHub: worker,
-                    tokenContract: constants.ZERO_ADDRESS,
-                    from: senderAddress,
-                    validUntilTime: '0',
+                    from: sender,
                     value
                 },
                 {
@@ -183,7 +180,7 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
             const logs = await recipientContract.getPastEvents(
                 'SampleRecipientEmitted'
             );
-            assert.equal(logs.length, 1, 'TestRecipient should emit');
+            expect(logs.length).to.be.equal(1, 'TestRecipient should emit');
 
             const recipientBalanceAfterExecution = await web3.eth.getBalance(
                 recipientContract.address
@@ -209,24 +206,22 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
             );
         });
 
-        it.only('Should fail if smart wallet cannot pay native currency', async () => {
+        it('Should fail if smart wallet cannot pay native currency', async () => {
             const initialNonce = await nativeSw.nonce();
 
             const value = toWei('2', 'ether');
 
-            const encodeData = recipientContract.contract.methods
+            const encodedData = recipientContract.contract.methods
                 .emitMessage('hello')
                 .encodeABI();
 
             const relayRequest = createRequest(
                 {
-                    data: encodeData,
+                    data: encodedData,
                     to: recipientContract.address,
                     nonce: initialNonce.toString(),
                     relayHub: worker,
-                    tokenContract: constants.ZERO_ADDRESS,
-                    from: senderAddress,
-                    validUntilTime: '0',
+                    from: sender,
                     value
                 },
                 {
@@ -252,11 +247,160 @@ contract.only('NativeHolderSmartWallet', ([worker, fundedAccount]) => {
             const logs = await recipientContract.getPastEvents(
                 'SampleRecipientEmitted'
             );
-            assert.equal(logs.length, 0, 'TestRecipient should not emit');
+            expect(logs.length).to.be.equal(0, 'TestRecipient should not emit');
         });
     });
 
-    /*  describe('directExecute', () => {
- 
-     }); */
+    describe('directExecuteWithValue', () => {
+        let nativeSw: NativeHolderSmartWalletInstance;
+        let factory: SmartWalletFactoryInstance;
+        let chainId: number;
+
+        let recipientContract: TestRecipientInstance;
+
+        beforeEach(async () => {
+            chainId = (await getTestingEnvironment()).chainId;
+            const nativeSwTemplate = await NativeSmartWallet.new();
+            factory = await createSmartWalletFactory(nativeSwTemplate);
+            const sw = await createSmartWallet(
+                worker,
+                sender,
+                factory,
+                senderPrivateKey,
+                chainId
+            );
+            const NativeHolderSmartWallet = artifacts.require(
+                'NativeHolderSmartWallet'
+            );
+            nativeSw = await NativeHolderSmartWallet.at(sw.address);
+            recipientContract = await TestRecipient.new();
+        });
+
+        it('Should transfer native currency without executing a transaction', async () => {
+            await web3.eth.sendTransaction({
+                from: fundedAccount,
+                to: nativeSw.address,
+                value: toWei('5', 'ether')
+            });
+
+            const recipient = await getGaslessAccount();
+
+            const recipientBalancePriorExecution = await web3.eth.getBalance(
+                recipient.address
+            );
+            const swBalancePriorExecution = await web3.eth.getBalance(
+                nativeSw.address
+            );
+
+            const value = toWei('2', 'ether');
+
+            await nativeSw.directExecuteWithValue(
+                recipient.address,
+                value,
+                '0x00',
+                { from: sender }
+            );
+
+            const recipientBalanceAfterExecution = await web3.eth.getBalance(
+                recipient.address
+            );
+            const swBalanceAfterExecution = await web3.eth.getBalance(
+                nativeSw.address
+            );
+
+            const valueBN = new BN(value);
+
+            const expectedRecipientBalance = new BN(
+                recipientBalancePriorExecution
+            ).add(valueBN);
+            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
+                valueBN
+            );
+
+            expect(expectedRecipientBalance.toString()).to.be.equal(
+                recipientBalanceAfterExecution.toString()
+            );
+            expect(expectedSwBalance.toString()).to.be.equal(
+                swBalanceAfterExecution.toString()
+            );
+        });
+
+        it('Should transfer native currency and execute transaction', async () => {
+            await web3.eth.sendTransaction({
+                from: fundedAccount,
+                to: nativeSw.address,
+                value: toWei('5', 'ether')
+            });
+
+            const recipientBalancePriorExecution = await web3.eth.getBalance(
+                recipientContract.address
+            );
+            const swBalancePriorExecution = await web3.eth.getBalance(
+                nativeSw.address
+            );
+
+            const value = toWei('2', 'ether');
+
+            const encodedData = recipientContract.contract.methods
+                .emitMessage('hello')
+                .encodeABI();
+
+            await nativeSw.directExecuteWithValue(
+                recipientContract.address,
+                value,
+                encodedData,
+                { from: sender }
+            );
+
+            // @ts-ignore
+            const logs = await recipientContract.getPastEvents(
+                'SampleRecipientEmitted'
+            );
+            expect(logs.length).to.be.equal(1, 'TestRecipient should emit');
+
+            const recipientBalanceAfterExecution = await web3.eth.getBalance(
+                recipientContract.address
+            );
+            const swBalanceAfterExecution = await web3.eth.getBalance(
+                nativeSw.address
+            );
+
+            const valueBN = new BN(value);
+
+            const expectedRecipientBalance = new BN(
+                recipientBalancePriorExecution
+            ).add(valueBN);
+            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
+                valueBN
+            );
+
+            expect(expectedRecipientBalance.toString()).to.be.equal(
+                recipientBalanceAfterExecution.toString()
+            );
+            expect(expectedSwBalance.toString()).to.be.equal(
+                swBalanceAfterExecution.toString()
+            );
+        });
+
+        it('Should fail if smart wallet cannot pay native currency', async () => {
+            const value = toWei('2', 'ether');
+
+            const encodedData = recipientContract.contract.methods
+                .emitMessage('hello')
+                .encodeABI();
+
+            await nativeSw.directExecuteWithValue(
+                recipientContract.address,
+                value,
+                encodedData,
+                { from: sender }
+            );
+
+            // @ts-ignore
+            const logs = await recipientContract.getPastEvents(
+                'SampleRecipientEmitted'
+            );
+            expect(logs.length).to.be.equal(0, 'TestRecipient should not emit');
+        });
+    });
 });
