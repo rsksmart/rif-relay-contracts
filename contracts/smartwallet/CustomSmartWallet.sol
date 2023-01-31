@@ -57,7 +57,7 @@ contract CustomSmartWallet is IForwarder {
         }
     }
 
-    function getOwner() private view returns (bytes32 owner){
+    function getOwner() public view override returns (bytes32 owner){
         assembly {
             owner := sload(
                 0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
