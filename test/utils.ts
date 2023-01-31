@@ -33,6 +33,33 @@ import { constants } from './constants';
 
 const RelayHub = artifacts.require('RelayHub');
 
+export type CreateSmartWalletParams = {
+    relayHub: string;
+    ownerEOA: string;
+    factory: SmartWalletFactoryInstance;
+    privKey: Buffer;
+    chainId?: number;
+    tokenContract?: string;
+    tokenAmount?: string;
+    tokenGas?: string;
+    recoverer?: string;
+    smartWalletContractName?: string;
+};
+
+export type CreateCustomSmartWalletParams = {
+    relayHub: string;
+    ownerEOA: string;
+    factory: CustomSmartWalletFactoryInstance;
+    privKey: Buffer;
+    chainId?: number;
+    logicAddr?: string;
+    initParams?: string;
+    tokenContract?: string;
+    tokenAmount?: string;
+    tokenGas?: string;
+    recoverer?: string;
+};
+
 export function generateBytes32(seed: number): string {
     return '0x' + seed.toString().repeat(64).slice(0, 64);
 }
@@ -112,19 +139,6 @@ export async function createSmartWalletFactory(
     const SmartWalletFactory = artifacts.require('SmartWalletFactory');
     return await SmartWalletFactory.new(template.address);
 }
-
-type CreateSmartWalletParams = {
-    relayHub: string;
-    ownerEOA: string;
-    factory: SmartWalletFactoryInstance;
-    privKey: Buffer;
-    chainId: number;
-    tokenContract?: string;
-    tokenAmount?: string;
-    tokenGas?: string;
-    recoverer?: string;
-    smartWalletContractName?: string;
-};
 
 export async function createSmartWallet<T>({
     relayHub,
@@ -209,19 +223,19 @@ export async function createCustomSmartWalletFactory(
     return await CustomSmartWalletFactory.new(template.address);
 }
 
-export async function createCustomSmartWallet(
-    relayHub: string,
-    ownerEOA: string,
-    factory: CustomSmartWalletFactoryInstance,
-    privKey: Buffer,
+export async function createCustomSmartWallet({
+    relayHub,
+    ownerEOA,
+    factory,
+    privKey,
     chainId = -1,
-    logicAddr: string = constants.ZERO_ADDRESS,
+    logicAddr = constants.ZERO_ADDRESS,
     initParams = '0x',
-    tokenContract: string = constants.ZERO_ADDRESS,
+    tokenContract = constants.ZERO_ADDRESS,
     tokenAmount = '0',
     tokenGas = '0',
-    recoverer: string = constants.ZERO_ADDRESS
-): Promise<CustomSmartWalletInstance> {
+    recoverer = constants.ZERO_ADDRESS
+}: CreateCustomSmartWalletParams): Promise<CustomSmartWalletInstance> {
     chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
     const rReq: DeployRequest = {
         request: {
