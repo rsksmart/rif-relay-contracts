@@ -24,7 +24,11 @@
         "customSmartWalletFactory": "0x0e19674ebc2c2B6Df3e7a1417c49b50235c61924",
         "customSmartWalletDeployVerifier": "0x8901a2Bbf639bFD21A97004BA4D7aE2BD00B8DA8",
         "customSmartWalletRelayVerifier": "0x1Af2844A588759D0DE58abD568ADD96BB8B3B6D8",
-        "sampleRecipient": "0xCd5805d60Bbf9Afe69a394c2BDa10F6Dae2c39AF",
-        "testToken": "0x726ECC75d5D51356AA4d0a5B648790cC345985ED"
+        "nativeSmartWallet": "0x726ECC75d5D51356AA4d0a5B648790cC345985ED",
+        "nativeSmartWalletFactory": "0xCd5805d60Bbf9Afe69a394c2BDa10F6Dae2c39AF",
+        "nativeSmartWalletDeployVerifier": "0xdac5481925A298B95Bf5b54c35b68FC6fc2eF423",
+        "nativeSmartWalletRelayVerifier": "0xfD1dda8C3BC734Bc1C8e71F69F25BFBEe9cE9535",
+        "sampleRecipient": "0x463F29B11503e198f6EbeC9903b4e5AaEddf6D29",
+        "testToken": "0xeFb80DB9E2d943A492Bd988f4c619495cA815643"
     }
 }
