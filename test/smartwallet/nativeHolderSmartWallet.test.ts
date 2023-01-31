@@ -36,17 +36,16 @@ contract('NativeHolderSmartWallet', ([worker, sender, fundedAccount]) => {
             chainId = (await getTestingEnvironment()).chainId;
             const nativeSwTemplate = await NativeSmartWallet.new();
             factory = await createSmartWalletFactory(nativeSwTemplate);
-            const sw = await createSmartWallet(
-                worker,
-                sender,
-                factory,
-                senderPrivateKey,
-                chainId
+            nativeSw = await createSmartWallet<NativeHolderSmartWalletInstance>(
+                {
+                    relayHub: worker,
+                    ownerEOA: sender,
+                    factory,
+                    privKey: senderPrivateKey,
+                    chainId,
+                    smartWalletContractName: 'NativeHolderSmartWallet'
+                }
             );
-            const NativeHolderSmartWallet = artifacts.require(
-                'NativeHolderSmartWallet'
-            );
-            nativeSw = await NativeHolderSmartWallet.at(sw.address);
             recipientContract = await TestRecipient.new();
         });
 
@@ -67,10 +66,6 @@ contract('NativeHolderSmartWallet', ([worker, sender, fundedAccount]) => {
             const swBalancePriorExecution = await web3.eth.getBalance(
                 nativeSw.address
             );
-
-            console.log('--------');
-            console.log(recipientBalancePriorExecution);
-            console.log(swBalancePriorExecution);
 
             const value = toWei('2', 'ether');
 
@@ -262,17 +257,16 @@ contract('NativeHolderSmartWallet', ([worker, sender, fundedAccount]) => {
             chainId = (await getTestingEnvironment()).chainId;
             const nativeSwTemplate = await NativeSmartWallet.new();
             factory = await createSmartWalletFactory(nativeSwTemplate);
-            const sw = await createSmartWallet(
-                worker,
-                sender,
-                factory,
-                senderPrivateKey,
-                chainId
+            nativeSw = await createSmartWallet<NativeHolderSmartWalletInstance>(
+                {
+                    relayHub: worker,
+                    ownerEOA: sender,
+                    factory,
+                    privKey: senderPrivateKey,
+                    chainId,
+                    smartWalletContractName: 'NativeHolderSmartWallet'
+                }
             );
-            const NativeHolderSmartWallet = artifacts.require(
-                'NativeHolderSmartWallet'
-            );
-            nativeSw = await NativeHolderSmartWallet.at(sw.address);
             recipientContract = await TestRecipient.new();
         });
 

@@ -13,7 +13,6 @@ import RelayHubConfiguration from '../types/RelayHubConfiguration';
 import {
     SmartWalletFactoryInstance,
     IForwarderInstance,
-    SmartWalletInstance,
     CustomSmartWalletFactoryInstance,
     CustomSmartWalletInstance,
     RelayHubInstance,
@@ -114,17 +113,31 @@ export async function createSmartWalletFactory(
     return await SmartWalletFactory.new(template.address);
 }
 
-export async function createSmartWallet(
-    relayHub: string,
-    ownerEOA: string,
-    factory: SmartWalletFactoryInstance,
-    privKey: Buffer,
+type CreateSmartWalletParams = {
+    relayHub: string;
+    ownerEOA: string;
+    factory: SmartWalletFactoryInstance;
+    privKey: Buffer;
+    chainId: number;
+    tokenContract?: string;
+    tokenAmount?: string;
+    tokenGas?: string;
+    recoverer?: string;
+    smartWalletContractName?: string;
+};
+
+export async function createSmartWallet<T>({
+    relayHub,
+    ownerEOA,
+    factory,
+    privKey,
     chainId = -1,
-    tokenContract: string = constants.ZERO_ADDRESS,
+    tokenContract = constants.ZERO_ADDRESS,
     tokenAmount = '0',
     tokenGas = '0',
-    recoverer: string = constants.ZERO_ADDRESS
-): Promise<SmartWalletInstance> {
+    recoverer = constants.ZERO_ADDRESS,
+    smartWalletContractName = 'SmartWallet'
+}: CreateSmartWalletParams): Promise<T> {
     chainId = chainId < 0 ? (await getTestingEnvironment()).chainId : chainId;
 
     const rReq: DeployRequest = {
@@ -181,8 +194,8 @@ export async function createSmartWallet(
         '0'
     );
 
-    const SmartWallet = artifacts.require('SmartWallet');
-    const sw: SmartWalletInstance = await SmartWallet.at(swAddress);
+    const SmartWallet = artifacts.require(smartWalletContractName);
+    const sw = await SmartWallet.at(swAddress);
 
     return sw;
 }

@@ -27,6 +27,7 @@ module.exports = async function (deployer, network) {
     await deployer.deploy(Penalizer);
     await deployer.deploy(RelayHub, Penalizer.address, 1, 1, 1, 1);
     await deployer.deploy(SmartWallet);
+
     await deployer.deploy(SmartWalletFactory, SmartWallet.address);
     const smartWalletFactoryAddress = SmartWalletFactory.address;
 
@@ -48,8 +49,13 @@ module.exports = async function (deployer, network) {
 
     await deployer.deploy(NativeHolderSmartWallet);
     await deployer.deploy(SmartWalletFactory, NativeHolderSmartWallet.address);
+    const nativeFactoryAddress = SmartWalletFactory.address;
+
     await deployer.deploy(DeployVerifier, SmartWalletFactory.address);
+    const nativeDeployVerifierAddress = DeployVerifier.address;
+
     await deployer.deploy(RelayVerifier, SmartWalletFactory.address);
+    const nativeRelayVerifierAddress = RelayVerifier.address;
 
     await deployer.deploy(TestToken);
     await deployer.deploy(SampleRecipient);
@@ -106,13 +112,13 @@ module.exports = async function (deployer, network) {
         `| NativeHolderSmartWallet               | ${NativeHolderSmartWallet.address} |`
     );
     console.log(
-        `| NativeHolderSmartWalletFactory        | ${SmartWalletFactory.address} |`
+        `| NativeHolderSmartWalletFactory        | ${nativeFactoryAddress} |`
     );
     console.log(
-        `| NativeHolderSmartWalletDeployVerifier | ${DeployVerifier.address} |`
+        `| NativeHolderSmartWalletDeployVerifier | ${nativeDeployVerifierAddress} |`
     );
     console.log(
-        `| NativeHolderSmartWalletRelayVerifier  | ${RelayVerifier.address} |`
+        `| NativeHolderSmartWalletRelayVerifier  | ${nativeRelayVerifierAddress} |`
     );
     console.log(
         '| Testing Contracts =================================================================|'
