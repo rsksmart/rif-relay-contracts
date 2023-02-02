@@ -156,13 +156,13 @@ contract(
                     factory = await createSmartWalletFactory(smartWallet);
 
                     contractVerifier = await RelayVerifier.new(factory.address);
-                    sw = await createSmartWallet(
-                        relayHub,
-                        senderAddress,
+                    sw = await createSmartWallet<SmartWalletInstance>({
+                        relayHub: relayHub,
+                        ownerEOA: senderAddress,
                         factory,
-                        senderPrivateKey,
+                        privKey: senderPrivateKey,
                         chainId
-                    );
+                    });
                     const recipientContract = await TestRecipient.new();
 
                     relayRequestData = {

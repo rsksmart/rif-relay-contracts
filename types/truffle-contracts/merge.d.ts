@@ -53,6 +53,9 @@ declare global {
       require(name: "IWalletFactory"): TruffleContracts.IWalletFactoryContract;
       require(name: "Migrations"): TruffleContracts.MigrationsContract;
       require(
+        name: "NativeHolderSmartWallet"
+      ): TruffleContracts.NativeHolderSmartWalletContract;
+      require(
         name: "NonCompliantERC20"
       ): TruffleContracts.NonCompliantERC20Contract;
       require(

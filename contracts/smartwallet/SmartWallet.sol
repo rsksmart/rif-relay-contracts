@@ -60,7 +60,7 @@ contract SmartWallet is IForwarder {
         _verifySig(suffixData, req, sig);
     }
 
-    function getOwner() private view returns (bytes32 owner){
+    function getOwner() public view override returns (bytes32 owner){
         assembly {
             owner := sload(
                 _OWNER_SLOT
@@ -107,7 +107,7 @@ contract SmartWallet is IForwarder {
         }
     }
 
-    function directExecute(address to, bytes calldata data) external override payable returns (
+    function directExecute(address to, bytes calldata data) external virtual override payable returns (
             bool success,
             bytes memory ret  
         )
@@ -136,6 +136,7 @@ contract SmartWallet is IForwarder {
         bytes calldata sig
     )
         external
+        virtual 
         override
         payable
         returns (
@@ -199,7 +200,7 @@ contract SmartWallet is IForwarder {
         bytes32 suffixData,
         ForwardRequest memory req,
         bytes memory sig
-    ) private view {
+    ) internal view {
 
         //Verify Owner
         require(
@@ -223,7 +224,7 @@ contract SmartWallet is IForwarder {
     function _getEncoded(
         bytes32 suffixData,
         ForwardRequest memory req
-    ) private pure returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
                 keccak256("RelayRequest(address relayHub,address from,address to,address tokenContract,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"), //requestTypeHash,

@@ -835,13 +835,14 @@ contract(
                 relayHub = relayHubInstance.address;
 
                 gaslessAccount = await getGaslessAccount();
-                forwarderInstance = await createSmartWallet(
-                    _,
-                    gaslessAccount.address,
-                    factory,
-                    gaslessAccount.privateKey,
-                    chainId
-                );
+                forwarderInstance =
+                    await createSmartWallet<SmartWalletInstance>({
+                        relayHub: _,
+                        ownerEOA: gaslessAccount.address,
+                        factory,
+                        privKey: gaslessAccount.privateKey,
+                        chainId
+                    });
                 forwarder = forwarderInstance.address;
                 await token.mint('1000', forwarder);
 

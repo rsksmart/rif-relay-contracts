@@ -59,25 +59,25 @@ contract(
             );
 
             it('Should initialize the smart wallet properly', async () => {
-                smartWallet = await createCustomSmartWallet(
-                    worker,
-                    senderAddress,
+                smartWallet = await createCustomSmartWallet({
+                    relayHub: worker,
+                    ownerEOA: senderAddress,
                     factory,
-                    senderPrivateKey,
+                    privKey: senderPrivateKey,
                     chainId
-                );
+                });
 
                 assert.isTrue(await smartWallet.isInitialized());
             });
 
             it('Should verify method initialize fails when contract has already been initialized', async () => {
-                smartWallet = await createCustomSmartWallet(
-                    worker,
-                    senderAddress,
+                smartWallet = await createCustomSmartWallet({
+                    relayHub: worker,
+                    ownerEOA: senderAddress,
                     factory,
-                    senderPrivateKey,
+                    privKey: senderPrivateKey,
                     chainId
-                );
+                });
 
                 assert.isTrue(await smartWallet.isInitialized());
 
@@ -122,13 +122,13 @@ contract(
                 const factory = await createCustomSmartWalletFactory(
                     smartWalletTemplate
                 );
-                smartWallet = await createCustomSmartWallet(
-                    worker,
-                    senderAddress,
+                smartWallet = await createCustomSmartWallet({
+                    relayHub: worker,
+                    ownerEOA: senderAddress,
                     factory,
-                    senderPrivateKey,
+                    privKey: senderPrivateKey,
                     chainId
-                );
+                });
                 token = await TestToken.new();
                 recipient = await TestForwarderTarget.new();
                 recipientFunction = recipient.contract.methods
@@ -337,13 +337,13 @@ contract(
                 const factory = await createCustomSmartWalletFactory(
                     smartWalletTemplate
                 );
-                smartWallet = await createCustomSmartWallet(
-                    worker,
-                    senderAddress,
+                smartWallet = await createCustomSmartWallet({
+                    relayHub: worker,
+                    ownerEOA: senderAddress,
                     factory,
-                    senderPrivateKey,
+                    privKey: senderPrivateKey,
                     chainId
-                );
+                });
                 relayData = {
                     callForwarder: smartWallet.address
                 };
@@ -666,15 +666,15 @@ contract(
                 const factory = await createCustomSmartWalletFactory(
                     smartWalletTemplate
                 );
-                smartWallet = await createCustomSmartWallet(
-                    worker,
-                    fundedAccount,
+                smartWallet = await createCustomSmartWallet({
+                    relayHub: worker,
+                    ownerEOA: fundedAccount,
                     factory,
-                    fundedAccountPrivateKey,
+                    privKey: fundedAccountPrivateKey,
                     chainId,
-                    customLogic.address,
-                    '0x'
-                );
+                    logicAddr: customLogic.address,
+                    initParams: '0x'
+                });
             });
 
             it('Should revert call to directExecute with empty parameter', async () => {

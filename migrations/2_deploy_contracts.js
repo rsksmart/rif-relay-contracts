@@ -20,15 +20,22 @@ const CustomSmartWalletDeployVerifier = artifacts.require(
     'CustomSmartWalletDeployVerifier'
 );
 
+// For NativeHolderSmartWallet support
+const NativeHolderSmartWallet = artifacts.require('NativeHolderSmartWallet');
+
 module.exports = async function (deployer, network) {
     await deployer.deploy(Penalizer);
     await deployer.deploy(RelayHub, Penalizer.address, 1, 1, 1, 1);
     await deployer.deploy(SmartWallet);
-    await deployer.deploy(SmartWalletFactory, SmartWallet.address);
-    await deployer.deploy(DeployVerifier, SmartWalletFactory.address);
-    await deployer.deploy(RelayVerifier, SmartWalletFactory.address);
 
-    const smartWalletRelayVerifierAddress = RelayVerifier.address;
+    await deployer.deploy(SmartWalletFactory, SmartWallet.address);
+    const smartWalletFactoryAddress = SmartWalletFactory.address;
+
+    await deployer.deploy(DeployVerifier, SmartWalletFactory.address);
+    const deployVerifierAddress = DeployVerifier.address;
+
+    await deployer.deploy(RelayVerifier, SmartWalletFactory.address);
+    const relayVerifierAddress = RelayVerifier.address;
 
     await deployer.deploy(CustomSmartWallet);
     await deployer.deploy(CustomSmartWalletFactory, CustomSmartWallet.address);
@@ -40,59 +47,90 @@ module.exports = async function (deployer, network) {
 
     const customSmartWalletRelayVerifierAddress = RelayVerifier.address;
 
+    await deployer.deploy(NativeHolderSmartWallet);
+    await deployer.deploy(SmartWalletFactory, NativeHolderSmartWallet.address);
+    const nativeFactoryAddress = SmartWalletFactory.address;
+
+    await deployer.deploy(DeployVerifier, SmartWalletFactory.address);
+    const nativeDeployVerifierAddress = DeployVerifier.address;
+
+    await deployer.deploy(RelayVerifier, SmartWalletFactory.address);
+    const nativeRelayVerifierAddress = RelayVerifier.address;
+
     await deployer.deploy(TestToken);
     await deployer.deploy(SampleRecipient);
 
     console.log(
-        '|===================================|============================================|'
+        '|=======================================|============================================|'
     );
     console.log(
-        '| Contract                          | Address                                    |'
+        '| Contract                              | Address                                    |'
     );
     console.log(
-        '|===================================|============================================|'
-    );
-    console.log(`| Penalizer                         | ${Penalizer.address} |`);
-    console.log(`| RelayHub                          | ${RelayHub.address} |`);
-    console.log(
-        '| Smart Wallet Contracts ========================================================|'
+        '|=======================================|============================================|'
     );
     console.log(
-        `| SmartWallet                       | ${SmartWallet.address} |`
+        `| Penalizer                             | ${Penalizer.address} |`
     );
     console.log(
-        `| SmartWalletFactory                | ${SmartWalletFactory.address} |`
+        `| RelayHub                              | ${RelayHub.address} |`
     );
     console.log(
-        `| SmartWalletDeployVerifier         | ${DeployVerifier.address} |`
+        '| Smart Wallet Contracts ============================================================|'
     );
     console.log(
-        `| SmartWalletRelayVerifier          | ${smartWalletRelayVerifierAddress} |`
+        `| SmartWallet                           | ${SmartWallet.address} |`
     );
     console.log(
-        '| Custom Smart Wallet Contracts =================================================|'
+        `| SmartWalletFactory                    | ${smartWalletFactoryAddress} |`
     );
     console.log(
-        `| CustomSmartWallet                 | ${CustomSmartWallet.address} |`
+        `| SmartWalletDeployVerifier             | ${deployVerifierAddress} |`
     );
     console.log(
-        `| CustomSmartWalletFactory          | ${CustomSmartWalletFactory.address} |`
+        `| SmartWalletRelayVerifier              | ${relayVerifierAddress} |`
     );
     console.log(
-        `| CustomSmartWalletDeployVerifier   | ${CustomSmartWalletDeployVerifier.address} |`
+        '| Custom Smart Wallet Contracts =====================================================|'
     );
     console.log(
-        `| CustomSmartWalletRelayVerifier    | ${customSmartWalletRelayVerifierAddress} |`
+        `| CustomSmartWallet                     | ${CustomSmartWallet.address} |`
     );
     console.log(
-        '| Testing Contracts =============================================================|'
+        `| CustomSmartWalletFactory              | ${CustomSmartWalletFactory.address} |`
     );
     console.log(
-        `| SampleRecipient                   | ${SampleRecipient.address} |`
+        `| CustomSmartWalletDeployVerifier       | ${CustomSmartWalletDeployVerifier.address} |`
     );
-    console.log(`| TestToken                         | ${TestToken.address} |`);
     console.log(
-        '|===================================|============================================|\n'
+        `| CustomSmartWalletRelayVerifier        | ${customSmartWalletRelayVerifierAddress} |`
+    );
+    console.log(
+        '| Native Holder Smart Wallet Contracts ==============================================|'
+    );
+    console.log(
+        `| NativeHolderSmartWallet               | ${NativeHolderSmartWallet.address} |`
+    );
+    console.log(
+        `| NativeHolderSmartWalletFactory        | ${nativeFactoryAddress} |`
+    );
+    console.log(
+        `| NativeHolderSmartWalletDeployVerifier | ${nativeDeployVerifierAddress} |`
+    );
+    console.log(
+        `| NativeHolderSmartWalletRelayVerifier  | ${nativeRelayVerifierAddress} |`
+    );
+    console.log(
+        '| Testing Contracts =================================================================|'
+    );
+    console.log(
+        `| SampleRecipient                       | ${SampleRecipient.address} |`
+    );
+    console.log(
+        `| TestToken                             | ${TestToken.address} |`
+    );
+    console.log(
+        '|=======================================|============================================|\n'
     );
 
     console.log('Generating json config file...');
@@ -115,14 +153,18 @@ module.exports = async function (deployer, network) {
         penalizer: Penalizer.address,
         relayHub: RelayHub.address,
         smartWallet: SmartWallet.address,
-        smartWalletFactory: SmartWalletFactory.address,
-        smartWalletDeployVerifier: DeployVerifier.address,
-        smartWalletRelayVerifier: smartWalletRelayVerifierAddress,
+        smartWalletFactory: smartWalletFactoryAddress,
+        smartWalletDeployVerifier: deployVerifierAddress,
+        smartWalletRelayVerifier: relayVerifierAddress,
         customSmartWallet: CustomSmartWallet.address,
         customSmartWalletFactory: CustomSmartWalletFactory.address,
         customSmartWalletDeployVerifier:
             CustomSmartWalletDeployVerifier.address,
         customSmartWalletRelayVerifier: customSmartWalletRelayVerifierAddress,
+        nativeSmartWallet: NativeHolderSmartWallet.address,
+        nativeSmartWalletFactory: SmartWalletFactory.address,
+        nativeSmartWalletDeployVerifier: DeployVerifier.address,
+        nativeSmartWalletRelayVerifier: RelayVerifier.address,
         sampleRecipient: SampleRecipient.address,
         testToken: TestToken.address
     };
