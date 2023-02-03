@@ -45,11 +45,6 @@ interface IForwarder {
         bytes calldata signature
     ) external view;
 
-     /**
-     * returns the encrypted owner that deployed smart wallet.
-     */
-    function getOwner() external view returns (bytes32 owner);
-
     /**
      * returns the encrypted owner that deployed smart wallet.
      */

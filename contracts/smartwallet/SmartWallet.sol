@@ -135,13 +135,10 @@ contract SmartWallet is IForwarder {
         bytes calldata sig
     )
         external
-        virtual 
-        override
         payable
-        returns (
-            bool success,
-            bytes memory ret  
-        )
+        virtual
+        override
+        returns (bool success, bytes memory ret)
     {
         (sig);
         require(msg.sender == req.relayHub, "Invalid caller");
@@ -200,7 +197,6 @@ contract SmartWallet is IForwarder {
         ForwardRequest memory req,
         bytes memory sig
     ) internal view {
-
         //Verify Owner
         require(
             getOwner() == keccak256(abi.encodePacked(req.from)),

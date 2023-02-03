@@ -8,7 +8,6 @@ import "./SmartWallet.sol";
 /* solhint-disable avoid-low-level-calls */
 
 contract NativeHolderSmartWallet is SmartWallet {
-    
     function directExecuteWithValue(
         address to,
         uint256 value,
@@ -20,7 +19,7 @@ contract NativeHolderSmartWallet is SmartWallet {
             "Not the owner of the SmartWallet"
         );
 
-        (success, ret) = to.call{ value: value }(data);
+        (success, ret) = to.call{value: value}(data);
     }
 
     function execute(
@@ -34,11 +33,14 @@ contract NativeHolderSmartWallet is SmartWallet {
 
         _verifySig(suffixData, req, sig);
         // solhint-disable-next-line not-rely-on-time
-        require(req.validUntilTime == 0 || req.validUntilTime > block.timestamp, "SW: request expired");
+        require(
+            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
+            "SW: request expired"
+        );
         nonce++;
 
         if (req.tokenAmount > 0) {
-            (success, ret) = req.tokenContract.call{ gas: req.tokenGas }(
+            (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
                 abi.encodeWithSelector(
                     hex"a9059cbb", //transfer(address,uint256)
                     feesReceiver,
@@ -63,8 +65,6 @@ contract NativeHolderSmartWallet is SmartWallet {
         //methods that revert if the gasleft() is not enough to execute whatever logic they have.
 
         require(gasleft() > req.gas, "Not enough gas left");
-        (success, ret) = req.to.call{ gas: req.gas, value: req.value }(
-            req.data
-        );
+        (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
     }
 }
