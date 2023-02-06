@@ -1,7 +1,0 @@
-#!/bin/bash
-
-patch-package
-
-npm run dist
-
-husky install

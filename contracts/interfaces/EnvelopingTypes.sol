@@ -7,7 +7,7 @@ interface EnvelopingTypes {
     struct RelayData {
         uint256 gasPrice;
         address feesReceiver;
-        address callForwarder; 
+        address callForwarder;
         address callVerifier;
     }
 
