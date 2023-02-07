@@ -79,8 +79,8 @@ const config: HardhatUserConfig = {
     },
     tdd: {
       tasks: [
-        // 'clean',
-        // { command: 'compile', params: { quiet: true } },
+        'clean',
+        { command: 'compile', params: { quiet: true } },
         {
           command: 'test',
           params: {
@@ -89,7 +89,7 @@ const config: HardhatUserConfig = {
           },
         },
       ],
-      files: ['./test/**/*.ts'],
+      files: ['./test/**/*.ts', './contracts/*.sol'],
       verbose: true,
       clearOnStart: true,
     },

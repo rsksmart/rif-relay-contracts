@@ -8,6 +8,13 @@
      * due to import of types from typechain-types.
     */
     "importsNotUsedAsValues": "remove",
+    /*
+     * Adding `undefined` to array item type makes less sense 
+     * in testing, where items of arrays in runtime are 
+     * generally guaranteed to exist, thus we overwrite
+     * `noUncheckedIndexedAccess` to false.
+     */
+    "noUncheckedIndexedAccess": false,
 
     "resolveJsonModule": true,
     "outDir": "dist",
