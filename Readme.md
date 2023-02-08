@@ -48,6 +48,14 @@ The contracts can be deployed in the following way:
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
+To use a specific account to deploy the contracts, we could either set the private key (PK) or the mnemonic (MNEMONIC) as env variables.
+
+```shell
+MNEMONIC='MNEMONIC WORDS HERE' npx hardhat deploy --network <NETWORK_NAME>
+// or
+PK='PRIVATE_KEY_HERE_WITHOUT_0X' npx hardhat deploy --network <NETWORK_NAME>
+```
+
 #### Collector Deployment
 
 To deploy a collector, we need to the script `collector:deploy`. It receives the following parameters:
