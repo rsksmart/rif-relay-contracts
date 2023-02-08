@@ -12,18 +12,6 @@ contract Collector is ICollector {
     IERC20 public token;
     address public owner;
 
-    modifier validShares(RevenuePartner[] memory partners) {
-        uint256 totalShares;
-
-        for (uint256 i = 0; i < partners.length; i++) {
-            require(partners[i].share > 0, "0 is not a valid share");
-            totalShares = totalShares + partners[i].share;
-        }
-
-        require(totalShares == 100, "Shares must add up to 100%");
-        _;
-    }
-
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
         _;
@@ -37,17 +25,26 @@ contract Collector is ICollector {
         _;
     }
 
+    modifier updateValidShares(RevenuePartner[] memory partners) {
+        _;
+        uint256 totalShares;
+        for (uint256 i = 0; i < partners.length; i++) {
+            require(partners[i].share > 0, "0 is not a valid share");
+            totalShares = totalShares + partners[i].share;
+            _partners.push(partners[i]);
+        }
+        require(totalShares == 100, "Shares must add up to 100%");
+    }
+
     constructor(
         address _owner,
         IERC20 _token,
         RevenuePartner[] memory partners,
         address remainderAddress
-    ) public validShares(partners) {
+    ) public updateValidShares(partners) {
         owner = _owner;
         token = _token;
         _remainderAddress = remainderAddress;
-        for (uint256 i = 0; i < partners.length; i++)
-            _partners.push(partners[i]);
     }
 
     function getPartners() external view returns (RevenuePartner[] memory) {
@@ -56,11 +53,8 @@ contract Collector is ICollector {
 
     function updateShares(
         RevenuePartner[] memory partners
-    ) external validShares(partners) onlyOwner noBalanceToShare {
+    ) external onlyOwner noBalanceToShare updateValidShares(partners) {
         delete _partners;
-
-        for (uint256 i = 0; i < partners.length; i++)
-            _partners.push(partners[i]);
     }
 
     //@notice Withdraw the actual remainder and then update the remainder's address
