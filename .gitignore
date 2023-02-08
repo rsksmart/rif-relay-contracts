@@ -16,3 +16,5 @@ artifacts
 /contracts-exposed
 
 .vscode
+revenue-sharing-addresses.json
+deploy-collector.input.json
