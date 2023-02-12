@@ -9,13 +9,10 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ethers } from 'hardhat';
 import { Wallet, BigNumber } from 'ethers';
-import {
-  ERC20,
-  MultitokenCollector,
-  MultitokenCollector__factory,
-} from '../typechain-types';
+import { ERC20, Collector, Collector__factory } from '../typechain-types';
 
 chai.use(chaiAsPromised);
+chai.use(smock.matchers);
 
 const expect = chai.expect;
 
@@ -51,11 +48,11 @@ type CollectorDeployParams = {
 
 type CollectorDeployFunction = (
   collectorParams: CollectorDeployParams
-) => ReturnType<MockContractFactory<MultitokenCollector__factory>['deploy']>;
+) => ReturnType<MockContractFactory<Collector__factory>['deploy']>;
 
 const prepareDefaultDeployer =
   (
-    collectorFactory: MockContractFactory<MultitokenCollector__factory>,
+    collectorFactory: MockContractFactory<Collector__factory>,
     defaultOwnerAddr: string,
     defaultTokens: string[],
     defaultPartners: Partner[],
@@ -74,9 +71,9 @@ const prepareDefaultDeployer =
       remainderDestinationAddr
     );
 
-describe('MultitokenCollector', function () {
+describe('Collector', function () {
   let owner: SignerWithAddress;
-  let collectorFactory: MockContractFactory<MultitokenCollector__factory>;
+  let collectorFactory: MockContractFactory<Collector__factory>;
   let fakeERC20Tokens: FakeContract<ERC20>[];
   let partners: Partner[];
   let remainderDestination: SignerWithAddress;
@@ -103,13 +100,11 @@ describe('MultitokenCollector', function () {
         })
     );
 
-    collectorFactory = await smock.mock<MultitokenCollector__factory>(
-      'MultitokenCollector'
-    );
+    collectorFactory = await smock.mock<Collector__factory>('Collector');
   });
 
   describe('constructor()', function () {
-    it('Should deploy a MultitokenCollector with single token', async function () {
+    it('Should deploy a Collector with single token', async function () {
       partners = await buildPartners(
         [partner1, partner2, partner3, partner4],
         PARTNER_SHARES
@@ -117,13 +112,12 @@ describe('MultitokenCollector', function () {
       const expectedTokens = fakeERC20Tokens.map(({ address }) => address)[0];
       const expectedOwnerAddress = owner.address;
 
-      const collector: MockContract<MultitokenCollector> =
-        await collectorFactory.deploy(
-          expectedOwnerAddress,
-          [expectedTokens],
-          partners,
-          remainderDestination.address
-        );
+      const collector: MockContract<Collector> = await collectorFactory.deploy(
+        expectedOwnerAddress,
+        [expectedTokens],
+        partners,
+        remainderDestination.address
+      );
 
       const actualOwnerAddress = await collector.owner();
       const actualTokens = await collector.getTokens();
@@ -136,7 +130,7 @@ describe('MultitokenCollector', function () {
       );
     });
 
-    it('Should deploy a MultitokenCollector with multiple tokens', async function () {
+    it('Should deploy a Collector with multiple tokens', async function () {
       partners = await buildPartners(
         [partner1, partner2, partner3, partner4],
         PARTNER_SHARES
@@ -144,13 +138,12 @@ describe('MultitokenCollector', function () {
       const expectedTokens = fakeERC20Tokens.map(({ address }) => address);
       const expectedOwnerAddress = owner.address;
 
-      const collector: MockContract<MultitokenCollector> =
-        await collectorFactory.deploy(
-          owner.address,
-          expectedTokens,
-          partners,
-          remainderDestination.address
-        );
+      const collector: MockContract<Collector> = await collectorFactory.deploy(
+        owner.address,
+        expectedTokens,
+        partners,
+        remainderDestination.address
+      );
       const actualOwnerAddress = await collector.owner();
       const actualTokens = await collector.getTokens();
 
@@ -404,6 +397,130 @@ describe('MultitokenCollector', function () {
           .connect(notTheOwner)
           .updateRemainderAddress(newRemainderDestination.address)
       ).to.be.rejectedWith('Only owner can call this');
+    });
+  });
+
+  describe('withdraw', function () {
+    let deployColector: CollectorDeployFunction;
+
+    beforeEach(function () {
+      deployColector = prepareDefaultDeployer(
+        collectorFactory,
+        owner.address,
+        fakeERC20Tokens.map(({ address }) => address),
+        partners,
+        remainderDestination.address
+      );
+    });
+
+    it('Should withdraw for each parther', async function () {
+      const tokens = fakeERC20Tokens.map((token) => {
+        token.balanceOf.returns(100);
+
+        return token.address;
+      });
+      const collector = await deployColector({ tokens });
+      await collector.withdraw();
+
+      for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
+        for (
+          let partnerIndex = 0;
+          partnerIndex < partners.length;
+          partnerIndex++
+        ) {
+          expect(
+            fakeERC20Tokens[tokenIndex].transfer,
+            `Partner[${partnerIndex}] balance for token[${tokenIndex}]`
+          ).to.have.been.calledWith(
+            partners[partnerIndex].beneficiary,
+            PARTNER_SHARES[partnerIndex]
+          );
+        }
+      }
+    });
+
+    it('Should not fail if the revenue to share is equal to the number of partners', async function () {
+      const expectedTransferCount = partners.length;
+      const token = fakeERC20Tokens[0];
+      token.balanceOf.returns(expectedTransferCount);
+      const collector = await deployColector({ tokens: [token.address] });
+
+      await collector.withdraw();
+
+      expect(token.transfer).to.have.callCount(expectedTransferCount);
+    });
+
+    it('Should fail when not enough revenue to share in any of the tokens', async function () {
+      const tokens = fakeERC20Tokens.map((token, i) => {
+        const isLastToken = fakeERC20Tokens.length - 1;
+        token.balanceOf.returns(partners.length - (i === isLastToken ? 1 : 0));
+
+        return token.address;
+      });
+      const collector = await deployColector({ tokens });
+
+      await expect(collector.withdraw()).to.be.revertedWith(
+        'Not enough balance to split'
+      );
+    });
+
+    it('Should fail if called by non-owner', async function () {
+      const collector = await deployColector({});
+
+      const notTheOwner = (await ethers.getSigners()).at(
+        11
+      ) as SignerWithAddress;
+
+      await expect(
+        collector.connect(notTheOwner).withdraw()
+      ).to.be.revertedWith('Only owner can call this');
+    });
+
+    it('Should fail if the transfer returns false', async function () {
+      const token = fakeERC20Tokens[0];
+      token.balanceOf.returns(100);
+      token.transfer.returns(false);
+      const collector = await deployColector({ tokens: [token.address] });
+
+      await expect(collector.withdraw()).to.be.revertedWith(
+        'Unable to withdraw'
+      );
+    });
+  });
+
+  describe('transferOwnership', function () {
+    let collector: MockContract<Collector>;
+
+    beforeEach(async function () {
+      collector = await prepareDefaultDeployer(
+        collectorFactory,
+        owner.address,
+        fakeERC20Tokens.map(({ address }) => address),
+        partners,
+        remainderDestination.address
+      )({});
+    });
+
+    it('Should transfer ownership', async function () {
+      const { address: newOwnerAddress } = (await ethers.getSigners()).at(
+        6
+      ) as SignerWithAddress;
+
+      await collector.transferOwnership(newOwnerAddress);
+
+      expect(await collector.owner()).to.be.equal(newOwnerAddress);
+    });
+
+    it('Should fail when is called by an address that is not the owner', async function () {
+      // const [, , , , , , newOwner, notTheOwner] = await hardhat.getSigners();
+      const [newOwner, notCurrentOwner] = (await ethers.getSigners()).slice(
+        6,
+        8
+      );
+
+      await expect(
+        collector.connect(notCurrentOwner).transferOwnership(newOwner.address)
+      ).to.be.revertedWith('Only owner can call this');
     });
   });
 });

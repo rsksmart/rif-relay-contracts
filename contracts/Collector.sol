@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract Collector is ICollector {
     address private _remainderAddress;
     RevenuePartner[] private _partners;
-    IERC20 public token;
+    IERC20[] private _tokens;
     address public owner;
 
     modifier onlyOwner() {
@@ -18,10 +18,12 @@ contract Collector is ICollector {
     }
 
     modifier noBalanceToShare() {
-        require(
-            token.balanceOf(address(this)) < _partners.length,
-            "There is balance to share"
-        );
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(
+                _tokens[i].balanceOf(address(this)) < _partners.length,
+                "There is balance to share"
+            );
+        }
         _;
     }
 
@@ -38,13 +40,16 @@ contract Collector is ICollector {
 
     constructor(
         address _owner,
-        IERC20 _token,
+        IERC20[] memory tokens,
         RevenuePartner[] memory partners,
         address remainderAddress
     ) public updateValidShares(partners) {
         owner = _owner;
-        token = _token;
         _remainderAddress = remainderAddress;
+
+        for (uint i = 0; i < tokens.length; i++) {
+            _tokens.push(tokens[i]);
+        }
     }
 
     function getPartners() external view returns (RevenuePartner[] memory) {
@@ -62,34 +67,38 @@ contract Collector is ICollector {
     function updateRemainderAddress(
         address remainderAddress
     ) external onlyOwner noBalanceToShare {
-        uint256 balance = token.balanceOf(address(this));
-        address tokenAddr = address(token);
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token = _tokens[i];
+            uint256 balance = token.balanceOf(address(this));
 
-        if (balance != 0) {
-            // solhint-disable-next-line avoid-low-level-calls
-            (bool success, bytes memory ret) = tokenAddr.call{gas: 200000}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb",
-                    _remainderAddress,
-                    balance
-                )
-            );
+            if (balance != 0) {
+                // solhint-disable-next-line avoid-low-level-calls
+                (bool success, bytes memory ret) = address(token).call(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb",
+                        _remainderAddress,
+                        balance
+                    )
+                );
 
-            require(
-                success && (ret.length == 0 || abi.decode(ret, (bool))),
-                "Unable to transfer remainder"
-            );
+                require(
+                    success && (ret.length == 0 || abi.decode(ret, (bool))),
+                    "Unable to transfer remainder"
+                );
+            }
         }
-
-        // solhint-disable-next-line
         _remainderAddress = remainderAddress;
     }
 
-    function getBalance() external view returns (uint256) {
-        return token.balanceOf(address(this));
+    function getTokens() external view returns (IERC20[] memory) {
+        return _tokens;
     }
 
-    function withdraw() external override onlyOwner {
+    function getRemainderAddress() external view returns (address) {
+        return _remainderAddress;
+    }
+
+    function withdrawToken(IERC20 token) public onlyOwner {
         uint256 balance = token.balanceOf(address(this));
         require(balance >= _partners.length, "Not enough balance to split");
 
@@ -112,8 +121,14 @@ contract Collector is ICollector {
         }
     }
 
+    function withdraw() external override onlyOwner {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            withdrawToken(_tokens[i]);
+        }
+    }
+
     function transferOwnership(address _owner) external override onlyOwner {
-        require(_owner != address(0), "New owner is the zero address");
+        require(_owner != address(0), "Owner cannot be zero address");
         owner = _owner;
     }
 }

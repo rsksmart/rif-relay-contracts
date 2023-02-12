@@ -89,7 +89,7 @@ const config: HardhatUserConfig = {
           },
         },
       ],
-      files: ['./test/**/*.ts', './contracts/*.sol'],
+      files: ['./contracts/*.sol', './test/**/*.ts', './tasks/**/*.ts'],
       verbose: true,
       clearOnStart: true,
     },
