@@ -91,13 +91,12 @@ describe('Collector', function () {
     );
 
     fakeERC20Tokens = await Promise.all(
-      Array(2)
-        .fill(await smock.fake<ERC20>('ERC20'))
-        .map((fakeToken: FakeContract<ERC20>) => {
-          fakeToken.transfer.returns(true);
+      Array.from(Array(2)).map(async (fakeToken: FakeContract<ERC20>) => {
+        fakeToken = await smock.fake<ERC20>('ERC20');
+        fakeToken.transfer.returns(true);
 
-          return fakeToken;
-        })
+        return fakeToken;
+      })
     );
 
     collectorFactory = await smock.mock<Collector__factory>('Collector');
@@ -201,9 +200,99 @@ describe('Collector', function () {
     });
   });
 
+  describe('addToken', function () {
+    let deployCollector: CollectorDeployFunction;
+
+    beforeEach(function () {
+      deployCollector = prepareDefaultDeployer(
+        collectorFactory,
+        owner.address,
+        fakeERC20Tokens.map(({ address }) => address),
+        partners,
+        remainderDestination.address
+      );
+    });
+
+    it('should reject if called by non-owner', async function () {
+      const collector = await deployCollector({});
+      const nonOwner = (await ethers.getSigners()).at(6) as SignerWithAddress;
+
+      await expect(
+        collector.connect(nonOwner).addToken(Wallet.createRandom().address)
+      ).to.have.been.rejectedWith('Only owner can call this');
+    });
+
+    it('should add token to the list', async function () {
+      const collector = await deployCollector({});
+      const { address: expectedTokenAddress } = await smock.fake<ERC20>(
+        'ERC20'
+      );
+      await collector.addToken(expectedTokenAddress);
+
+      const actualTokenAddresses = await collector.getTokens();
+
+      expect(actualTokenAddresses).to.include.members([expectedTokenAddress]);
+    });
+  });
+
+  describe('removeToken', function () {
+    let deployCollector: CollectorDeployFunction;
+
+    beforeEach(function () {
+      deployCollector = prepareDefaultDeployer(
+        collectorFactory,
+        owner.address,
+        fakeERC20Tokens.map(({ address }) => address),
+        partners,
+        remainderDestination.address
+      );
+    });
+
+    it('should reject if called by non-owner', async function () {
+      const collector = await deployCollector({});
+      const nonOwner = (await ethers.getSigners()).at(6) as SignerWithAddress;
+
+      await expect(
+        collector.connect(nonOwner).removeToken(0)
+      ).to.have.been.rejectedWith('Only owner can call this');
+    });
+
+    it('should check token balance of the collector', async function () {
+      const collector = await deployCollector({});
+      const tokenToRemove = fakeERC20Tokens.length - 1;
+      await collector.removeToken(tokenToRemove);
+
+      expect(fakeERC20Tokens[tokenToRemove].balanceOf).to.have.been.calledWith(
+        collector.address
+      );
+    });
+
+    it(`should reject if collector balance is non-zero`, async function () {
+      const balance = 1;
+      const tokenToRemove = fakeERC20Tokens.length - 1;
+      fakeERC20Tokens[tokenToRemove].balanceOf.returns(balance);
+      const collector = await deployCollector({});
+
+      await expect(collector.removeToken(tokenToRemove)).to.have.rejectedWith(
+        'There is balance to share'
+      );
+    });
+
+    it('should remove token', async function () {
+      const tokenToRemove = fakeERC20Tokens.length - 1;
+      const collector = await deployCollector({});
+      await collector.removeToken(tokenToRemove);
+
+      expect(
+        await collector.getTokens(),
+        'Before removal'
+      ).to.not.include.members([fakeERC20Tokens[tokenToRemove].address]);
+    });
+  });
+
   describe('updateShares', function () {
     let newPartners: Partner[];
-    let deployColector: CollectorDeployFunction;
+    let deployCollector: CollectorDeployFunction;
 
     beforeEach(async function () {
       newPartners = await buildPartners(
@@ -211,7 +300,7 @@ describe('Collector', function () {
         PARTNER_SHARES
       );
 
-      deployColector = prepareDefaultDeployer(
+      deployCollector = prepareDefaultDeployer(
         collectorFactory,
         owner.address,
         fakeERC20Tokens.map(({ address }) => address),
@@ -221,7 +310,7 @@ describe('Collector', function () {
     });
 
     it('Should update shares and partners when any token has zero balance', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
 
       const expectedPartnersShares = newPartners.map(
         ({ beneficiary, share }) => [beneficiary, share]
@@ -245,7 +334,7 @@ describe('Collector', function () {
 
         return token.address;
       });
-      const collector = await deployColector({
+      const collector = await deployCollector({
         tokens,
       });
       const expectedPartnersShares = newPartners.map(
@@ -267,7 +356,7 @@ describe('Collector', function () {
     it('Should fail when any token balance > number of partners', async function () {
       fakeERC20Tokens[1].balanceOf.returns(5);
 
-      const collector = await deployColector({
+      const collector = await deployCollector({
         tokens: fakeERC20Tokens.map(({ address }) => address),
       });
 
@@ -277,7 +366,7 @@ describe('Collector', function () {
     });
 
     it('Should fail when it is called by an account different than the owner', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
       const notTheOwner = (await ethers.getSigners()).at(
         11
       ) as SignerWithAddress;
@@ -288,7 +377,7 @@ describe('Collector', function () {
     });
 
     it('Should fail if the shares does not sum up to 100', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
       newPartners[0].share = 25;
       newPartners[1].share = 25;
       newPartners[2].share = 25;
@@ -300,7 +389,7 @@ describe('Collector', function () {
     });
 
     it('Should fail if any one of the shares is 0', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
       newPartners[3].share = 0;
 
       await expect(collector.updateShares(newPartners)).to.be.rejectedWith(
@@ -310,10 +399,10 @@ describe('Collector', function () {
   });
 
   describe('updateRemainderAddress', function () {
-    let deployColector: CollectorDeployFunction;
+    let deployCollector: CollectorDeployFunction;
 
     beforeEach(function () {
-      deployColector = prepareDefaultDeployer(
+      deployCollector = prepareDefaultDeployer(
         collectorFactory,
         owner.address,
         fakeERC20Tokens.map(({ address }) => address),
@@ -323,7 +412,7 @@ describe('Collector', function () {
     });
 
     it('Should update remainder address when any token balance is zero', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
       const expectedAddress = Wallet.createRandom().address;
       await collector.updateRemainderAddress(expectedAddress);
       const actualAddress = await collector.getRemainderAddress();
@@ -337,7 +426,7 @@ describe('Collector', function () {
 
         return token.address;
       });
-      const collector = await deployColector({
+      const collector = await deployCollector({
         tokens,
       });
       const previousRemainderAddress = remainderDestination.address;
@@ -362,7 +451,7 @@ describe('Collector', function () {
 
     it('Should update remainder address when any token balance is non-zero', async function () {
       fakeERC20Tokens[0].balanceOf.returns(1);
-      const collector = await deployColector({
+      const collector = await deployCollector({
         tokens: fakeERC20Tokens.map(({ address }) => address),
       });
       const expectedAddress = Wallet.createRandom().address;
@@ -378,7 +467,7 @@ describe('Collector', function () {
 
         return token.address;
       });
-      const collector = await deployColector({ tokens });
+      const collector = await deployCollector({ tokens });
 
       await expect(
         collector.updateRemainderAddress(Wallet.createRandom().address)
@@ -386,7 +475,7 @@ describe('Collector', function () {
     });
 
     it('Should reject non-owner calls', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
 
       const [newRemainderDestination, notTheOwner] = (
         await ethers.getSigners()
@@ -401,10 +490,10 @@ describe('Collector', function () {
   });
 
   describe('withdraw', function () {
-    let deployColector: CollectorDeployFunction;
+    let deployCollector: CollectorDeployFunction;
 
     beforeEach(function () {
-      deployColector = prepareDefaultDeployer(
+      deployCollector = prepareDefaultDeployer(
         collectorFactory,
         owner.address,
         fakeERC20Tokens.map(({ address }) => address),
@@ -413,13 +502,13 @@ describe('Collector', function () {
       );
     });
 
-    it('Should withdraw for each parther', async function () {
+    it('Should withdraw for each partner', async function () {
       const tokens = fakeERC20Tokens.map((token) => {
         token.balanceOf.returns(100);
 
         return token.address;
       });
-      const collector = await deployColector({ tokens });
+      const collector = await deployCollector({ tokens });
       await collector.withdraw();
 
       for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
@@ -443,7 +532,7 @@ describe('Collector', function () {
       const expectedTransferCount = partners.length;
       const token = fakeERC20Tokens[0];
       token.balanceOf.returns(expectedTransferCount);
-      const collector = await deployColector({ tokens: [token.address] });
+      const collector = await deployCollector({ tokens: [token.address] });
 
       await collector.withdraw();
 
@@ -457,7 +546,7 @@ describe('Collector', function () {
 
         return token.address;
       });
-      const collector = await deployColector({ tokens });
+      const collector = await deployCollector({ tokens });
 
       await expect(collector.withdraw()).to.be.revertedWith(
         'Not enough balance to split'
@@ -465,7 +554,7 @@ describe('Collector', function () {
     });
 
     it('Should fail if called by non-owner', async function () {
-      const collector = await deployColector({});
+      const collector = await deployCollector({});
 
       const notTheOwner = (await ethers.getSigners()).at(
         11
@@ -480,7 +569,7 @@ describe('Collector', function () {
       const token = fakeERC20Tokens[0];
       token.balanceOf.returns(100);
       token.transfer.returns(false);
-      const collector = await deployColector({ tokens: [token.address] });
+      const collector = await deployCollector({ tokens: [token.address] });
 
       await expect(collector.withdraw()).to.be.revertedWith(
         'Unable to withdraw'
@@ -511,8 +600,7 @@ describe('Collector', function () {
       expect(await collector.owner()).to.be.equal(newOwnerAddress);
     });
 
-    it('Should fail when is called by an address that is not the owner', async function () {
-      // const [, , , , , , newOwner, notTheOwner] = await hardhat.getSigners();
+    it('Should fail when called by an address that is not the owner', async function () {
       const [newOwner, notCurrentOwner] = (await ethers.getSigners()).slice(
         6,
         8

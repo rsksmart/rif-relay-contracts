@@ -90,8 +90,22 @@ contract Collector is ICollector {
         _remainderAddress = remainderAddress;
     }
 
+    function addToken(IERC20 token) external onlyOwner {
+        _tokens.push(token);
+    }
+
     function getTokens() external view returns (IERC20[] memory) {
         return _tokens;
+    }
+
+    function removeToken(uint256 tokenIndex) external onlyOwner {
+        require(
+            _tokens[tokenIndex].balanceOf(address(this)) == 0,
+            "There is balance to share"
+        );
+
+        _tokens[tokenIndex] = _tokens[_tokens.length - 1];
+        _tokens.pop();
     }
 
     function getRemainderAddress() external view returns (address) {
