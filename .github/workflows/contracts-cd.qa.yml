@@ -6,7 +6,7 @@ on:
     branches: [main, PP-675/contracts-cd]
 
 jobs:
-  deploy-qa:
+  deploy-contract:
     runs-on: ubuntu-latest
     environment:
       name: QA
@@ -23,5 +23,10 @@ jobs:
 
       - name: Deploy Contract on Testnet
         run: |
-          MNEMONIC=${{ secrets.QA_MNEMONIC }}  npx hardhat deploy --network testnet
-          cat contract-addresses.json
+          MNEMONIC='${{ secrets.QA_MNEMONIC }}'  npx hardhat deploy --network testnet
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: contract-addresses.json
+          path: contract-addresses.json
