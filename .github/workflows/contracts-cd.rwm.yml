@@ -1,15 +1,16 @@
 ---
-name: Deploy Contracts for QA
+name: Deploy Contracts for RIF-Wallet-Mainnet
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '**stable-rifwallet**'
 
 jobs:
   deploy-contract:
     runs-on: ubuntu-latest
     environment:
-      name: QA
+      name: RIF-Wallet-Mainnet
 
     steps:
       - uses: actions/checkout@v3

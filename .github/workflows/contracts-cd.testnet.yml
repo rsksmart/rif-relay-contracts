@@ -1,15 +1,16 @@
 ---
-name: Deploy Contracts for QA
+name: Deploy Contracts CD for Testnet
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '**beta-testnet**'
 
 jobs:
   deploy-contract:
     runs-on: ubuntu-latest
     environment:
-      name: QA
+      name: Testnet
 
     steps:
       - uses: actions/checkout@v3
