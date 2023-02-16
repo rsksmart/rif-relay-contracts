@@ -261,11 +261,14 @@ describe('Collector', function () {
     it('should check token balance of the collector', async function () {
       const collector = await deployCollector({});
       const tokenIndexToRemove = fakeERC20Tokens.length - 1;
-      await collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove);
-
-      expect(fakeERC20Tokens[tokenIndexToRemove].balanceOf).to.have.been.calledWith(
-        collector.address
+      await collector.removeToken(
+        fakeERC20Tokens[tokenIndexToRemove].address,
+        tokenIndexToRemove
       );
+
+      expect(
+        fakeERC20Tokens[tokenIndexToRemove].balanceOf
+      ).to.have.been.calledWith(collector.address);
     });
 
     it(`should reject if collector balance is non-zero`, async function () {
@@ -274,15 +277,21 @@ describe('Collector', function () {
       fakeERC20Tokens[tokenIndexToRemove].balanceOf.returns(balance);
       const collector = await deployCollector({});
 
-      await expect(collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove)).to.have.rejectedWith(
-        'There is balance to share'
-      );
+      await expect(
+        collector.removeToken(
+          fakeERC20Tokens[tokenIndexToRemove].address,
+          tokenIndexToRemove
+        )
+      ).to.have.rejectedWith('There is balance to share');
     });
 
     it('should remove token', async function () {
       const tokenIndexToRemove = fakeERC20Tokens.length - 1;
       const collector = await deployCollector({});
-      await collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove);
+      await collector.removeToken(
+        fakeERC20Tokens[tokenIndexToRemove].address,
+        tokenIndexToRemove
+      );
 
       expect(
         await collector.getTokens(),
