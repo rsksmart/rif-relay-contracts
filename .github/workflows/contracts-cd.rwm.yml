@@ -24,7 +24,7 @@ jobs:
 
       - name: Deploy Contract on Testnet
         run: |
-          MNEMONIC='${{ secrets.QA_MNEMONIC }}'  npx hardhat deploy --network testnet
+          MNEMONIC='${{ secrets.RWM_MNEMONIC }}'  npx hardhat deploy --network mainnet
       
       - name: Upload artifact
         uses: actions/upload-artifact@v3
