@@ -99,7 +99,7 @@ contract Collector is ICollector {
     }
 
     function removeToken(IERC20 token, uint256 tokenIndex) external onlyOwner {
-        require(_tokens[tokenIndex] == token, 'Incorrect token');
+        require(_tokens[tokenIndex] == token, "Incorrect token");
         require(
             _tokens[tokenIndex].balanceOf(address(this)) == 0,
             "There is balance to share"
