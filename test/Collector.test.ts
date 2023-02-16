@@ -251,42 +251,43 @@ describe('Collector', function () {
     it('should reject if called by non-owner', async function () {
       const collector = await deployCollector({});
       const nonOwner = (await ethers.getSigners()).at(6) as SignerWithAddress;
+      const randomAddress = Wallet.createRandom().address;
 
       await expect(
-        collector.connect(nonOwner).removeToken(0)
+        collector.connect(nonOwner).removeToken(randomAddress, 0)
       ).to.have.been.rejectedWith('Only owner can call this');
     });
 
     it('should check token balance of the collector', async function () {
       const collector = await deployCollector({});
-      const tokenToRemove = fakeERC20Tokens.length - 1;
-      await collector.removeToken(tokenToRemove);
+      const tokenIndexToRemove = fakeERC20Tokens.length - 1;
+      await collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove);
 
-      expect(fakeERC20Tokens[tokenToRemove].balanceOf).to.have.been.calledWith(
+      expect(fakeERC20Tokens[tokenIndexToRemove].balanceOf).to.have.been.calledWith(
         collector.address
       );
     });
 
     it(`should reject if collector balance is non-zero`, async function () {
       const balance = 1;
-      const tokenToRemove = fakeERC20Tokens.length - 1;
-      fakeERC20Tokens[tokenToRemove].balanceOf.returns(balance);
+      const tokenIndexToRemove = fakeERC20Tokens.length - 1;
+      fakeERC20Tokens[tokenIndexToRemove].balanceOf.returns(balance);
       const collector = await deployCollector({});
 
-      await expect(collector.removeToken(tokenToRemove)).to.have.rejectedWith(
+      await expect(collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove)).to.have.rejectedWith(
         'There is balance to share'
       );
     });
 
     it('should remove token', async function () {
-      const tokenToRemove = fakeERC20Tokens.length - 1;
+      const tokenIndexToRemove = fakeERC20Tokens.length - 1;
       const collector = await deployCollector({});
-      await collector.removeToken(tokenToRemove);
+      await collector.removeToken(fakeERC20Tokens[tokenIndexToRemove].address, tokenIndexToRemove);
 
       expect(
         await collector.getTokens(),
         'Before removal'
-      ).to.not.include.members([fakeERC20Tokens[tokenToRemove].address]);
+      ).to.not.include.members([fakeERC20Tokens[tokenIndexToRemove].address]);
     });
   });
 
