@@ -11,6 +11,7 @@ contract Collector is ICollector {
     RevenuePartner[] private _partners;
     IERC20[] private _tokens;
     address public owner;
+    mapping(IERC20 => bool) public tokenMap;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
@@ -49,6 +50,7 @@ contract Collector is ICollector {
 
         for (uint i = 0; i < tokens.length; i++) {
             _tokens.push(tokens[i]);
+            tokenMap[tokens[i]] = true;
         }
     }
 
@@ -91,6 +93,8 @@ contract Collector is ICollector {
     }
 
     function addToken(IERC20 token) external onlyOwner {
+        require(tokenMap[token] == false, "Token is already accepted");
+        tokenMap[token] = true;
         _tokens.push(token);
     }
 
@@ -99,12 +103,14 @@ contract Collector is ICollector {
     }
 
     function removeToken(IERC20 token, uint256 tokenIndex) external onlyOwner {
+        require(tokenMap[token] == true, "Token is not accepted");
         require(_tokens[tokenIndex] == token, "Incorrect token");
         require(
             _tokens[tokenIndex].balanceOf(address(this)) == 0,
             "There is balance to share"
         );
 
+        delete tokenMap[token];
         _tokens[tokenIndex] = _tokens[_tokens.length - 1];
         _tokens.pop();
     }

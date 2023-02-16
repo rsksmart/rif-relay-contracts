@@ -222,6 +222,15 @@ describe('Collector', function () {
       ).to.have.been.rejectedWith('Only owner can call this');
     });
 
+    it('should reject if token is already added', async function () {
+      const collector = await deployCollector({});
+      const { address: tokenAddress } = await smock.fake<ERC20>('ERC20');
+      await collector.addToken(tokenAddress);
+      await expect(collector.addToken(tokenAddress)).to.be.rejectedWith(
+        'Token is already accepted'
+      );
+    });
+
     it('should add token to the list', async function () {
       const collector = await deployCollector({});
       const { address: expectedTokenAddress } = await smock.fake<ERC20>(
@@ -283,6 +292,17 @@ describe('Collector', function () {
           tokenIndexToRemove
         )
       ).to.have.rejectedWith('There is balance to share');
+    });
+
+    it('should be rejected if token is not accepted', async function () {
+      const tokenIndexToRemove = fakeERC20Tokens.length - 1;
+      const collector = await deployCollector({});
+
+      const randomAddress = Wallet.createRandom().address;
+
+      await expect(
+        collector.removeToken(randomAddress, tokenIndexToRemove)
+      ).to.be.rejectedWith('Token is not accepted');
     });
 
     it('should remove token', async function () {
