@@ -60,6 +60,11 @@ const config: HardhatUserConfig = {
       url: 'https://public-node.testnet.rsk.co',
       chainId: 31,
     },
+    mainnet: {
+      ...sharedNetworkConfig,
+      url: 'https://public-node.rsk.co',
+      chainId: 30,
+    },
   },
   typechain: {
     target: 'ethers-v5',
