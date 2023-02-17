@@ -25,7 +25,8 @@ chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
 let relayWorker: SignerWithAddress;
-let otherUsers: SignerWithAddress[];
+let otherUser1: SignerWithAddress;
+let otherUser2: SignerWithAddress;
 
 async function sendTransaction(address: string) {
   const txn = await relayWorker.sendTransaction({
@@ -83,7 +84,11 @@ describe('Penalizer Contract', function () {
   describe('Penalize Repeated nonce method() tests', function () {
     let penalizer: MockContract<Penalizer>;
     beforeEach(async function () {
-      [relayWorker, ...otherUsers] = await ethers.getSigners();
+      [relayWorker, otherUser1, otherUser2] = (await ethers.getSigners()) as [
+        SignerWithAddress,
+        SignerWithAddress,
+        SignerWithAddress
+      ];
 
       const penalizerFactory: MockContractFactory<Penalizer__factory> =
         await smock.mock<Penalizer__factory>('Penalizer');
@@ -98,7 +103,7 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize two equal txns', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(true);
-      const txn = await sendTransaction(otherUsers[1].address);
+      const txn = await sendTransaction(otherUser2.address);
 
       const promiseOfPenalize = penalizer
         .connect(relayWorker)
@@ -115,7 +120,7 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize when relay manages is not staked', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(false);
-      const txn = await sendTransaction(otherUsers[1].address);
+      const txn = await sendTransaction(otherUser2.address);
 
       const promiseOfPenalize = penalizer
         .connect(relayWorker)
@@ -134,9 +139,9 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize when signer is different', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(true);
-      const txn = await sendTransaction(otherUsers[1].address);
-      const txn2 = await otherUsers[0].sendTransaction({
-        to: otherUsers[1].address,
+      const txn = await sendTransaction(otherUser2.address);
+      const txn2 = await otherUser1.sendTransaction({
+        to: otherUser2.address,
         value: oneRBTC,
         gasPrice: '773912629',
       });
@@ -184,8 +189,8 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize when txns have the same data but the nonce', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(true);
-      const txn = await sendTransaction(otherUsers[1].address);
-      const txn2 = await sendTransaction(otherUsers[1].address);
+      const txn = await sendTransaction(otherUser2.address);
+      const txn2 = await sendTransaction(otherUser2.address);
 
       const promiseOfPenalize = penalizer
         .connect(relayWorker)
@@ -204,10 +209,10 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize when txns have the same data but the gas price', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(true);
-      const txn = await sendTransaction(otherUsers[1].address);
+      const txn = await sendTransaction(otherUser2.address);
 
       const txn2 = await relayWorker.sendTransaction({
-        to: otherUsers[1].address,
+        to: otherUser2.address,
         value: oneRBTC,
         gasPrice: txn.txData.gasPrice?.add(1),
       });
@@ -251,10 +256,10 @@ describe('Penalizer Contract', function () {
 
     it('Should fail to penalize when txns have the same data but the value', async function () {
       fakeRelayHub.isRelayManagerStaked.returns(true);
-      const txn = await sendTransaction(otherUsers[1].address);
+      const txn = await sendTransaction(otherUser2.address);
 
       const txn2 = await relayWorker.sendTransaction({
-        to: otherUsers[1].address,
+        to: otherUser2.address,
         value: oneRBTC.add(oneRBTC),
         gasPrice: '773912629',
       });
@@ -301,7 +306,7 @@ describe('Penalizer Contract', function () {
 
       const relayWorker2 = ethers.Wallet.createRandom();
       const signed = await relayWorker2.signTransaction({
-        to: otherUsers[1].address,
+        to: otherUser2.address,
         value: oneRBTC,
       });
       const trx = ethers.utils.parseTransaction(signed);
@@ -309,7 +314,7 @@ describe('Penalizer Contract', function () {
       const msgHashTxn1 = ethers.utils.keccak256(unsignedTxn1.rawTxn);
 
       const signed2 = await relayWorker2.signTransaction({
-        to: otherUsers[0].address,
+        to: otherUser1.address,
         value: oneRBTC,
       });
       const trx2 = ethers.utils.parseTransaction(signed2);
@@ -337,7 +342,7 @@ describe('Penalizer Contract', function () {
 
       const relayWorker2 = ethers.Wallet.createRandom();
       const signed = await relayWorker2.signTransaction({
-        to: otherUsers[1].address,
+        to: otherUser2.address,
         value: oneRBTC,
       });
       const trx = ethers.utils.parseTransaction(signed);
@@ -345,7 +350,7 @@ describe('Penalizer Contract', function () {
       const msgHashTxn1 = ethers.utils.keccak256(unsignedTxn1.rawTxn);
 
       const signed2 = await relayWorker2.signTransaction({
-        to: otherUsers[0].address,
+        to: otherUser1.address,
         value: oneRBTC,
       });
       const trx2 = ethers.utils.parseTransaction(signed2);
@@ -387,7 +392,7 @@ describe('Penalizer Contract', function () {
 
       const relayWorker2 = ethers.Wallet.createRandom();
       const signed = await relayWorker2.signTransaction({
-        to: otherUsers[1].address,
+        to: otherUser2.address,
         value: oneRBTC,
       });
       const trx = ethers.utils.parseTransaction(signed);
@@ -395,7 +400,7 @@ describe('Penalizer Contract', function () {
       const msgHashTxn1 = ethers.utils.keccak256(unsignedTxn1.rawTxn);
 
       const signed2 = await relayWorker2.signTransaction({
-        to: otherUsers[0].address,
+        to: otherUser1.address,
         value: oneRBTC,
       });
       const trx2 = ethers.utils.parseTransaction(signed2);

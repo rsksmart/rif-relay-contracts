@@ -7,6 +7,7 @@ import {
   CustomSmartWalletFactory,
   CustomSmartWallet__factory,
   ERC20,
+  SmartWallet,
 } from 'typechain-types';
 import {
   getLocalEip712Signature,
@@ -168,7 +169,10 @@ describe('CustomSmartWallet contract', function () {
 
     beforeEach(async function () {
       let fundedAccount: SignerWithAddress;
-      [relayHub, fundedAccount] = await hardhat.getSigners();
+      [relayHub, fundedAccount] = (await hardhat.getSigners()) as [
+        SignerWithAddress,
+        SignerWithAddress
+      ];
 
       provider = hardhat.provider;
       owner = hardhat.Wallet.createRandom().connect(provider);
@@ -325,7 +329,9 @@ describe('CustomSmartWallet contract', function () {
     let owner: Wallet;
 
     beforeEach(async function () {
-      const [, fundedAccount] = await hardhat.getSigners();
+      const [fundedAccount] = (await hardhat.getSigners()).slice(1) as [
+        SignerWithAddress
+      ];
 
       const mockCustomSmartWalletFactory =
         await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
@@ -476,7 +482,10 @@ describe('CustomSmartWallet contract', function () {
 
     beforeEach(async function () {
       let fundedAccount: SignerWithAddress;
-      [, fundedAccount, relayHub] = await hardhat.getSigners();
+      [fundedAccount, relayHub] = (await hardhat.getSigners()).slice(1) as [
+        SignerWithAddress,
+        SignerWithAddress
+      ];
 
       const mockCustomSmartWalletFactory =
         await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
@@ -675,12 +684,14 @@ describe('CustomSmartWallet contract', function () {
     let mockCustomSmartWallet: MockContract<CustomSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
-    let recipient: FakeContract;
+    let recipient: FakeContract<SmartWallet>;
     let recipientFunction: string;
     let fundedAccount: SignerWithAddress;
 
     beforeEach(async function () {
-      [, fundedAccount] = await hardhat.getSigners();
+      [fundedAccount] = (await hardhat.getSigners()).slice(1) as [
+        SignerWithAddress
+      ];
 
       const mockCustomSmartWalletFactory =
         await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');
@@ -754,7 +765,9 @@ describe('CustomSmartWallet contract', function () {
     let owner: Wallet;
 
     beforeEach(async function () {
-      const [, fundedAccount] = await hardhat.getSigners();
+      const [fundedAccount] = (await hardhat.getSigners()).slice(1) as [
+        SignerWithAddress
+      ];
 
       const mockCustomSmartWalletFactory =
         await smock.mock<CustomSmartWallet__factory>('CustomSmartWallet');

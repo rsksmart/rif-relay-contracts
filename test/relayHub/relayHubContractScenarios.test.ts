@@ -9,6 +9,7 @@ import {
   RelayHub,
   SmartWallet,
   SmartWalletFactory,
+  ERC20,
 } from '../../typechain-types';
 import { createContractDeployer } from './utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -35,14 +36,19 @@ describe('RelayHub contract - Manager related scenarios', function () {
   let relayManager: SignerWithAddress, relayManagerAddr: string;
   let relayWorker: SignerWithAddress, relayWorkerAddr: string;
   let relayOwner: SignerWithAddress, relayOwnerAddr: string;
-  let otherUsers: SignerWithAddress[];
+  let anotherRelayManager: SignerWithAddress;
 
   let fakePenalizer: FakeContract<Penalizer>;
   let mockRelayHub: MockContract<RelayHub>;
 
   beforeEach(async function () {
-    [relayOwner, relayManager, relayWorker, ...otherUsers] =
-      await ethers.getSigners();
+    [relayOwner, relayManager, relayWorker, anotherRelayManager] =
+      (await ethers.getSigners()) as [
+        SignerWithAddress,
+        SignerWithAddress,
+        SignerWithAddress,
+        SignerWithAddress
+      ];
     relayManagerAddr = relayManager.address;
     relayWorkerAddr = relayWorker.address;
     relayOwnerAddr = relayOwner.address;
@@ -66,7 +72,6 @@ describe('RelayHub contract - Manager related scenarios', function () {
         from: relayOwnerAddr,
       });
 
-      const [anotherRelayManager] = otherUsers;
       await assert.isRejected(
         mockRelayHub
           .connect(relayManager)
@@ -82,7 +87,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
 
   describe('Manager - RelayRequest scenarios', function () {
     const HARDHAT_CHAIN_ID = 31337;
-    let token: FakeContract;
+    let token: FakeContract<ERC20>;
     let smartWallet: FakeContract<SmartWallet>;
     let externalWallet: Wallet;
 
@@ -308,7 +313,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
     const url = 'http://relay.com';
 
     const HARDHAT_CHAIN_ID = 31337;
-    let token: FakeContract;
+    let token: FakeContract<ERC20>;
     let smartWallet: FakeContract<SmartWallet>;
     let externalWallet: Wallet;
     const nextWalletIndex = 500;

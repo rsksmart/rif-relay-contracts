@@ -75,6 +75,7 @@ describe('Deploy Script', function () {
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      NativeHolderSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
 
     const chainContractAddresses = {
@@ -86,7 +87,9 @@ describe('Deploy Script', function () {
     beforeEach(function () {
       spyWriteFileSync = sinon.spy(fs, 'writeFileSync');
       hre.hardhatArguments.network = 'regtest';
-      hre.config.networks.regtest.chainId = 33;
+      if (hre.config.networks['regtest']) {
+        hre.config.networks['regtest'].chainId = 33;
+      }
     });
 
     afterEach(function () {
@@ -120,7 +123,9 @@ describe('Deploy Script', function () {
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
       hre.hardhatArguments.network = undefined;
-      hre.config.networks.regtest.chainId = 33;
+      if (hre.config.networks['regtest']) {
+        hre.config.networks['regtest'].chainId = 33;
+      }
       expect(() => updateConfig(contractAddresses, hre)).to.throw(
         'Unknown Network'
       );
@@ -132,7 +137,9 @@ describe('Deploy Script', function () {
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
       hre.hardhatArguments.network = 'regtest';
-      hre.config.networks.regtest.chainId = undefined;
+      if (hre.config.networks['regtest']) {
+        hre.config.networks['regtest'].chainId = undefined;
+      }
       expect(() => updateConfig(contractAddresses, hre)).to.throw(
         'Unknown Chain Id'
       );
