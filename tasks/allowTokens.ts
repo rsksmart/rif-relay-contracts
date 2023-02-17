@@ -39,7 +39,12 @@ export const allowTokens = async (
     contractAddressesDeployed.CustomSmartWalletDeployVerifier;
   const customRelayVerifierAddress =
     contractAddressesDeployed.CustomSmartWalletRelayVerifier;
+  const nativeDeployVerifierAddress =
+    contractAddressesDeployed.NativeHolderSmartWalletDeployVerifier;
+  const nativeRelayVerifierAddress =
+    contractAddressesDeployed.NativeHolderSmartWalletRelayVerifier;
 
+  // TODO: This need to be refactored
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');
   }
@@ -54,6 +59,18 @@ export const allowTokens = async (
 
   if (!customRelayVerifierAddress) {
     throw new Error('Could not obtain custom deploy verifier address');
+  }
+
+  if (!nativeDeployVerifierAddress) {
+    throw new Error(
+      'Could not obtain deploy verifier address for the NativeHolderSmartWallet'
+    );
+  }
+
+  if (!nativeRelayVerifierAddress) {
+    throw new Error(
+      'Could not obtain relay verifier address for the NativeHolderSmartWallet'
+    );
   }
 
   const deployVerifier = await ethers.getContractAt(
@@ -74,6 +91,15 @@ export const allowTokens = async (
     customRelayVerifierAddress
   );
 
+  const nativeHolderDeployVerifier = await ethers.getContractAt(
+    'DeployVerifier',
+    nativeDeployVerifierAddress
+  );
+  const nativeHolderRelayVerifier = await ethers.getContractAt(
+    'RelayVerifier',
+    nativeRelayVerifierAddress
+  );
+
   const verifierMap: Map<
     string,
     { acceptToken: (tokenAddress: string) => Promise<ContractTransaction> }
@@ -82,6 +108,8 @@ export const allowTokens = async (
   verifierMap.set('relayVerifier', relayVerifier);
   verifierMap.set('customDeployVerifier', customDeployVerifier);
   verifierMap.set('customRelayVerifier', customRelayVerifier);
+  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
+  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
 
   for (const tokenAddress of tokenAddresses) {
     for (const [key, verifier] of verifierMap) {

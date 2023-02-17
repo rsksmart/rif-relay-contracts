@@ -1,3 +1,104 @@
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
+import { BaseProvider } from '@ethersproject/providers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { BigNumber, ethers, Wallet } from 'ethers';
+import { ethers as hardhat } from 'hardhat';
+import {
+  ERC20,
+  NativeHolderSmartWallet,
+  NativeHolderSmartWallet__factory,
+} from '../../typechain-types';
+
+chai.use(smock.matchers);
+chai.use(chaiAsPromised);
+
+describe.only('SmartWallet contract', function () {
+  describe('Function directExecuteWithValue() mocked', function () {
+    let mockSmartWallet: MockContract<NativeHolderSmartWallet>;
+    let provider: BaseProvider;
+    let owner: Wallet;
+    let fakeToken: FakeContract<ERC20>;
+    let fundedAccount: SignerWithAddress;
+
+    beforeEach(async function () {
+      [, fundedAccount] = (await hardhat.getSigners()) as [
+        SignerWithAddress,
+        SignerWithAddress,
+        SignerWithAddress
+      ];
+
+      const mockSmartWalletFactory =
+        await smock.mock<NativeHolderSmartWallet__factory>(
+          'NativeHolderSmartWallet'
+        );
+
+      provider = hardhat.provider;
+      owner = hardhat.Wallet.createRandom().connect(provider);
+
+      //Fund the owner
+      await fundedAccount.sendTransaction({
+        to: owner.address,
+        value: hardhat.utils.parseEther('1'),
+      });
+      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+
+      fakeToken = await smock.fake('ERC20');
+      fakeToken.transfer.returns(true);
+    });
+
+    it('Should transfer native currency without executing a transaction', async function () {
+      const recipient = Wallet.createRandom();
+      await fundedAccount.sendTransaction({
+        to: mockSmartWallet.address,
+        value: hardhat.utils.parseEther('5'),
+      });
+
+      const recipientBalancePriorExecution = await provider.getBalance(
+        recipient.address
+      );
+      const swBalancePriorExecution = await provider.getBalance(
+        mockSmartWallet.address
+      );
+
+      const value = ethers.utils.parseEther('2');
+
+      await expect(
+        mockSmartWallet.directExecuteWithValue(
+          recipient.address,
+          value,
+          '0x00'
+        ),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      const recipientBalanceAfterExecution = await provider.getBalance(
+        recipient.address
+      );
+      const swBalanceAfterExecution = await provider.getBalance(
+        mockSmartWallet.address
+      );
+
+      const valueBN = BigNumber.from(value);
+
+      const expectedRecipientBalance = BigNumber.from(
+        recipientBalancePriorExecution
+      ).add(valueBN);
+      const expectedSwBalance = BigNumber.from(swBalancePriorExecution).sub(
+        valueBN
+      );
+
+      expect(expectedRecipientBalance.toString()).to.be.equal(
+        recipientBalanceAfterExecution.toString()
+      );
+      expect(expectedSwBalance.toString()).to.be.equal(
+        swBalanceAfterExecution.toString()
+      );
+    });
+  });
+});
+
 /* import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { BN } from 'ethereumjs-util';

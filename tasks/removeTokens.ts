@@ -39,7 +39,12 @@ export const removeTokens = async (
     contractAddressesDeployed.CustomSmartWalletDeployVerifier;
   const customRelayVerifierAddress =
     contractAddressesDeployed.CustomSmartWalletRelayVerifier;
+  const nativeDeployVerifierAddress =
+    contractAddressesDeployed.NativeHolderSmartWalletDeployVerifier;
+  const nativeRelayVerifierAddress =
+    contractAddressesDeployed.NativeHolderSmartWalletDeployVerifier;
 
+  // TODO: This need to be refactored
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');
   }
@@ -54,6 +59,18 @@ export const removeTokens = async (
 
   if (!customRelayVerifierAddress) {
     throw new Error('Could not obtain custom deploy verifier address');
+  }
+
+  if (!nativeDeployVerifierAddress) {
+    throw new Error(
+      'Could not obtain deploy verifier address for the NativeHolderSmartWallet'
+    );
+  }
+
+  if (!nativeRelayVerifierAddress) {
+    throw new Error(
+      'Could not obtain relay verifier address for the NativeHolderSmartWallet'
+    );
   }
 
   const deployVerifier = await ethers.getContractAt(
@@ -73,6 +90,15 @@ export const removeTokens = async (
     customRelayVerifierAddress
   );
 
+  const nativeHolderDeployVerifier = await ethers.getContractAt(
+    'DeployVerifier',
+    nativeDeployVerifierAddress
+  );
+  const nativeHolderRelayVerifier = await ethers.getContractAt(
+    'RelayVerifier',
+    nativeRelayVerifierAddress
+  );
+
   const verifierMap: Map<
     string,
     {
@@ -88,6 +114,8 @@ export const removeTokens = async (
   verifierMap.set('relayVerifier', relayVerifier);
   verifierMap.set('customDeployVerifier', customDeployVerifier);
   verifierMap.set('customRelayVerifier', customRelayVerifier);
+  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
+  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
 
   for (const tokenAddress of tokenAddresses) {
     for (const [key, verifier] of verifierMap) {

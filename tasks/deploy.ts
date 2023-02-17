@@ -71,6 +71,9 @@ export const deployContracts = async (
   const customSmartWalletDeployVerifierF = await ethers.getContractFactory(
     'CustomSmartWalletDeployVerifier'
   );
+  const nativeHolderSmartWalletF = await ethers.getContractFactory(
+    'NativeHolderSmartWallet'
+  );
 
   const versionRegistryFactory = await ethers.getContractFactory(
     'VersionRegistry'
@@ -103,7 +106,18 @@ export const deployContracts = async (
       customSmartWalletFactoryAddress
     );
   const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
-    smartWalletFactoryAddress
+    customSmartWalletFactoryAddress
+  );
+
+  const { address: nativeHolderSmartWalletAddress } =
+    await nativeHolderSmartWalletF.deploy();
+  const { address: nativeHolderSmartWalletFactoryAddress } =
+    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
+  const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
+    nativeHolderSmartWalletFactoryAddress
+  );
+  const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
+    nativeHolderSmartWalletFactoryAddress
   );
 
   const { address: versionRegistryAddress } =
@@ -126,6 +140,10 @@ export const deployContracts = async (
     CustomSmartWalletFactory: customSmartWalletFactoryAddress,
     CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
     CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
+    NativeHolderSmartWallet: nativeHolderSmartWalletAddress,
+    NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
+    NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
+    NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };
