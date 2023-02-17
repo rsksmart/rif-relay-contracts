@@ -120,6 +120,7 @@ contract Collector is ICollector {
     }
 
     function withdrawToken(IERC20 token) public onlyOwner {
+        require(tokenMap[token], "Token is not accepted");
         uint256 balance = token.balanceOf(address(this));
         require(balance >= _partners.length, "Not enough balance to split");
 

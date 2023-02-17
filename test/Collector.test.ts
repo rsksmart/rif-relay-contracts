@@ -71,6 +71,21 @@ const prepareDefaultDeployer =
       remainderDestinationAddr
     );
 
+function checkPartnerBalanceForToken(
+  partners: Partner[],
+  tokenToWithdraw: FakeContract<ERC20>
+) {
+  for (let partnerIndex = 0; partnerIndex < partners.length; partnerIndex++) {
+    expect(
+      tokenToWithdraw.transfer,
+      `Partner[${partnerIndex}] balance for token[${tokenToWithdraw.address}]`
+    ).to.have.been.calledWith(
+      partners[partnerIndex].beneficiary,
+      PARTNER_SHARES[partnerIndex]
+    );
+  }
+}
+
 describe('Collector', function () {
   let owner: SignerWithAddress;
   let collectorFactory: MockContractFactory<Collector__factory>;
@@ -542,19 +557,7 @@ describe('Collector', function () {
       await collector.withdraw();
 
       for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
-        for (
-          let partnerIndex = 0;
-          partnerIndex < partners.length;
-          partnerIndex++
-        ) {
-          expect(
-            fakeERC20Tokens[tokenIndex].transfer,
-            `Partner[${partnerIndex}] balance for token[${tokenIndex}]`
-          ).to.have.been.calledWith(
-            partners[partnerIndex].beneficiary,
-            PARTNER_SHARES[partnerIndex]
-          );
-        }
+        checkPartnerBalanceForToken(partners, fakeERC20Tokens[tokenIndex]);
       }
     });
 
@@ -604,6 +607,93 @@ describe('Collector', function () {
       await expect(collector.withdraw()).to.be.revertedWith(
         'Unable to withdraw'
       );
+    });
+  });
+
+  describe('withdrawToken', function () {
+    let deployCollector: CollectorDeployFunction;
+
+    beforeEach(function () {
+      deployCollector = prepareDefaultDeployer(
+        collectorFactory,
+        owner.address,
+        fakeERC20Tokens.map(({ address }) => address),
+        partners,
+        remainderDestination.address
+      );
+    });
+
+    it('Should withdraw for each partner', async function () {
+      const tokens = fakeERC20Tokens.map((token) => {
+        token.balanceOf.returns(100);
+
+        return token.address;
+      });
+
+      const tokenToWithdraw = fakeERC20Tokens[0];
+      const collector = await deployCollector({ tokens });
+      await collector.withdrawToken(tokenToWithdraw.address);
+
+      checkPartnerBalanceForToken(partners, tokenToWithdraw);
+    });
+
+    it('Should not fail if the revenue to share is equal to the number of partners', async function () {
+      const expectedTransferCount = partners.length;
+      const token = fakeERC20Tokens[0];
+      token.balanceOf.returns(expectedTransferCount);
+      const collector = await deployCollector({ tokens: [token.address] });
+
+      await collector.withdrawToken(token.address);
+
+      expect(token.transfer).to.have.callCount(expectedTransferCount);
+    });
+
+    it('Should fail when not enough revenue to share', async function () {
+      const tokens = fakeERC20Tokens.map((token) => {
+        return token.address;
+      });
+      const token = fakeERC20Tokens[0];
+      token.balanceOf.returns(partners.length - 1);
+      const collector = await deployCollector({ tokens });
+
+      await expect(collector.withdrawToken(token.address)).to.be.revertedWith(
+        'Not enough balance to split'
+      );
+    });
+
+    it("should raise an error if the token isn't accepted", async function () {
+      const token = fakeERC20Tokens[0];
+      const notAllowedToken = fakeERC20Tokens[1];
+      [token, notAllowedToken].map((token) => token.balanceOf.returns(100));
+      const collector = await deployCollector({ tokens: [token.address] });
+
+      await expect(
+        collector.withdrawToken(notAllowedToken.address)
+      ).to.be.revertedWith('Token is not accepted');
+    });
+
+    it('Should fail if the transfer returns false', async function () {
+      const token = fakeERC20Tokens[0];
+      token.balanceOf.returns(100);
+      token.transfer.returns(false);
+      const collector = await deployCollector({ tokens: [token.address] });
+
+      await expect(collector.withdrawToken(token.address)).to.be.revertedWith(
+        'Unable to withdraw'
+      );
+    });
+
+    it('Should fail if called by non-owner', async function () {
+      const collector = await deployCollector({});
+      const token = fakeERC20Tokens[0];
+
+      const notTheOwner = (await ethers.getSigners()).at(
+        11
+      ) as SignerWithAddress;
+
+      await expect(
+        collector.connect(notTheOwner).withdrawToken(token.address)
+      ).to.be.revertedWith('Only owner can call this');
     });
   });
 
