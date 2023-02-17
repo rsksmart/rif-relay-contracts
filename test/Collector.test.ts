@@ -118,6 +118,29 @@ describe('Collector', function () {
   });
 
   describe('constructor()', function () {
+    it('Should deploy a Collector without tokens', async function () {
+      partners = await buildPartners(
+        [partner1, partner2, partner3, partner4],
+        PARTNER_SHARES
+      );
+      const expectedOwnerAddress = owner.address;
+
+      const collector: MockContract<Collector> = await collectorFactory.deploy(
+        expectedOwnerAddress,
+        [],
+        partners,
+        remainderDestination.address
+      );
+
+      const actualOwnerAddress = await collector.owner();
+      const actualTokens = await collector.getTokens();
+
+      expect(actualOwnerAddress, 'Failed to set the owner').to.equal(
+        expectedOwnerAddress
+      );
+      expect(actualTokens, 'Failed to set tokens').to.deep.equal([]);
+    });
+
     it('Should deploy a Collector with single token', async function () {
       partners = await buildPartners(
         [partner1, partner2, partner3, partner4],
@@ -139,9 +162,9 @@ describe('Collector', function () {
       expect(actualOwnerAddress, 'Failed to set the owner').to.equal(
         expectedOwnerAddress
       );
-      expect(actualTokens.toString(), 'Failed to set tokens').to.equal(
-        expectedTokens.toString()
-      );
+      expect(actualTokens, 'Failed to set tokens').to.deep.equal([
+        expectedTokens,
+      ]);
     });
 
     it('Should deploy a Collector with multiple tokens', async function () {
@@ -164,8 +187,8 @@ describe('Collector', function () {
       expect(actualOwnerAddress, 'Failed to set the owner').to.equal(
         expectedOwnerAddress
       );
-      expect(actualTokens.toString(), 'Failed to set tokens').to.equal(
-        expectedTokens.toString()
+      expect(actualTokens, 'Failed to set tokens').to.deep.equal(
+        expectedTokens
       );
     });
 
