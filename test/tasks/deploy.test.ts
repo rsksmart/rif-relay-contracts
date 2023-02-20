@@ -37,6 +37,10 @@ describe('Deploy Script', function () {
         'CustomSmartWalletFactory',
         'CustomSmartWalletDeployVerifier',
         'CustomSmartWalletRelayVerifier',
+        'NativeHolderSmartWallet',
+        'NativeHolderSmartWalletFactory',
+        'NativeHolderSmartWalletDeployVerifier',
+        'NativeHolderSmartWalletRelayVerifier',
         'VersionRegistry',
         'UtilToken'
       );

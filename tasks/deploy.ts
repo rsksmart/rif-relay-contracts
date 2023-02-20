@@ -1,21 +1,11 @@
 import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
-import { parseJsonFile } from './utils';
+import { getExistingConfig } from './utils';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
-
-export const getExistingConfig = () => {
-  try {
-    return parseJsonFile<AddressesConfig>(ADDRESS_FILE);
-  } catch (error) {
-    console.warn(error);
-  }
-
-  return undefined;
-};
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
@@ -43,7 +33,7 @@ export const updateConfig = (
   }
 
   return {
-    ...getExistingConfig(),
+    ...getExistingConfig(ADDRESS_FILE),
     [`${network}.${chainId}`]: contractAddresses,
   };
 };
