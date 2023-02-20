@@ -18,7 +18,7 @@ describe('Allow Tokens Script', function () {
 
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
-        stubReadFileSync()
+      stubReadFileSync();
       hre.network.config.chainId = 33;
     });
 

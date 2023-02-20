@@ -6,18 +6,29 @@ import chaiAsPromised from 'chai-as-promised';
 import { Wallet } from 'ethers';
 import { ethers as hardhat } from 'hardhat';
 import {
-  ERC20, SmartWallet,
-  SmartWalletFactory, SmartWallet__factory
+  ERC20,
+  SmartWallet,
+  SmartWalletFactory,
+  SmartWallet__factory,
 } from 'typechain-types';
 import {
   EnvelopingTypes,
-  IForwarder
+  IForwarder,
 } from 'typechain-types/contracts/RelayHub';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import {
-  getLocalEip712DeploySignature, getLocalEip712Signature, TypedDeployRequestData, TypedRequestData
+  getLocalEip712DeploySignature,
+  getLocalEip712Signature,
+  TypedDeployRequestData,
+  TypedRequestData,
 } from '../utils/EIP712Utils';
-import { buildDomainSeparator, createRequest, getSuffixData, HARDHAT_CHAIN_ID } from './utils';
+import {
+  buildDomainSeparator,
+  createRequest,
+  getSuffixData,
+  HARDHAT_CHAIN_ID,
+  RelayData,
+} from './utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -72,7 +83,6 @@ describe('SmartWallet contract', function () {
       },
     };
   }
-
 
   async function createSmartWalletFactory(owner: Wallet) {
     const smartWalletTemplateFactory = await hardhat.getContractFactory(

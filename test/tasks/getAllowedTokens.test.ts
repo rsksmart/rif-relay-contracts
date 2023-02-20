@@ -12,10 +12,9 @@ use(chaiAsPromised);
 
 describe('Get Allowed Tokens Script', function () {
   describe('getAllowedTokens', function () {
-
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
-      stubReadFileSync()
+      stubReadFileSync();
       hre.network.config.chainId = 33;
     });
 

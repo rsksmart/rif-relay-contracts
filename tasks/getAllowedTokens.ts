@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { getVerifiers } from './utils';
 
 export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
-
   const {
     deployVerifier,
     relayVerifier,

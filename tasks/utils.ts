@@ -2,7 +2,6 @@ import fs from 'fs';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { AddressesConfig } from './deploy';
 
-
 // TODO: we may convert this function to return a promise
 export const parseJsonFile = <T>(filePath: string) => {
   if (fs.existsSync(filePath)) {
@@ -13,9 +12,11 @@ export const parseJsonFile = <T>(filePath: string) => {
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
-export const getExistingConfig = (addressFile?: string): AddressesConfig | undefined => {
+export const getExistingConfig = (
+  addressFile?: string
+): AddressesConfig | undefined => {
   try {
-    return parseJsonFile<AddressesConfig>(addressFile||ADDRESS_FILE);
+    return parseJsonFile<AddressesConfig>(addressFile || ADDRESS_FILE);
   } catch (error) {
     console.warn(error);
   }

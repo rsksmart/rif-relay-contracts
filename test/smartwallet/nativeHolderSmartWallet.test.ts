@@ -188,7 +188,7 @@ describe('NativeHolderSmartWallet contract', function () {
           tokenGas: '40000',
           tokenContract: fakeToken.address,
           data,
-          value
+          value,
         },
         {
           callForwarder: smartWallet.address,
@@ -311,12 +311,16 @@ describe('NativeHolderSmartWallet contract', function () {
         smartWallet.address
       );
 
-      await expectBalanceToBeRight(execution, recipientContract.address, recipientBalancePriorExecution, swBalancePriorExecution);
+      await expectBalanceToBeRight(
+        execution,
+        recipientContract.address,
+        recipientBalancePriorExecution,
+        swBalancePriorExecution
+      );
     });
   });
 
   describe('Function directExecuteWithValue()', function () {
-
     it('Should transfer native currency without executing transactions', async function () {
       const execution = async () => {
         await expect(
@@ -374,7 +378,7 @@ describe('NativeHolderSmartWallet contract', function () {
           encodedFunctionData
         );
         expect(tx.success, 'Success is true').to.be.false;
-  
+
         await expect(
           smartWallet.directExecuteWithValue(
             recipientContract.address,
@@ -383,9 +387,14 @@ describe('NativeHolderSmartWallet contract', function () {
           ),
           'Execution failed'
         ).not.to.be.rejected;
-      }
+      };
 
-      await expectBalanceToBeRight(execution, recipientContract.address, recipientBalancePriorExecution, swBalancePriorExecution)
+      await expectBalanceToBeRight(
+        execution,
+        recipientContract.address,
+        recipientBalancePriorExecution,
+        swBalancePriorExecution
+      );
     });
   });
 });
