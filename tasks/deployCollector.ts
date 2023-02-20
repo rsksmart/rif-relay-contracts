@@ -79,17 +79,20 @@ export const deployCollector = async (
   },
   {});
 
-  const collectorTokens = await collector.getTokens();
-  const tokensToPrint = {};
-  collectorTokens.forEach((tokenAddress, i) => {
-    Object.assign(tokensToPrint, { [`Collector Token ${i}`]: tokenAddress });
-  });
+  const tokenPrintings = (await collector.getTokens()).reduce<
+    Record<string, string>
+  >((accumulator, token, i) => {
+    return {
+      ...accumulator,
+      [`Collector Token ${i}`]: token,
+    };
+  }, {});
 
   const objToPrint = {
     'Collector Contract': collector.address,
     'Collector Owner': await collector.owner(),
     'Collector Remainder': remainderAddress,
-    ...tokensToPrint,
+    ...tokenPrintings,
     ...partnerPrintings,
   };
   console.table(objToPrint);
