@@ -320,11 +320,11 @@ describe('NativeHolderSmartWallet contract', function () {
     });
   });
 
-  describe('Function directExecuteWithValue()', function () {
+  describe('Function directExecute(address to,uint256 value,bytes calldata data)', function () {
     it('Should transfer native currency without executing transactions', async function () {
       const execution = async () => {
         await expect(
-          smartWallet.directExecuteWithValue(
+          smartWallet['directExecute(address,uint256,bytes)'](
             recipientContract.address,
             TWO_ETHERS,
             '0x00'
@@ -343,7 +343,7 @@ describe('NativeHolderSmartWallet contract', function () {
       const value = ethers.utils.parseEther('2');
       const execution = async () => {
         await expect(
-          smartWallet.directExecuteWithValue(
+          smartWallet['directExecute(address,uint256,bytes)'](
             recipientContract.address,
             value,
             encodedFunctionData
@@ -372,15 +372,13 @@ describe('NativeHolderSmartWallet contract', function () {
 
       const execution = async () => {
         // Use the static call to check the returned values
-        const tx = await smartWallet.callStatic.directExecuteWithValue(
-          recipientContract.address,
-          valueToTransfer,
-          encodedFunctionData
-        );
+        const tx = await smartWallet.callStatic[
+          'directExecute(address,uint256,bytes)'
+        ](recipientContract.address, valueToTransfer, encodedFunctionData);
         expect(tx.success, 'Success is true').to.be.false;
 
         await expect(
-          smartWallet.directExecuteWithValue(
+          smartWallet['directExecute(address,uint256,bytes)'](
             recipientContract.address,
             valueToTransfer,
             encodedFunctionData

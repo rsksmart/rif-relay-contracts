@@ -8,7 +8,7 @@ import "./SmartWallet.sol";
 /* solhint-disable avoid-low-level-calls */
 
 contract NativeHolderSmartWallet is SmartWallet {
-    function directExecuteWithValue(
+    function directExecute(
         address to,
         uint256 value,
         bytes calldata data
