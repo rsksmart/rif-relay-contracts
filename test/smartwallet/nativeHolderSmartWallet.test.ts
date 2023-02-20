@@ -3,500 +3,389 @@ import { BaseProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { BigNumber, ethers, Wallet } from 'ethers';
+import {
+  BaseContract,
+  BigNumber,
+  ContractTransaction,
+  ethers,
+  PayableOverrides,
+  Wallet,
+} from 'ethers';
 import { ethers as hardhat } from 'hardhat';
 import {
   ERC20,
   NativeHolderSmartWallet,
   NativeHolderSmartWallet__factory,
 } from '../../typechain-types';
+import { PromiseOrValue } from '../../typechain-types/common';
+import {
+  getLocalEip712Signature,
+  TypedRequestData,
+} from '../utils/EIP712Utils';
+import {
+  buildDomainSeparator,
+  createRequest,
+  getSuffixData,
+  HARDHAT_CHAIN_ID,
+} from './utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-describe.only('SmartWallet contract', function () {
-  describe('Function directExecuteWithValue() mocked', function () {
-    let mockSmartWallet: MockContract<NativeHolderSmartWallet>;
-    let provider: BaseProvider;
-    let owner: Wallet;
-    let fakeToken: FakeContract<ERC20>;
-    let fundedAccount: SignerWithAddress;
+const recipientABI = [
+  {
+    inputs: [
+      {
+        internalType: 'string',
+        name: 'message',
+        type: 'string',
+      },
+    ],
+    name: 'emitMessage',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
+      },
+    ],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+];
+interface TestRecipient extends BaseContract {
+  functions: {
+    emitMessage(
+      message: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+}
 
-    beforeEach(async function () {
-      [, fundedAccount] = (await hardhat.getSigners()) as [
-        SignerWithAddress,
-        SignerWithAddress,
-        SignerWithAddress
-      ];
+const INITIAL_SW_BALANCE = hardhat.utils.parseEther('5');
+const TWO_ETHERS = ethers.utils.parseEther('2');
 
-      const mockSmartWalletFactory =
-        await smock.mock<NativeHolderSmartWallet__factory>(
-          'NativeHolderSmartWallet'
-        );
+describe('NativeHolderSmartWallet contract', function () {
+  let smartWallet: MockContract<NativeHolderSmartWallet>;
+  let provider: BaseProvider;
+  let owner: Wallet;
+  let fakeToken: FakeContract<ERC20>;
+  let fundedAccount: SignerWithAddress;
+  let relayHub: SignerWithAddress;
+  let worker: SignerWithAddress;
+  let privateKey: Buffer;
+  let recipientContract: FakeContract<TestRecipient>;
+  let encodedFunctionData: string;
 
-      provider = hardhat.provider;
-      owner = hardhat.Wallet.createRandom().connect(provider);
+  beforeEach(async function () {
+    [relayHub, fundedAccount, worker] = (await hardhat.getSigners()) as [
+      SignerWithAddress,
+      SignerWithAddress,
+      SignerWithAddress
+    ];
 
-      //Fund the owner
-      await fundedAccount.sendTransaction({
-        to: owner.address,
-        value: hardhat.utils.parseEther('1'),
+    const mockSmartWalletFactory =
+      await smock.mock<NativeHolderSmartWallet__factory>(
+        'NativeHolderSmartWallet'
+      );
+
+    provider = hardhat.provider;
+    owner = hardhat.Wallet.createRandom().connect(provider);
+
+    //Fund the owner
+    await fundedAccount.sendTransaction({
+      to: owner.address,
+      value: hardhat.utils.parseEther('1'),
+    });
+    smartWallet = await mockSmartWalletFactory.connect(owner).deploy();
+    const domainSeparator = buildDomainSeparator(smartWallet.address);
+    await smartWallet.setVariable('domainSeparator', domainSeparator);
+
+    fakeToken = await smock.fake('ERC20');
+    fakeToken.transfer.returns(true);
+
+    privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+
+    recipientContract = await smock.fake<TestRecipient>(recipientABI);
+    encodedFunctionData = recipientContract.interface.encodeFunctionData(
+      'emitMessage',
+      ['hello']
+    );
+
+    await fundedAccount.sendTransaction({
+      to: smartWallet.address,
+      value: INITIAL_SW_BALANCE,
+    });
+  });
+
+  async function expectBalanceToBeRight(
+    execution: () => Promise<void>,
+    recipientAddress: string,
+    expectedRecipientBalance: BigNumber,
+    expectedSwBalance: BigNumber
+  ) {
+    await execution();
+
+    const recipientBalanceAfterExecution = await provider.getBalance(
+      recipientAddress
+    );
+    const swBalanceAfterExecution = await provider.getBalance(
+      smartWallet.address
+    );
+
+    expect(expectedRecipientBalance.toString()).to.be.equal(
+      recipientBalanceAfterExecution.toString()
+    );
+    expect(expectedSwBalance.toString()).to.be.equal(
+      swBalanceAfterExecution.toString()
+    );
+  }
+
+  async function expectBalanceAfterSuccessExecution(
+    recipientAddress: string,
+    value: BigNumber,
+    execution: () => Promise<void>
+  ) {
+    const recipientBalancePriorExecution = await provider.getBalance(
+      recipientAddress
+    );
+    const swBalancePriorExecution = await provider.getBalance(
+      smartWallet.address
+    );
+
+    const valueBN = BigNumber.from(value);
+
+    const expectedRecipientBalance = BigNumber.from(
+      recipientBalancePriorExecution
+    ).add(valueBN);
+    const expectedSwBalance = BigNumber.from(swBalancePriorExecution).sub(
+      valueBN
+    );
+    await expectBalanceToBeRight(
+      execution,
+      recipientAddress,
+      expectedRecipientBalance,
+      expectedSwBalance
+    );
+  }
+
+  describe('execute', function () {
+    type PrepareRequestParams = {
+      data: string;
+      value?: string;
+    };
+
+    function prepareRequest({
+      data = '0x',
+      value = TWO_ETHERS.toString(),
+    }: PrepareRequestParams) {
+      const relayRequest = createRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipientContract.address,
+          tokenAmount: '10',
+          tokenGas: '40000',
+          tokenContract: fakeToken.address,
+          data,
+          value
+        },
+        {
+          callForwarder: smartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWallet.address,
+        relayRequest
+      );
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+      const suffixData = getSuffixData(typedRequestData);
+
+      return {
+        relayRequest,
+        suffixData,
+        signature,
+      };
+    }
+
+    it('Should transfer native currency without executing transactions', async function () {
+      const { relayRequest, suffixData, signature } = prepareRequest({
+        data: '0x',
+        value: TWO_ETHERS.toString(),
       });
-      mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
 
-      fakeToken = await smock.fake('ERC20');
-      fakeToken.transfer.returns(true);
+      const execution = async () => {
+        await expect(
+          smartWallet
+            .connect(relayHub)
+            .execute(
+              suffixData,
+              relayRequest.request,
+              worker.address,
+              signature
+            )
+        ).not.to.be.rejected;
+
+        expect(fakeToken.transfer, 'Token.transfer() was not called').to.be
+          .called;
+      };
+
+      await expectBalanceAfterSuccessExecution(
+        recipientContract.address,
+        TWO_ETHERS,
+        execution
+      );
     });
 
-    it('Should transfer native currency without executing a transaction', async function () {
-      const recipient = Wallet.createRandom();
-      await fundedAccount.sendTransaction({
-        to: mockSmartWallet.address,
-        value: hardhat.utils.parseEther('5'),
+    it('Should transfer native currency and execute transaction', async function () {
+      const { relayRequest, suffixData, signature } = prepareRequest({
+        data: encodedFunctionData,
       });
 
+      const execution = async () => {
+        await expect(
+          smartWallet
+            .connect(relayHub)
+            .execute(
+              suffixData,
+              relayRequest.request,
+              worker.address,
+              signature
+            )
+        ).not.to.be.rejected;
+
+        expect(fakeToken.transfer, 'Token.transfer() was not called').to.be
+          .called;
+        expect(recipientContract.emitMessage, 'Recipient method was not called')
+          .to.be.called;
+      };
+
+      await expectBalanceAfterSuccessExecution(
+        recipientContract.address,
+        TWO_ETHERS,
+        execution
+      );
+    });
+
+    it('Should fail if the smart wallet cannot pay native currency', async function () {
+      // we try to transfer a value higher than the SW balance
+      const valueToTransfer = INITIAL_SW_BALANCE.add(
+        ethers.utils.parseEther('1')
+      ).toString();
+      const { relayRequest, suffixData, signature } = prepareRequest({
+        data: encodedFunctionData,
+        value: valueToTransfer.toString(),
+      });
+
+      const execution = async function () {
+        // Use the static call to check the returned values
+        const tx = await smartWallet
+          .connect(relayHub)
+          .callStatic.execute(
+            suffixData,
+            relayRequest.request,
+            worker.address,
+            signature
+          );
+        expect(tx.success, 'Success is true').to.be.false;
+
+        await expect(
+          smartWallet
+            .connect(relayHub)
+            .execute(
+              suffixData,
+              relayRequest.request,
+              worker.address,
+              signature
+            ),
+          'Execute transaction rejected'
+        ).not.to.be.rejected;
+      };
+
       const recipientBalancePriorExecution = await provider.getBalance(
-        recipient.address
+        recipientContract.address
       );
       const swBalancePriorExecution = await provider.getBalance(
-        mockSmartWallet.address
+        smartWallet.address
       );
 
+      await expectBalanceToBeRight(execution, recipientContract.address, recipientBalancePriorExecution, swBalancePriorExecution);
+    });
+  });
+
+  describe('Function directExecuteWithValue()', function () {
+
+    it('Should transfer native currency without executing transactions', async function () {
+      const execution = async () => {
+        await expect(
+          smartWallet.directExecuteWithValue(
+            recipientContract.address,
+            TWO_ETHERS,
+            '0x00'
+          ),
+          'Execution failed'
+        ).not.to.be.rejected;
+      };
+      await expectBalanceAfterSuccessExecution(
+        recipientContract.address,
+        TWO_ETHERS,
+        execution
+      );
+    });
+
+    it('Should transfer native currency and execute transactions', async function () {
       const value = ethers.utils.parseEther('2');
-
-      await expect(
-        mockSmartWallet.directExecuteWithValue(
-          recipient.address,
-          value,
-          '0x00'
-        ),
-        'Execution failed'
-      ).not.to.be.rejected;
-
-      const recipientBalanceAfterExecution = await provider.getBalance(
-        recipient.address
+      const execution = async () => {
+        await expect(
+          smartWallet.directExecuteWithValue(
+            recipientContract.address,
+            value,
+            encodedFunctionData
+          ),
+          'Execution failed'
+        ).not.to.be.rejected;
+      };
+      await expectBalanceAfterSuccessExecution(
+        recipientContract.address,
+        value,
+        execution
       );
-      const swBalanceAfterExecution = await provider.getBalance(
-        mockSmartWallet.address
+    });
+
+    it('Should fail if the smart wallet cannot pay native currency', async function () {
+      const recipientBalancePriorExecution = await provider.getBalance(
+        recipientContract.address
+      );
+      const swBalancePriorExecution = await provider.getBalance(
+        smartWallet.address
       );
 
-      const valueBN = BigNumber.from(value);
-
-      const expectedRecipientBalance = BigNumber.from(
-        recipientBalancePriorExecution
-      ).add(valueBN);
-      const expectedSwBalance = BigNumber.from(swBalancePriorExecution).sub(
-        valueBN
+      const valueToTransfer = INITIAL_SW_BALANCE.add(
+        ethers.utils.parseEther('1')
       );
 
-      expect(expectedRecipientBalance.toString()).to.be.equal(
-        recipientBalanceAfterExecution.toString()
-      );
-      expect(expectedSwBalance.toString()).to.be.equal(
-        swBalanceAfterExecution.toString()
-      );
+      const execution = async () => {
+        // Use the static call to check the returned values
+        const tx = await smartWallet.callStatic.directExecuteWithValue(
+          recipientContract.address,
+          valueToTransfer,
+          encodedFunctionData
+        );
+        expect(tx.success, 'Success is true').to.be.false;
+  
+        await expect(
+          smartWallet.directExecuteWithValue(
+            recipientContract.address,
+            valueToTransfer,
+            encodedFunctionData
+          ),
+          'Execution failed'
+        ).not.to.be.rejected;
+      }
+
+      await expectBalanceToBeRight(execution, recipientContract.address, recipientBalancePriorExecution, swBalancePriorExecution)
     });
   });
 });
-
-/* import { use, expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { BN } from 'ethereumjs-util';
-import { toWei } from 'web3-utils';
-import {
-    NativeHolderSmartWalletInstance,
-    SmartWalletFactoryInstance,
-    TestRecipientInstance
-} from '../../types/truffle-contracts';
-import {
-    createRequest,
-    createSmartWallet,
-    createSmartWalletFactory,
-    getGaslessAccount,
-    getTestingEnvironment,
-    signRequest
-} from '../utils';
-
-use(chaiAsPromised);
-
-const NativeSmartWallet = artifacts.require('NativeHolderSmartWallet');
-const TestRecipient = artifacts.require('TestRecipient');
-
-contract('NativeHolderSmartWallet', ([worker, sender, fundedAccount]) => {
-    const senderPrivateKey: Buffer = Buffer.from(
-        '0c06818f82e04c564290b32ab86b25676731fc34e9a546108bf109194c8e3aae',
-        'hex'
-    );
-    describe('execute', () => {
-        let nativeSw: NativeHolderSmartWalletInstance;
-        let factory: SmartWalletFactoryInstance;
-        let chainId: number;
-        let recipientContract: TestRecipientInstance;
-
-        beforeEach(async () => {
-            chainId = (await getTestingEnvironment()).chainId;
-            const nativeSwTemplate = await NativeSmartWallet.new();
-            factory = await createSmartWalletFactory(nativeSwTemplate);
-            nativeSw = await createSmartWallet<NativeHolderSmartWalletInstance>(
-                {
-                    relayHub: worker,
-                    ownerEOA: sender,
-                    factory,
-                    privKey: senderPrivateKey,
-                    chainId,
-                    smartWalletContractName: 'NativeHolderSmartWallet'
-                }
-            );
-            recipientContract = await TestRecipient.new();
-        });
-
-        it('Should transfer native currency without executing a transaction', async () => {
-            const initialNonce = await nativeSw.nonce();
-
-            await web3.eth.sendTransaction({
-                from: fundedAccount,
-                to: nativeSw.address,
-                value: toWei('5', 'ether')
-            });
-
-            const recipient = await getGaslessAccount();
-
-            const recipientBalancePriorExecution = await web3.eth.getBalance(
-                recipient.address
-            );
-            const swBalancePriorExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const value = toWei('2', 'ether');
-
-            const relayRequest = createRequest(
-                {
-                    data: '0x00',
-                    to: recipient.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    from: sender,
-                    value
-                },
-                {
-                    callForwarder: nativeSw.address
-                }
-            );
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await nativeSw.execute(
-                suffixData,
-                relayRequest.request,
-                worker,
-                signature,
-                { from: worker }
-            );
-
-            const recipientBalanceAfterExecution = await web3.eth.getBalance(
-                recipient.address
-            );
-            const swBalanceAfterExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const valueBN = new BN(value);
-
-            const expectedRecipientBalance = new BN(
-                recipientBalancePriorExecution
-            ).add(valueBN);
-            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
-                valueBN
-            );
-
-            expect(expectedRecipientBalance.toString()).to.be.equal(
-                recipientBalanceAfterExecution.toString()
-            );
-            expect(expectedSwBalance.toString()).to.be.equal(
-                swBalanceAfterExecution.toString()
-            );
-        });
-
-        it('Should transfer native currency and execute transaction', async () => {
-            const initialNonce = await nativeSw.nonce();
-
-            await web3.eth.sendTransaction({
-                from: fundedAccount,
-                to: nativeSw.address,
-                value: toWei('5', 'ether')
-            });
-
-            const recipientBalancePriorExecution = await web3.eth.getBalance(
-                recipientContract.address
-            );
-            const swBalancePriorExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const value = toWei('2', 'ether');
-
-            const encodedData = recipientContract.contract.methods
-                .emitMessage('hello')
-                .encodeABI();
-
-            const relayRequest = createRequest(
-                {
-                    data: encodedData,
-                    to: recipientContract.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    from: sender,
-                    value
-                },
-                {
-                    callForwarder: nativeSw.address
-                }
-            );
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await nativeSw.execute(
-                suffixData,
-                relayRequest.request,
-                worker,
-                signature,
-                { from: worker }
-            );
-
-            // @ts-ignore
-            const logs = await recipientContract.getPastEvents(
-                'SampleRecipientEmitted'
-            );
-            expect(logs.length).to.be.equal(1, 'TestRecipient should emit');
-
-            const recipientBalanceAfterExecution = await web3.eth.getBalance(
-                recipientContract.address
-            );
-            const swBalanceAfterExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const valueBN = new BN(value);
-
-            const expectedRecipientBalance = new BN(
-                recipientBalancePriorExecution
-            ).add(valueBN);
-            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
-                valueBN
-            );
-
-            expect(expectedRecipientBalance.toString()).to.be.equal(
-                recipientBalanceAfterExecution.toString()
-            );
-            expect(expectedSwBalance.toString()).to.be.equal(
-                swBalanceAfterExecution.toString()
-            );
-        });
-
-        it('Should fail if smart wallet cannot pay native currency', async () => {
-            const initialNonce = await nativeSw.nonce();
-
-            const value = toWei('2', 'ether');
-
-            const encodedData = recipientContract.contract.methods
-                .emitMessage('hello')
-                .encodeABI();
-
-            const relayRequest = createRequest(
-                {
-                    data: encodedData,
-                    to: recipientContract.address,
-                    nonce: initialNonce.toString(),
-                    relayHub: worker,
-                    from: sender,
-                    value
-                },
-                {
-                    callForwarder: nativeSw.address
-                }
-            );
-
-            const { signature, suffixData } = signRequest(
-                senderPrivateKey,
-                relayRequest,
-                chainId
-            );
-
-            await nativeSw.execute(
-                suffixData,
-                relayRequest.request,
-                worker,
-                signature,
-                { from: worker }
-            );
-
-            // @ts-ignore
-            const logs = await recipientContract.getPastEvents(
-                'SampleRecipientEmitted'
-            );
-            expect(logs.length).to.be.equal(0, 'TestRecipient should not emit');
-        });
-    });
-
-    describe('directExecuteWithValue', () => {
-        let nativeSw: NativeHolderSmartWalletInstance;
-        let factory: SmartWalletFactoryInstance;
-        let chainId: number;
-
-        let recipientContract: TestRecipientInstance;
-
-        beforeEach(async () => {
-            chainId = (await getTestingEnvironment()).chainId;
-            const nativeSwTemplate = await NativeSmartWallet.new();
-            factory = await createSmartWalletFactory(nativeSwTemplate);
-            nativeSw = await createSmartWallet<NativeHolderSmartWalletInstance>(
-                {
-                    relayHub: worker,
-                    ownerEOA: sender,
-                    factory,
-                    privKey: senderPrivateKey,
-                    chainId,
-                    smartWalletContractName: 'NativeHolderSmartWallet'
-                }
-            );
-            recipientContract = await TestRecipient.new();
-        });
-
-        it('Should transfer native currency without executing a transaction', async () => {
-            await web3.eth.sendTransaction({
-                from: fundedAccount,
-                to: nativeSw.address,
-                value: toWei('5', 'ether')
-            });
-
-            const recipient = await getGaslessAccount();
-
-            const recipientBalancePriorExecution = await web3.eth.getBalance(
-                recipient.address
-            );
-            const swBalancePriorExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const value = toWei('2', 'ether');
-
-            await nativeSw.directExecuteWithValue(
-                recipient.address,
-                value,
-                '0x00',
-                { from: sender }
-            );
-
-            const recipientBalanceAfterExecution = await web3.eth.getBalance(
-                recipient.address
-            );
-            const swBalanceAfterExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const valueBN = new BN(value);
-
-            const expectedRecipientBalance = new BN(
-                recipientBalancePriorExecution
-            ).add(valueBN);
-            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
-                valueBN
-            );
-
-            expect(expectedRecipientBalance.toString()).to.be.equal(
-                recipientBalanceAfterExecution.toString()
-            );
-            expect(expectedSwBalance.toString()).to.be.equal(
-                swBalanceAfterExecution.toString()
-            );
-        });
-
-        it('Should transfer native currency and execute transaction', async () => {
-            await web3.eth.sendTransaction({
-                from: fundedAccount,
-                to: nativeSw.address,
-                value: toWei('5', 'ether')
-            });
-
-            const recipientBalancePriorExecution = await web3.eth.getBalance(
-                recipientContract.address
-            );
-            const swBalancePriorExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const value = toWei('2', 'ether');
-
-            const encodedData = recipientContract.contract.methods
-                .emitMessage('hello')
-                .encodeABI();
-
-            await nativeSw.directExecuteWithValue(
-                recipientContract.address,
-                value,
-                encodedData,
-                { from: sender }
-            );
-
-            // @ts-ignore
-            const logs = await recipientContract.getPastEvents(
-                'SampleRecipientEmitted'
-            );
-            expect(logs.length).to.be.equal(1, 'TestRecipient should emit');
-
-            const recipientBalanceAfterExecution = await web3.eth.getBalance(
-                recipientContract.address
-            );
-            const swBalanceAfterExecution = await web3.eth.getBalance(
-                nativeSw.address
-            );
-
-            const valueBN = new BN(value);
-
-            const expectedRecipientBalance = new BN(
-                recipientBalancePriorExecution
-            ).add(valueBN);
-            const expectedSwBalance = new BN(swBalancePriorExecution).sub(
-                valueBN
-            );
-
-            expect(expectedRecipientBalance.toString()).to.be.equal(
-                recipientBalanceAfterExecution.toString()
-            );
-            expect(expectedSwBalance.toString()).to.be.equal(
-                swBalanceAfterExecution.toString()
-            );
-        });
-
-        it('Should fail if smart wallet cannot pay native currency', async () => {
-            const value = toWei('2', 'ether');
-
-            const encodedData = recipientContract.contract.methods
-                .emitMessage('hello')
-                .encodeABI();
-
-            await nativeSw.directExecuteWithValue(
-                recipientContract.address,
-                value,
-                encodedData,
-                { from: sender }
-            );
-
-            // @ts-ignore
-            const logs = await recipientContract.getPastEvents(
-                'SampleRecipientEmitted'
-            );
-            expect(logs.length).to.be.equal(0, 'TestRecipient should not emit');
-        });
-    });
-});
- */
