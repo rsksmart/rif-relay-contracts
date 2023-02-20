@@ -8,6 +8,7 @@ import { ethers } from 'hardhat';
 import sinon, { SinonStub, SinonStubbedInstance } from 'sinon';
 import { Collector, Collector__factory } from 'typechain-types';
 import {
+  CollectorConfig,
   DEFAULT_CONFIG_FILE_NAME,
   DEFAULT_OUTPUT_FILE_NAME,
   deployCollector,
@@ -19,7 +20,7 @@ use(smock.matchers);
 use(chaiAsPromised);
 
 describe('Deploy Script', function () {
-  const collectorConfiguration = {
+  const collectorConfiguration: CollectorConfig = {
     collectorOwner: '0x4E28f372BCe2d0Bf1B129b6A278F582558BF08a7',
     partners: [
       {
@@ -31,7 +32,7 @@ describe('Deploy Script', function () {
         share: 80,
       },
     ],
-    tokenAddress: '0x726ECC75d5D51356AA4d0a5B648790cC345985ED',
+    tokenAddresses: ['0x726ECC75d5D51356AA4d0a5B648790cC345985ED'],
     remainderAddress: '0xc354D97642FAa06781b76Ffb6786f72cd7746C97',
   };
   let configurationFileContent: string;
@@ -47,7 +48,7 @@ describe('Deploy Script', function () {
       );
       collector = await collectorFactoryMock.deploy(
         collectorConfiguration.collectorOwner,
-        collectorConfiguration.tokenAddress,
+        collectorConfiguration.tokenAddresses,
         collectorConfiguration.partners,
         collectorConfiguration.remainderAddress
       );
@@ -111,6 +112,7 @@ describe('Deploy Script', function () {
       });
 
       it('deploy a collector', async function () {
+        //FIXME: Mismatch of test case and test itself
         const configFileName = 'inputFile.json';
         const taskArgs: DeployCollectorArg = {
           configFileName,
@@ -120,16 +122,17 @@ describe('Deploy Script', function () {
         expect(await collector.owner()).to.be.eq(
           collectorConfiguration.collectorOwner
         );
-        expect(await collector.token()).to.be.eq(
-          collectorConfiguration.tokenAddress
+        expect(await collector.getTokens()).to.have.members(
+          collectorConfiguration.tokenAddresses
         );
         const partners = await collector.getPartners();
-        partners.forEach(([beneficiary, share]) => {
-          expect(collectorConfiguration.partners).to.deep.include({
+
+        expect(partners).to.have.deep.members(
+          collectorConfiguration.partners.map(({ beneficiary, share }) => [
             beneficiary,
             share,
-          });
-        });
+          ])
+        );
       });
 
       describe('', function () {
@@ -146,7 +149,7 @@ describe('Deploy Script', function () {
             [chainId.toString()]: {
               collectorContract: collector.address,
               collectorOwner: await collector.owner(),
-              tokenAddress: await collector.token(),
+              tokenAddresses: await collector.getTokens(),
               remainderAddress: collectorConfiguration.remainderAddress,
               partners: collectorConfiguration.partners,
             },

@@ -11,12 +11,12 @@ export interface Partner {
   share: number;
 }
 
-interface CollectorConfig {
+export type CollectorConfig = {
   collectorOwner: string;
   partners: Partner[];
-  tokenAddress: string;
+  tokenAddresses: string[];
   remainderAddress: string;
-}
+};
 
 export type DeployCollectorArg = {
   configFileName?: string;
@@ -54,13 +54,13 @@ export const deployCollector = async (
     fs.readFileSync(configFileName, { encoding: 'utf-8' })
   ) as CollectorConfig;
 
-  const { collectorOwner, partners, tokenAddress, remainderAddress } =
+  const { collectorOwner, partners, tokenAddresses, remainderAddress } =
     inputConfig;
 
   const collectorFactory = await ethers.getContractFactory('Collector');
   const collector = await collectorFactory.deploy(
     collectorOwner,
-    tokenAddress,
+    tokenAddresses,
     partners,
     remainderAddress
   );
@@ -79,11 +79,20 @@ export const deployCollector = async (
   },
   {});
 
+  const tokenPrintings = (await collector.getTokens()).reduce<
+    Record<string, string>
+  >((accumulator, token, i) => {
+    return {
+      ...accumulator,
+      [`Collector Token ${i}`]: token,
+    };
+  }, {});
+
   const objToPrint = {
     'Collector Contract': collector.address,
     'Collector Owner': await collector.owner(),
-    'Collector Token': await collector.token(),
     'Collector Remainder': remainderAddress,
+    ...tokenPrintings,
     ...partnerPrintings,
   };
   console.table(objToPrint);
@@ -106,7 +115,7 @@ export const deployCollector = async (
   jsonConfig[networkId] = {
     collectorContract: collector.address,
     collectorOwner: await collector.owner(),
-    tokenAddress: await collector.token(),
+    tokenAddresses: await collector.getTokens(),
     remainderAddress: remainderAddress,
     partners,
   };

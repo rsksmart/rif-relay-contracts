@@ -9,20 +9,9 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract Collector is ICollector {
     address private _remainderAddress;
     RevenuePartner[] private _partners;
-    IERC20 public token;
+    IERC20[] private _tokens;
     address public owner;
-
-    modifier validShares(RevenuePartner[] memory partners) {
-        uint256 totalShares;
-
-        for (uint256 i = 0; i < partners.length; i++) {
-            require(partners[i].share > 0, "0 is not a valid share");
-            totalShares = totalShares + partners[i].share;
-        }
-
-        require(totalShares == 100, "Shares must add up to 100%");
-        _;
-    }
+    mapping(IERC20 => bool) public tokenMap;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
@@ -30,24 +19,39 @@ contract Collector is ICollector {
     }
 
     modifier noBalanceToShare() {
-        require(
-            token.balanceOf(address(this)) < _partners.length,
-            "There is balance to share"
-        );
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(
+                _tokens[i].balanceOf(address(this)) < _partners.length,
+                "There is balance to share"
+            );
+        }
         _;
+    }
+
+    modifier updateValidShares(RevenuePartner[] memory partners) {
+        _;
+        uint256 totalShares;
+        for (uint256 i = 0; i < partners.length; i++) {
+            require(partners[i].share > 0, "0 is not a valid share");
+            totalShares = totalShares + partners[i].share;
+            _partners.push(partners[i]);
+        }
+        require(totalShares == 100, "Shares must add up to 100%");
     }
 
     constructor(
         address _owner,
-        IERC20 _token,
+        IERC20[] memory tokens,
         RevenuePartner[] memory partners,
         address remainderAddress
-    ) public validShares(partners) {
+    ) public updateValidShares(partners) {
         owner = _owner;
-        token = _token;
         _remainderAddress = remainderAddress;
-        for (uint256 i = 0; i < partners.length; i++)
-            _partners.push(partners[i]);
+
+        for (uint i = 0; i < tokens.length; i++) {
+            _tokens.push(tokens[i]);
+            tokenMap[tokens[i]] = true;
+        }
     }
 
     function getPartners() external view returns (RevenuePartner[] memory) {
@@ -56,11 +60,8 @@ contract Collector is ICollector {
 
     function updateShares(
         RevenuePartner[] memory partners
-    ) external validShares(partners) onlyOwner noBalanceToShare {
+    ) external onlyOwner noBalanceToShare updateValidShares(partners) {
         delete _partners;
-
-        for (uint256 i = 0; i < partners.length; i++)
-            _partners.push(partners[i]);
     }
 
     //@notice Withdraw the actual remainder and then update the remainder's address
@@ -68,34 +69,58 @@ contract Collector is ICollector {
     function updateRemainderAddress(
         address remainderAddress
     ) external onlyOwner noBalanceToShare {
-        uint256 balance = token.balanceOf(address(this));
-        address tokenAddr = address(token);
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token = _tokens[i];
+            uint256 balance = token.balanceOf(address(this));
 
-        if (balance != 0) {
-            // solhint-disable-next-line avoid-low-level-calls
-            (bool success, bytes memory ret) = tokenAddr.call{gas: 200000}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb",
-                    _remainderAddress,
-                    balance
-                )
-            );
+            if (balance != 0) {
+                // solhint-disable-next-line avoid-low-level-calls
+                (bool success, bytes memory ret) = address(token).call(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb",
+                        _remainderAddress,
+                        balance
+                    )
+                );
 
-            require(
-                success && (ret.length == 0 || abi.decode(ret, (bool))),
-                "Unable to transfer remainder"
-            );
+                require(
+                    success && (ret.length == 0 || abi.decode(ret, (bool))),
+                    "Unable to transfer remainder"
+                );
+            }
         }
-
-        // solhint-disable-next-line
         _remainderAddress = remainderAddress;
     }
 
-    function getBalance() external view returns (uint256) {
-        return token.balanceOf(address(this));
+    function addToken(IERC20 token) external onlyOwner {
+        require(tokenMap[token] == false, "Token is already accepted");
+        tokenMap[token] = true;
+        _tokens.push(token);
     }
 
-    function withdraw() external override onlyOwner {
+    function getTokens() external view returns (IERC20[] memory) {
+        return _tokens;
+    }
+
+    function removeToken(IERC20 token, uint256 tokenIndex) external onlyOwner {
+        require(tokenMap[token] == true, "Token is not accepted");
+        require(_tokens[tokenIndex] == token, "Incorrect token");
+        require(
+            _tokens[tokenIndex].balanceOf(address(this)) == 0,
+            "There is balance to share"
+        );
+
+        delete tokenMap[token];
+        _tokens[tokenIndex] = _tokens[_tokens.length - 1];
+        _tokens.pop();
+    }
+
+    function getRemainderAddress() external view returns (address) {
+        return _remainderAddress;
+    }
+
+    function withdrawToken(IERC20 token) public onlyOwner {
+        require(tokenMap[token], "Token is not accepted");
         uint256 balance = token.balanceOf(address(this));
         require(balance >= _partners.length, "Not enough balance to split");
 
@@ -118,8 +143,14 @@ contract Collector is ICollector {
         }
     }
 
+    function withdraw() external override onlyOwner {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            withdrawToken(_tokens[i]);
+        }
+    }
+
     function transferOwnership(address _owner) external override onlyOwner {
-        require(_owner != address(0), "New owner is the zero address");
+        require(_owner != address(0), "Owner cannot be zero address");
         owner = _owner;
     }
 }

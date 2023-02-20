@@ -18,6 +18,8 @@
             "share": 32
         }
     ],
-    "tokenAddress": "0xb824784A5bF2Bc7139d1786639444e4Da259934B",
+    "tokenAddresses": [
+        "0xb824784A5bF2Bc7139d1786639444e4Da259934B"
+    ],
     "remainderAddress": "0xc354D97642FAa06781b76Ffb6786f72cd7746C97"
 }
