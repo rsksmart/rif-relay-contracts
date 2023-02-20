@@ -596,9 +596,11 @@ describe('Collector', function () {
     });
 
     it('Should fail when not enough revenue to share in any of the tokens', async function () {
+      const lastTokenIndex = fakeERC20Tokens.length - 1;
       const tokens = fakeERC20Tokens.map((token, i) => {
-        const isLastToken = fakeERC20Tokens.length - 1;
-        token.balanceOf.returns(partners.length - (i === isLastToken ? 1 : 0));
+        token.balanceOf.returns(
+          partners.length - (i === lastTokenIndex ? 1 : 0)
+        );
 
         return token.address;
       });
@@ -672,9 +674,7 @@ describe('Collector', function () {
     });
 
     it('Should fail when not enough revenue to share', async function () {
-      const tokens = fakeERC20Tokens.map((token) => {
-        return token.address;
-      });
+      const tokens = fakeERC20Tokens.map(({ address }) => address);
       const token = fakeERC20Tokens[0];
       token.balanceOf.returns(partners.length - 1);
       const collector = await deployCollector({ tokens });
