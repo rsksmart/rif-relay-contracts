@@ -86,7 +86,9 @@ describe('RelayVerifier Contract', function () {
     });
 
     it('should revert if caller is not the owner', async function () {
-      const [, other] = await ethers.getSigners();
+      const [other] = (await ethers.getSigners()).slice(1) as [
+        SignerWithAddress
+      ];
 
       await expect(
         relayVerifierMock.connect(other).acceptToken(fakeToken.address)
@@ -155,7 +157,9 @@ describe('RelayVerifier Contract', function () {
     });
 
     it('should revert if caller is not the owner', async function () {
-      const [, other] = await ethers.getSigners();
+      const [other] = (await ethers.getSigners()).slice(1) as [
+        SignerWithAddress
+      ];
 
       await expect(
         relayVerifierMock.connect(other).acceptToken(fakeToken.address)
@@ -214,7 +218,11 @@ describe('RelayVerifier Contract', function () {
     let fakeRelayHub: FakeContract<RelayHub>;
 
     beforeEach(async function () {
-      [owner, recipient, relayWorker] = await ethers.getSigners();
+      [owner, recipient, relayWorker] = (await ethers.getSigners()) as [
+        SignerWithAddress,
+        SignerWithAddress,
+        SignerWithAddress
+      ];
       fakeSmartWallet = await smock.fake<SmartWallet>('SmartWallet');
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
     });

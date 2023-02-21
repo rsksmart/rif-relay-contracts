@@ -50,14 +50,14 @@ describe('Allow Tokens Script', function () {
 
     it('should allow a list of tokens', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract.acceptToken = () => undefined;
+      stubContract['acceptToken'] = () => undefined;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       await expect(allowTokens(taskArgs, hre)).to.not.be.rejected;
     });
 
     it('should throw error and print it if token cannot be allowed', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract.acceptToken = () => {
+      stubContract['acceptToken'] = () => {
         throw new Error();
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
