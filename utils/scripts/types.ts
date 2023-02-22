@@ -16,7 +16,7 @@ const factoryList = {
     : never ;
   
   export type ContractAddresses = {
-    [key in (ContractName | 'CustomSmartWalletRelayVerifier')]: string | undefined;
+    [key in (ContractName | 'CustomSmartWalletRelayVerifier' | 'NativeHolderSmartWalletFactory' | 'NativeHolderSmartWalletDeployVerifier' | 'NativeHolderSmartWalletRelayVerifier')]: string | undefined;
   };
   
   export type NetworkConfig = {

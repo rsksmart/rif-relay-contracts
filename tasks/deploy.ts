@@ -1,21 +1,11 @@
 import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
-import { parseJsonFile } from './utils';
+import { getExistingConfig } from './utils';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
-
-export const getExistingConfig = () => {
-  try {
-    return parseJsonFile<AddressesConfig>(ADDRESS_FILE);
-  } catch (error) {
-    console.warn(error);
-  }
-
-  return undefined;
-};
 
 export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
@@ -43,7 +33,7 @@ export const updateConfig = (
   }
 
   return {
-    ...getExistingConfig(),
+    ...getExistingConfig(ADDRESS_FILE),
     [`${network}.${chainId}`]: contractAddresses,
   };
 };
@@ -70,6 +60,9 @@ export const deployContracts = async (
   );
   const customSmartWalletDeployVerifierF = await ethers.getContractFactory(
     'CustomSmartWalletDeployVerifier'
+  );
+  const nativeHolderSmartWalletF = await ethers.getContractFactory(
+    'NativeHolderSmartWallet'
   );
 
   const versionRegistryFactory = await ethers.getContractFactory(
@@ -103,7 +96,18 @@ export const deployContracts = async (
       customSmartWalletFactoryAddress
     );
   const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
-    smartWalletFactoryAddress
+    customSmartWalletFactoryAddress
+  );
+
+  const { address: nativeHolderSmartWalletAddress } =
+    await nativeHolderSmartWalletF.deploy();
+  const { address: nativeHolderSmartWalletFactoryAddress } =
+    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
+  const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
+    nativeHolderSmartWalletFactoryAddress
+  );
+  const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
+    nativeHolderSmartWalletFactoryAddress
   );
 
   const { address: versionRegistryAddress } =
@@ -126,6 +130,10 @@ export const deployContracts = async (
     CustomSmartWalletFactory: customSmartWalletFactoryAddress,
     CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
     CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
+    NativeHolderSmartWallet: nativeHolderSmartWalletAddress,
+    NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
+    NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
+    NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };

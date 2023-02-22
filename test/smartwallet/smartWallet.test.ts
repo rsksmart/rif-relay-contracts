@@ -1,41 +1,40 @@
-import { ethers as hardhat } from 'hardhat';
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
+import { BaseProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai, { expect } from 'chai';
-import { FakeContract, smock } from '@defi-wonderland/smock';
 import chaiAsPromised from 'chai-as-promised';
-import { TypedDataUtils } from '@metamask/eth-sig-util';
-import {
-  getLocalEip712Signature,
-  TypedRequestData,
-  TypedDeployRequestData,
-  getLocalEip712DeploySignature,
-} from '../utils/EIP712Utils';
-import { SignTypedDataVersion } from '@metamask/eth-sig-util';
 import { Wallet } from 'ethers';
+import { ethers as hardhat } from 'hardhat';
 import {
+  ERC20,
   SmartWallet,
   SmartWalletFactory,
-  ERC20,
   SmartWallet__factory,
 } from 'typechain-types';
-import { BaseProvider } from '@ethersproject/providers';
 import {
   EnvelopingTypes,
   IForwarder,
 } from 'typechain-types/contracts/RelayHub';
-import { MockContract } from '@defi-wonderland/smock';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
+import {
+  getLocalEip712DeploySignature,
+  getLocalEip712Signature,
+  TypedDeployRequestData,
+  TypedRequestData,
+} from '../utils/EIP712Utils';
+import {
+  buildDomainSeparator,
+  createRequest,
+  getSuffixData,
+  HARDHAT_CHAIN_ID,
+  RelayData,
+} from './utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
-const ONE_FIELD_IN_BYTES = 32;
-const HARDHAT_CHAIN_ID = 31337;
 
-type ForwardRequest = IForwarder.ForwardRequestStruct;
-type RelayData = EnvelopingTypes.RelayDataStruct;
-type RelayRequest = EnvelopingTypes.RelayRequestStruct;
 type DeployRequest = EnvelopingTypes.DeployRequestStruct;
 type DeployRequestInternal = IForwarder.DeployRequestStruct;
 
@@ -45,44 +44,6 @@ describe('SmartWallet contract', function () {
   let owner: Wallet;
   let relayHub: SignerWithAddress;
   let fakeToken: FakeContract<ERC20>;
-
-  function createRequest(
-    request: Partial<ForwardRequest>,
-    relayData?: Partial<RelayData>
-  ): RelayRequest {
-    const baseRequest: RelayRequest = {
-      request: {
-        relayHub: ZERO_ADDRESS,
-        from: ZERO_ADDRESS,
-        to: ZERO_ADDRESS,
-        tokenContract: ZERO_ADDRESS,
-        value: '0',
-        gas: '10000',
-        nonce: '0',
-        tokenAmount: '0',
-        tokenGas: '50000',
-        validUntilTime: '0',
-        data: '0x',
-      },
-      relayData: {
-        gasPrice: '1',
-        feesReceiver: ZERO_ADDRESS,
-        callForwarder: ZERO_ADDRESS,
-        callVerifier: ZERO_ADDRESS,
-      },
-    };
-
-    return {
-      request: {
-        ...baseRequest.request,
-        ...request,
-      },
-      relayData: {
-        ...baseRequest.relayData,
-        ...relayData,
-      },
-    };
-  }
 
   function createDeployRequest(
     request: Partial<DeployRequestInternal>,
@@ -121,32 +82,6 @@ describe('SmartWallet contract', function () {
         ...relayData,
       },
     };
-  }
-
-  function buildDomainSeparator(address: string) {
-    const domainSeparator = {
-      name: 'RSK Enveloping Transaction',
-      version: '2',
-      chainId: HARDHAT_CHAIN_ID,
-      verifyingContract: address,
-    };
-
-    return hardhat.utils._TypedDataEncoder.hashDomain(domainSeparator);
-  }
-
-  function getSuffixData(typedRequestData: TypedRequestData): string {
-    const encoded = TypedDataUtils.encodeData(
-      typedRequestData.primaryType,
-      typedRequestData.message,
-      typedRequestData.types,
-      SignTypedDataVersion.V4
-    );
-
-    const messageSize = Object.keys(typedRequestData.message).length;
-
-    return (
-      '0x' + encoded.slice(messageSize * ONE_FIELD_IN_BYTES).toString('hex')
-    );
   }
 
   async function createSmartWalletFactory(owner: Wallet) {
