@@ -64,6 +64,7 @@ interface TestRecipient extends BaseContract {
 
 const INITIAL_SW_BALANCE = hardhat.utils.parseEther('5');
 const TWO_ETHERS = ethers.utils.parseEther('2');
+const EMIT_MESSAGE_ARGUMENT = 'hello';
 
 describe('NativeHolderSmartWallet contract', function () {
   let smartWallet: MockContract<NativeHolderSmartWallet>;
@@ -109,7 +110,7 @@ describe('NativeHolderSmartWallet contract', function () {
     recipientContract = await smock.fake<TestRecipient>(recipientABI);
     encodedFunctionData = recipientContract.interface.encodeFunctionData(
       'emitMessage',
-      ['hello']
+      [EMIT_MESSAGE_ARGUMENT]
     );
 
     await fundedAccount.sendTransaction({
@@ -143,7 +144,7 @@ describe('NativeHolderSmartWallet contract', function () {
 
   async function expectBalanceAfterSuccessExecution(
     recipientAddress: string,
-    value: BigNumber,
+    transferValue: BigNumber,
     execution: () => Promise<void>
   ) {
     const recipientBalancePriorExecution = await provider.getBalance(
@@ -153,14 +154,9 @@ describe('NativeHolderSmartWallet contract', function () {
       smartWallet.address
     );
 
-    const valueBN = BigNumber.from(value);
-
-    const expectedRecipientBalance = BigNumber.from(
-      recipientBalancePriorExecution
-    ).add(valueBN);
-    const expectedSwBalance = BigNumber.from(swBalancePriorExecution).sub(
-      valueBN
-    );
+    const expectedRecipientBalance =
+      recipientBalancePriorExecution.add(transferValue);
+    const expectedSwBalance = swBalancePriorExecution.sub(transferValue);
     await expectBalanceToBeRight(
       execution,
       recipientAddress,
@@ -258,8 +254,10 @@ describe('NativeHolderSmartWallet contract', function () {
 
         expect(fakeToken.transfer, 'Token.transfer() was not called').to.be
           .called;
-        expect(recipientContract.emitMessage, 'Recipient method was not called')
-          .to.be.called;
+        expect(
+          recipientContract.emitMessage,
+          'Recipient method was not called'
+        ).to.be.calledWith(EMIT_MESSAGE_ARGUMENT);
       };
 
       await expectBalanceAfterSuccessExecution(
@@ -350,6 +348,11 @@ describe('NativeHolderSmartWallet contract', function () {
           ),
           'Execution failed'
         ).not.to.be.rejected;
+
+        expect(
+          recipientContract.emitMessage,
+          'Recipient method was not called'
+        ).to.have.been.calledWith(EMIT_MESSAGE_ARGUMENT);
       };
       await expectBalanceAfterSuccessExecution(
         recipientContract.address,
