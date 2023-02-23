@@ -13,10 +13,22 @@ import {
   ChangePartnerSharesArg,
 } from './tasks/changePartnerShares';
 import { deploy } from './tasks/deploy';
-import { deployCollector, DeployCollectorArg } from './tasks/deployCollector';
+import {
+  deployCollector,
+  DeployCollectorArg,
+} from './tasks/collector/deployCollector';
 import { getAllowedTokens } from './tasks/getAllowedTokens';
 import { removeTokens } from './tasks/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
+import {
+  addTokenToCollector,
+  AddCollectorTokenArgs,
+} from './tasks/collector/addToken';
+import {
+  getCollectorTokens,
+  GetCollectorTokensArgs,
+} from './tasks/collector/getTokens';
+import { RemoveCollectorTokenArgs } from 'tasks/collector/removeToken';
 dotenv.config();
 
 const DEFAULT_MNEMONIC =
@@ -146,6 +158,39 @@ task('collector:withdraw', 'Withdraws funds from a collector contract')
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: WithdrawSharesArg, hre) => {
     await withdraw(taskArgs, hre);
+  });
+
+task(
+  'collector:addToken',
+  'Allow the collector to receive payments in additional tokens'
+)
+  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('token', 'address of the token we want to allow in the collector')
+  .setAction(async (taskArgs: AddCollectorTokenArgs, hre) => {
+    await addTokenToCollector(taskArgs, hre);
+  });
+
+task(
+  'collector:getTokens',
+  'Allow the collector to receive payment in additional tokens'
+)
+  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .setAction(async (taskArgs: GetCollectorTokensArgs, hre) => {
+    await getCollectorTokens(taskArgs, hre);
+  });
+
+task(
+  'collector:removeToken',
+  'Remove a token from the ones that the collector can accept to receive payments'
+)
+  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('token', 'address of the token we want to remove in the collector')
+  .addParam(
+    'tokenIndex',
+    'index of the token we want to remove in the collector'
+  )
+  .setAction(async (taskArgs: RemoveCollectorTokenArgs, hre) => {
+    await getCollectorTokens(taskArgs, hre);
   });
 
 task('remove-tokens', 'Removes a list of tokens')
