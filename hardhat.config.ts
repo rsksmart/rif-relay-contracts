@@ -28,7 +28,10 @@ import {
   getCollectorTokens,
   GetCollectorTokensArgs,
 } from './tasks/collector/getTokens';
-import { RemoveCollectorTokenArgs } from 'tasks/collector/removeToken';
+import {
+  RemoveCollectorTokenArgs,
+  removeTokenFromCollector,
+} from './tasks/collector/removeToken';
 dotenv.config();
 
 const DEFAULT_MNEMONIC =
@@ -165,7 +168,10 @@ task(
   'Allow the collector to receive payments in additional tokens'
 )
   .addParam('collectorAddress', 'address of the collector we want to modify')
-  .addParam('token', 'address of the token we want to allow in the collector')
+  .addParam(
+    'tokenAddress',
+    'address of the token we want to allow in the collector'
+  )
   .setAction(async (taskArgs: AddCollectorTokenArgs, hre) => {
     await addTokenToCollector(taskArgs, hre);
   });
@@ -184,13 +190,16 @@ task(
   'Remove a token from the ones that the collector can accept to receive payments'
 )
   .addParam('collectorAddress', 'address of the collector we want to modify')
-  .addParam('token', 'address of the token we want to remove in the collector')
+  .addParam(
+    'tokenAddress',
+    'address of the token we want to remove in the collector'
+  )
   .addParam(
     'tokenIndex',
     'index of the token we want to remove in the collector'
   )
   .setAction(async (taskArgs: RemoveCollectorTokenArgs, hre) => {
-    await getCollectorTokens(taskArgs, hre);
+    await removeTokenFromCollector(taskArgs, hre);
   });
 
 task('remove-tokens', 'Removes a list of tokens')
