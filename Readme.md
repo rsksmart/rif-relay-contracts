@@ -130,17 +130,16 @@ npx hardhat collector:getTokens --collector-address "0xeFb80DB9E2d943A492Bd988f4
 Pre-requirements:
 - the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector;
 - the token that we want to remove should have no balance for the collector we're modifying;
-- we must have the index of the token we want to remove (it can be retrieved using the [getTokens section](#get-collector-tokens))
 
 Usage:
 
 ```bash
-npx hardhat collector:removeToken --collector-address "<collector_address>" --token-address "<token_address>" --token-index "<index_of_the_token_to_remove>"  --network regtest
+npx hardhat collector:removeToken --collector-address "<collector_address>" --token-address "<token_address>" --network regtest
 ```
 
 Example:
 ```bash
-npx hardhat collector:removeToken --collector-address "0xeFb80DB9E2d943A492Bd988f4c619495cA815643" --token-address "0x39B12C05E8503356E3a7DF0B7B33efA4c054C409" --token-index "0"  --network regtest   
+npx hardhat collector:removeToken --collector-address "0xeFb80DB9E2d943A492Bd988f4c619495cA815643" --token-address "0x39B12C05E8503356E3a7DF0B7B33efA4c054C409" --network regtest   
 ```
 
 ### Addresses

@@ -1,12 +1,12 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-export type AddCollectorTokenArgs = {
+export type ManageCollectorTokenArgs = {
   collectorAddress: string;
   tokenAddress: string;
 };
 
 export const addTokenToCollector = async (
-  { collectorAddress, tokenAddress }: AddCollectorTokenArgs,
+  { collectorAddress, tokenAddress }: ManageCollectorTokenArgs,
   { ethers }: HardhatRuntimeEnvironment
 ) => {
   const collector = await ethers.getContractAt('Collector', collectorAddress);

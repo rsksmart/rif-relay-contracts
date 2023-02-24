@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { AddCollectorTokenArgs } from './addToken';
+import { ManageCollectorTokenArgs } from './addToken';
 
 export type GetCollectorTokensArgs = Omit<
-  AddCollectorTokenArgs,
+  ManageCollectorTokenArgs,
   'tokenAddress'
 >;
 

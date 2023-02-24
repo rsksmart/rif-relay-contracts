@@ -5,7 +5,7 @@ import { ethers } from 'hardhat';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import {
-  AddCollectorTokenArgs,
+  ManageCollectorTokenArgs,
   addTokenToCollector,
 } from '../../../tasks/collector/addToken';
 import { Collector } from '../../../typechain-types';
@@ -15,7 +15,7 @@ use(chaiAsPromised);
 
 describe('Script to add tokens to collector', function () {
   describe('addToken', function () {
-    const taskArgs: AddCollectorTokenArgs = {
+    const taskArgs: ManageCollectorTokenArgs = {
       collectorAddress: '0x06c85B7EA1AA2d030E1a747B3d8d15D5845fd714',
       tokenAddress: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };

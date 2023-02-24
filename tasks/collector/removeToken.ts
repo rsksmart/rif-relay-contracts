@@ -1,28 +1,25 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { AddCollectorTokenArgs } from './addToken';
-
-export type RemoveCollectorTokenArgs = AddCollectorTokenArgs & {
-  tokenIndex: number;
-};
+import { ManageCollectorTokenArgs } from './addToken';
 
 export const removeTokenFromCollector = async (
-  { collectorAddress, tokenAddress, tokenIndex }: RemoveCollectorTokenArgs,
+  { collectorAddress, tokenAddress }: ManageCollectorTokenArgs,
   { ethers }: HardhatRuntimeEnvironment
 ) => {
   const collector = await ethers.getContractAt('Collector', collectorAddress);
 
   try {
     const tokens = await collector.getTokens();
-    if (tokenIndex >= tokens.length || tokenAddress !== tokens[tokenIndex]) {
+    const tokenIndex = tokens.findIndex((token) => token === tokenAddress);
+    if (tokenIndex < 0) {
       throw new Error(
-        `The token index provided isn't correct. Please verify the tokens managed by the Collector ${collectorAddress}`
+        `Token with address ${tokenAddress} not found. Please verify the tokens managed by the Collector ${collectorAddress}`
       );
     }
+    console.log(`Token found with index ${tokenIndex}`);
     await collector.removeToken(tokenAddress, tokenIndex);
   } catch (error) {
-    console.log(error.message);
     console.error(
-      `Error removing token with address ${tokenAddress} and index ${tokenIndex} from Collector ${collectorAddress}`
+      `Error removing token with address ${tokenAddress} from Collector ${collectorAddress}`
     );
     throw error;
   }

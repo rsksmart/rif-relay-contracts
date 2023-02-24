@@ -22,16 +22,13 @@ import { removeTokens } from './tasks/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import {
   addTokenToCollector,
-  AddCollectorTokenArgs,
+  ManageCollectorTokenArgs,
 } from './tasks/collector/addToken';
 import {
   getCollectorTokens,
   GetCollectorTokensArgs,
 } from './tasks/collector/getTokens';
-import {
-  RemoveCollectorTokenArgs,
-  removeTokenFromCollector,
-} from './tasks/collector/removeToken';
+import { removeTokenFromCollector } from './tasks/collector/removeToken';
 dotenv.config();
 
 const DEFAULT_MNEMONIC =
@@ -172,7 +169,7 @@ task(
     'tokenAddress',
     'address of the token we want to allow in the collector'
   )
-  .setAction(async (taskArgs: AddCollectorTokenArgs, hre) => {
+  .setAction(async (taskArgs: ManageCollectorTokenArgs, hre) => {
     await addTokenToCollector(taskArgs, hre);
   });
 
@@ -191,11 +188,7 @@ task(
     'tokenAddress',
     'address of the token we want to remove in the collector'
   )
-  .addParam(
-    'tokenIndex',
-    'index of the token we want to remove in the collector'
-  )
-  .setAction(async (taskArgs: RemoveCollectorTokenArgs, hre) => {
+  .setAction(async (taskArgs: ManageCollectorTokenArgs, hre) => {
     await removeTokenFromCollector(taskArgs, hre);
   });
 
