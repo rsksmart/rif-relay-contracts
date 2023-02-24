@@ -167,7 +167,7 @@ task(
   'collector:addToken',
   'Allow the collector to receive payments in additional tokens'
 )
-  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('collectorAddress', 'address of the collector contract to modify')
   .addParam(
     'tokenAddress',
     'address of the token we want to allow in the collector'
@@ -176,11 +176,8 @@ task(
     await addTokenToCollector(taskArgs, hre);
   });
 
-task(
-  'collector:getTokens',
-  'Allow the collector to receive payment in additional tokens'
-)
-  .addParam('collectorAddress', 'address of the collector we want to modify')
+task('collector:getTokens', 'Retrieve tokens managed by the collector')
+  .addParam('collectorAddress', 'address of the collector contract to modify')
   .setAction(async (taskArgs: GetCollectorTokensArgs, hre) => {
     await getCollectorTokens(taskArgs, hre);
   });
@@ -189,7 +186,7 @@ task(
   'collector:removeToken',
   'Remove a token from the ones that the collector can accept to receive payments'
 )
-  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('collectorAddress', 'address of the collector contract to modify')
   .addParam(
     'tokenAddress',
     'address of the token we want to remove in the collector'
@@ -209,7 +206,7 @@ task('remove-tokens', 'Removes a list of tokens')
   });
 
 task('collector:change-partners', 'Change collector partners')
-  .addParam('collectorAddress', 'address of the collector we want to modify')
+  .addParam('collectorAddress', 'address of the collector contract to modify')
   .addParam(
     'partnerConfig',
     'path of the file that includes the partner shares configuration'

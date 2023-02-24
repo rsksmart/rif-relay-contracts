@@ -3,12 +3,14 @@ import chaiAsPromised from 'chai-as-promised';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon, { SinonSpy } from 'sinon';
+import sinonChai from 'sinon-chai';
 import {
   getCollectorTokens,
   GetCollectorTokensArgs,
 } from '../../../tasks/collector/getTokens';
 import { Collector } from '../../../typechain-types';
 
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('Script to retrieve the collector tokens', function () {
@@ -28,36 +30,33 @@ describe('Script to retrieve the collector tokens', function () {
     });
 
     it('should get the tokens managed by the collector', async function () {
-      const stubContract = {} as Collector;
-      stubContract.getTokens = sinon.stub().returns(Promise.resolve(tokens));
-
-      sinon.stub(ethers, 'getContractAt').resolves(stubContract);
+      const getTokens = sinon.stub().returns(Promise.resolve(tokens));
+      const fakeCollector = {
+        getTokens,
+      } as unknown as Collector;
+      sinon.stub(ethers, 'getContractAt').resolves(fakeCollector);
       await expect(
         getCollectorTokens(taskArgs, hre),
         'getCollectorTokens rejected'
       ).not.to.be.rejected;
-      expect(
-        (stubContract.getTokens as SinonSpy).called,
-        'Collector.getTokens was not called'
-      ).to.be.true;
-      expect(
-        consoleLogSpy.calledWith('Allowed Tokens:', tokens),
-        'Console.log was not called with the expected arguments'
-      ).to.be.true;
+      expect(getTokens).to.have.been.called;
+      expect(consoleLogSpy).to.have.been.calledWith('Allowed Tokens:', tokens);
     });
 
-    it('should fail if the getTokens raises an error', async function () {
-      const stubContract = {} as Collector;
+    it('should fail if the getTokens task raises an error', async function () {
       const expectedError = new Error('Token already managed');
-      stubContract.getTokens = sinon.spy(() => {
+      const getTokens = sinon.spy(() => {
         throw expectedError;
       });
+      const stubContract = {
+        getTokens,
+      } as unknown as Collector;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       await expect(
         getCollectorTokens(taskArgs, hre),
         'getCollectorTokens did not reject'
       ).to.be.rejectedWith(expectedError);
-      expect(consoleLogSpy.called, 'Console.log was called').to.be.false;
+      expect(consoleLogSpy).not.to.have.been.called;
     });
   });
 });

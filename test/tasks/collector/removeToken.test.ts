@@ -2,16 +2,18 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
-import sinon, { SinonSpy } from 'sinon';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 import {
   RemoveCollectorTokenArgs,
   removeTokenFromCollector,
 } from '../../../tasks/collector/removeToken';
 import { Collector } from '../../../typechain-types';
 
+use(sinonChai);
 use(chaiAsPromised);
 
-describe('Script to remove tokens to collector', function () {
+describe('Script to remove tokens from collector', function () {
   describe('removeToken', function () {
     const taskArgs: RemoveCollectorTokenArgs = {
       collectorAddress: '0x06c85B7EA1AA2d030E1a747B3d8d15D5845fd714',
@@ -24,30 +26,30 @@ describe('Script to remove tokens to collector', function () {
     });
 
     it('should remove the token if it is among the ones that are managed', async function () {
-      const stubContract = {} as Collector;
-      stubContract.removeToken = sinon.spy();
-      stubContract.getTokens = sinon.mock().returns([taskArgs.tokenAddress]);
-      sinon.stub(ethers, 'getContractAt').resolves(stubContract);
+      const removeToken = sinon.spy();
+      const getTokens = sinon.mock().returns([taskArgs.tokenAddress]);
+      const fakeCollector = {
+        removeToken,
+        getTokens,
+      } as unknown as Collector;
+      sinon.stub(ethers, 'getContractAt').resolves(fakeCollector);
       await expect(
         removeTokenFromCollector(taskArgs, hre),
         'removeTokenFromCollector rejected'
       ).not.to.be.rejected;
-      expect(
-        (stubContract.removeToken as SinonSpy).calledWithExactly(
-          taskArgs.tokenAddress,
-          taskArgs.tokenIndex
-        ),
-        'collector.removeToken was not called'
-      ).to.be.true;
+      expect(removeToken).to.have.been.calledWithExactly(
+        taskArgs.tokenAddress,
+        taskArgs.tokenIndex
+      );
     });
 
     it('should fail if the token index is not correct', async function () {
-      const stubContract = {} as Collector;
-      stubContract.removeToken = sinon.spy();
-      stubContract.getTokens = sinon
-        .mock()
-        .returns(['0x123456', taskArgs.tokenAddress]);
-      sinon.stub(ethers, 'getContractAt').resolves(stubContract);
+      const fakeCollector = {
+        removeToken: sinon.spy(),
+        getTokens: sinon.mock().returns(['0x123456', taskArgs.tokenAddress]),
+      } as unknown as Collector;
+
+      sinon.stub(ethers, 'getContractAt').resolves(fakeCollector);
       await expect(
         removeTokenFromCollector(taskArgs, hre),
         'removeTokenFromCollector did not reject'
@@ -55,21 +57,20 @@ describe('Script to remove tokens to collector', function () {
     });
 
     it('should fail if the token removal throws an error', async function () {
-      const stubContract = {} as Collector;
       const expectedError = new Error('Token not managed');
-      stubContract.removeToken = sinon.spy(() => {
+      const removeToken = sinon.spy(() => {
         throw expectedError;
       });
-      stubContract.getTokens = sinon.mock().returns([taskArgs.tokenAddress]);
-      sinon.stub(ethers, 'getContractAt').resolves(stubContract);
+      const fakeCollector = {
+        removeToken,
+      } as unknown as Collector;
+      fakeCollector.getTokens = sinon.mock().returns([taskArgs.tokenAddress]);
+      sinon.stub(ethers, 'getContractAt').resolves(fakeCollector);
       await expect(
         removeTokenFromCollector(taskArgs, hre),
         'removeTokenFromCollector did not reject'
       ).to.be.rejectedWith(expectedError);
-      expect(
-        (stubContract.removeToken as SinonSpy).called,
-        'collector.removeToken was not called'
-      ).to.be.true;
+      expect(removeToken).to.have.been.called;
     });
   });
 });
