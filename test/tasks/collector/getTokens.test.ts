@@ -3,14 +3,12 @@ import chaiAsPromised from 'chai-as-promised';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon, { SinonSpy } from 'sinon';
-import sinonChai from 'sinon-chai';
 import {
   getCollectorTokens,
   GetCollectorTokensArgs,
 } from '../../../tasks/collector/getTokens';
 import { Collector } from '../../../typechain-types';
 
-use(sinonChai);
 use(chaiAsPromised);
 
 describe('Script to retrieve the collector tokens', function () {
@@ -39,8 +37,11 @@ describe('Script to retrieve the collector tokens', function () {
         getCollectorTokens(taskArgs, hre),
         'getCollectorTokens rejected'
       ).not.to.be.rejected;
-      expect(getTokens).to.have.been.called;
-      expect(consoleLogSpy).to.have.been.calledWith('Allowed Tokens:', tokens);
+      expect(getTokens.called, 'Collector.getTokens was not called').to.be.true;
+      expect(
+        consoleLogSpy.calledWithExactly('Allowed Tokens:', tokens),
+        'Console.log was not called with the expected arguments'
+      ).to.be.true;
     });
 
     it('should fail if the getTokens task raises an error', async function () {
@@ -56,7 +57,7 @@ describe('Script to retrieve the collector tokens', function () {
         getCollectorTokens(taskArgs, hre),
         'getCollectorTokens did not reject'
       ).to.be.rejectedWith(expectedError);
-      expect(consoleLogSpy).not.to.have.been.called;
+      expect(consoleLogSpy.called, 'Console.log was called').to.be.false;
     });
   });
 });

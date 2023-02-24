@@ -3,14 +3,12 @@ import chaiAsPromised from 'chai-as-promised';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import {
   ManageCollectorTokenArgs,
   addTokenToCollector,
 } from '../../../tasks/collector/addToken';
 import { Collector } from '../../../typechain-types';
 
-use(sinonChai);
 use(chaiAsPromised);
 
 describe('Script to add tokens to collector', function () {
@@ -34,7 +32,7 @@ describe('Script to add tokens to collector', function () {
         addTokenToCollector(taskArgs, hre),
         'addTokenToCollector rejected'
       ).not.to.be.rejected;
-      expect(addToken).to.have.been.called;
+      expect(addToken.called, 'Collector.addToken was not called').to.be.true;
     });
 
     it('should fail if the token is already managed', async function () {
@@ -50,7 +48,7 @@ describe('Script to add tokens to collector', function () {
         addTokenToCollector(taskArgs, hre),
         'addTokenToCollector did not reject'
       ).to.be.rejectedWith(expectedError);
-      expect(addToken).to.have.been.called;
+      expect(addToken.called, 'Collector.addToken was not called').to.be.true;
     });
   });
 });

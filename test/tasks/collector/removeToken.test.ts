@@ -3,12 +3,10 @@ import chaiAsPromised from 'chai-as-promised';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import { ManageCollectorTokenArgs } from 'tasks/collector/addToken';
 import { removeTokenFromCollector } from '../../../tasks/collector/removeToken';
 import { Collector } from '../../../typechain-types';
 
-use(sinonChai);
 use(chaiAsPromised);
 
 describe('Script to remove tokens from collector', function () {
@@ -35,10 +33,13 @@ describe('Script to remove tokens from collector', function () {
         removeTokenFromCollector(taskArgs, hre),
         'removeTokenFromCollector rejected'
       ).not.to.be.rejected;
-      expect(removeToken).to.have.been.calledWithExactly(
-        taskArgs.tokenAddress,
-        expectedTokenIndex
-      );
+      expect(
+        removeToken.calledWithExactly(
+          taskArgs.tokenAddress,
+          expectedTokenIndex
+        ),
+        'collector.removeToken was not called'
+      ).to.be.true;
     });
 
     it('should fail if the token cannot be found', async function () {
@@ -70,7 +71,8 @@ describe('Script to remove tokens from collector', function () {
         removeTokenFromCollector(taskArgs, hre),
         'removeTokenFromCollector did not reject'
       ).to.be.rejectedWith(expectedError);
-      expect(removeToken).to.have.been.called;
+      expect(removeToken.called, 'collector.removeToken was not called').to.be
+        .true;
     });
   });
 });
