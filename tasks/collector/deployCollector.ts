@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Collector } from '../typechain-types';
+import { Collector } from '../../typechain-types';
 
 export const DEFAULT_CONFIG_FILE_NAME = 'deploy-collector.input.json';
 export const DEFAULT_OUTPUT_FILE_NAME = 'revenue-sharing-addresses.json';

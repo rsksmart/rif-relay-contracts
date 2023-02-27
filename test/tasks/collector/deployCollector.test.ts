@@ -14,7 +14,7 @@ import {
   deployCollector,
   DeployCollectorArg,
   OutputConfig,
-} from '../../tasks/deployCollector';
+} from '../../../tasks/collector/deployCollector';
 
 use(smock.matchers);
 use(chaiAsPromised);

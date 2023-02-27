@@ -93,6 +93,55 @@ Example:
 npx hardhat collector:change-partners --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
 ```
 
+#### Add collector token
+
+Pre-requirements:
+- the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector.
+
+Usage:
+
+```bash
+npx hardhat collector:addToken --collector-address "<collector_address>" --token-address "<token_address>" --network regtest
+```
+
+Example:
+```bash
+npx hardhat collector:addToken --collector-address "0xeFb80DB9E2d943A492Bd988f4c619495cA815643" --token-address "0xfD1dda8C3BC734Bc1C8e71F69F25BFBEe9cE9535" --network regtest
+```
+
+#### Get collector tokens
+
+Pre-requirements:
+- the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector.
+
+Usage:
+
+```bash
+npx hardhat collector:getTokens --collector-address "<collector_address>" --network regtest
+```
+
+Example:
+```bash
+npx hardhat collector:getTokens --collector-address "0xeFb80DB9E2d943A492Bd988f4c619495cA815643" --network regtest
+```
+
+#### Remove collector token
+
+Pre-requirements:
+- the collector we want to change must be deployed. See the [related section](#collector-deployment) to deploy a collector;
+- the token that we want to remove should have no balance for the collector we're modifying;
+
+Usage:
+
+```bash
+npx hardhat collector:removeToken --collector-address "<collector_address>" --token-address "<token_address>" --network regtest
+```
+
+Example:
+```bash
+npx hardhat collector:removeToken --collector-address "0xeFb80DB9E2d943A492Bd988f4c619495cA815643" --token-address "0x39B12C05E8503356E3a7DF0B7B33efA4c054C409" --network regtest   
+```
+
 ### Addresses
 
 Each time the smart contracts are deployed, the `contract-addresses.json` file is updated. This file contains all contracts addresses for the network they were selected to be deployed on. 
