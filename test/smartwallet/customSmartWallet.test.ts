@@ -203,10 +203,6 @@ describe('CustomSmartWallet contract', function () {
         ]
       );
       const signature = createValidPersonalSignSignature(privateKey, toSign);
-      // const toSignAsBinaryArray = hardhat.utils.arrayify(toSign);
-      // const signingKey = new hardhat.utils.SigningKey(privateKey);
-      // const signature = signingKey.signDigest(toSignAsBinaryArray);
-      // const signatureCollapsed = hardhat.utils.joinSignature(signature);
 
       await customSmartWalletFactory.createUserSmartWallet(
         owner.address,

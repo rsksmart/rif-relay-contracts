@@ -1,497 +1,557 @@
-// import { AccountKeypair } from '@rsksmart/rif-relay-client';
-// import { use, expect } from 'chai';
-// import chaiAsPromised from 'chai-as-promised';
-// import { ethers } from 'ethers';
-// import {
-//     SmartWalletFactoryInstance,
-//     SmartWalletInstance,
-//     TestTokenInstance
-// } from '../../types/truffle-contracts';
-// import { constants } from '../constants';
-// import {
-//     createRequest,
-//     getGaslessAccount,
-//     getTestingEnvironment,
-//     getTokenBalance,
-//     mintTokens,
-//     signRequest
-// } from '../utils';
+import { expect } from 'chai';
+import { SmartWallet, SmartWalletFactory, UtilToken } from 'typechain-types';
+import { ethers } from 'hardhat';
+import { constants, utils, Wallet } from 'ethers';
+import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { createDeployRequest } from './utils';
+import {
+  getLocalEip712DeploySignature,
+  TypedDeployRequestData,
+} from '../utils/EIP712Utils';
+import { getSuffixData, HARDHAT_CHAIN_ID } from '../smartwallet/utils';
 
-// use(chaiAsPromised);
+const minIndex = 0;
+const maxIndex = 1000000000;
 
-// const SmartWallet = artifacts.require('SmartWallet');
-// const SmartWalletFactory = artifacts.require('SmartWalletFactory');
-// const TestToken = artifacts.require('TestToken');
+const nextIndex = () =>
+  Math.floor(Math.random() * (maxIndex - minIndex + 1) + minIndex);
 
-// type createUserSmartWalletParam = {
-//     owner: string;
-//     recoverer: string;
-//     index: string;
-// };
+const deployContract = <T>(contract: string) => {
+  return ethers
+    .getContractFactory(contract)
+    .then((contractFactory) => contractFactory.deploy() as T);
+};
 
-// /**
-//  * Function to get the actual token balance for an account
-//  * @param owner.address
-//  * @param ownerPrivateKey
-//  * @param recoverer
-//  * @param logicAddress
-//  * @param index
-//  * @param initParams
-//  * @returns The createUserSmartWallet signed
-//  */
-// function createUserSmartWalletSignature(
-//     ownerPrivateKey: Buffer,
-//     object: createUserSmartWalletParam
-// ): string {
-//     const { owner, recoverer, index } = object;
+const provider = ethers.provider;
 
-//     const toSign: string =
-//         web3.utils.soliditySha3(
-//             { t: 'bytes2', v: '0x1910' },
-//             { t: 'address', v: owner },
-//             { t: 'address', v: recoverer },
-//             { t: 'uint256', v: index }
-//         ) ?? '';
-//     const toSignAsBinaryArray = ethers.utils.arrayify(toSign);
-//     const signingKey = new ethers.utils.SigningKey(ownerPrivateKey);
-//     const signature = signingKey.signDigest(toSignAsBinaryArray);
-//     const signatureCollapsed = ethers.utils.joinSignature(signature);
+describe('SmartWalletFactory', function () {
+  describe('constructor', function () {
+    let smartWalletFactory: SmartWalletFactory;
+    let template: Wallet;
 
-//     return signatureCollapsed;
-// }
+    beforeEach(async function () {
+      template = ethers.Wallet.createRandom();
+      const factory = await ethers.getContractFactory('SmartWalletFactory');
+      smartWalletFactory = await factory.deploy(template.address);
+    });
 
-// contract('SmartWalletFactory', ([worker, otherAccount]) => {
-//     let chainId: number;
-//     let factory: SmartWalletFactoryInstance;
-//     let owner: AccountKeypair;
+    it('should update master copy', async function () {
+      await expect(smartWalletFactory.masterCopy()).to.eventually.be.equal(
+        template.address
+      );
+    });
+  });
 
-//     beforeEach(async () => {
-//         owner = await getGaslessAccount();
-//         chainId = (await getTestingEnvironment()).chainId;
-//         const smartWallet = await SmartWallet.new();
-//         factory = await SmartWalletFactory.new(smartWallet.address);
-//     });
+  describe('methods', function () {
+    let smartWalletFactory: SmartWalletFactory;
+    let owner: Wallet;
 
-//     describe('createUserSmartWallet', async () => {
-//         const recoverer = constants.ZERO_ADDRESS;
-//         const index = '0';
+    beforeEach(async function () {
+      const factory = await ethers.getContractFactory('SmartWalletFactory');
+      const template: SmartWallet = await deployContract('SmartWallet');
+      smartWalletFactory = await factory.deploy(template.address);
+      owner = ethers.Wallet.createRandom();
+    });
 
-//         it('Should initiate the smart wallet in the expected address', async () => {
-//             const smartWalletAddress = await factory.getSmartWalletAddress(
-//                 owner.address,
-//                 recoverer,
-//                 index
-//             );
+    describe('createUserSmartWallet', function () {
+      let recoverer: string;
+      let index: number;
 
-//             await expect(SmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
-//                 `Cannot create instance of SmartWallet; no code at address ${smartWalletAddress}`
-//             );
+      beforeEach(function () {
+        recoverer = constants.AddressZero;
+        index = nextIndex();
+      });
 
-//             const signatureCollapsed = createUserSmartWalletSignature(
-//                 owner.privateKey,
-//                 {
-//                     owner: owner.address,
-//                     recoverer,
-//                     index
-//                 }
-//             );
+      it('should initiate the smart wallet in the expected address', async function () {
+        const smartWalletAddress =
+          await smartWalletFactory.getSmartWalletAddress(
+            owner.address,
+            recoverer,
+            index
+          );
 
-//             await factory.createUserSmartWallet(
-//                 owner.address,
-//                 recoverer,
-//                 index,
-//                 signatureCollapsed
-//             );
+        await expect(
+          provider.getCode(smartWalletAddress)
+        ).to.eventually.be.equal('0x');
 
-//             const smartWallet: SmartWalletInstance = await SmartWallet.at(
-//                 smartWalletAddress
-//             );
+        const dataToSign = utils.solidityKeccak256(
+          ['address', 'address', 'address', 'uint256'],
+          [smartWalletFactory.address, owner.address, recoverer, index]
+        );
 
-//             await expect(smartWallet.isInitialized()).to.eventually.be.true;
-//         });
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
 
-//         it('Should fail with a ZERO owner address parameter', async () => {
-//             const signatureCollapsed = createUserSmartWalletSignature(
-//                 owner.privateKey,
-//                 {
-//                     owner: constants.ZERO_ADDRESS,
-//                     recoverer,
-//                     index
-//                 }
-//             );
+        const signature = createValidPersonalSignSignature(
+          privateKey,
+          dataToSign
+        );
 
-//             await expect(
-//                 factory.createUserSmartWallet(
-//                     constants.ZERO_ADDRESS,
-//                     recoverer,
-//                     index,
-//                     signatureCollapsed
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert Invalid signature'
-//             );
-//         });
+        await smartWalletFactory.createUserSmartWallet(
+          owner.address,
+          recoverer,
+          index,
+          signature
+        );
 
-//         it('Should fail when signature does not match', async () => {
-//             const signatureCollapsed = createUserSmartWalletSignature(
-//                 owner.privateKey,
-//                 {
-//                     owner: owner.address,
-//                     recoverer,
-//                     index
-//                 }
-//             );
+        const smartWallet = await ethers.getContractAt(
+          'SmartWallet',
+          smartWalletAddress
+        );
 
-//             await expect(
-//                 factory.createUserSmartWallet(
-//                     otherAccount,
-//                     recoverer,
-//                     index,
-//                     signatureCollapsed
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert Invalid signature'
-//             );
-//         });
-//     });
+        await expect(smartWallet.isInitialized()).to.eventually.be.true;
+      });
 
-//     describe('relayedUserSmartWalletCreation', () => {
-//         let smartWalletAddress: string;
-//         let token: TestTokenInstance;
-//         const logicAddress = constants.ZERO_ADDRESS;
-//         const initParams = '0x';
-//         const recoverer = constants.ZERO_ADDRESS;
-//         const index = '0';
+      it('should fail with a ZERO owner address parameter', async function () {
+        const dataToSign = utils.solidityKeccak256(
+          ['address', 'address', 'address', 'uint256'],
+          [smartWalletFactory.address, constants.AddressZero, recoverer, index]
+        );
 
-//         beforeEach(async () => {
-//             token = await TestToken.new();
-//             smartWalletAddress = await factory.getSmartWalletAddress(
-//                 owner.address,
-//                 recoverer,
-//                 index
-//             );
-//         });
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
 
-//         it('Should initialize the smart wallet in the expected address without paying fee', async () => {
-//             const initialWorkerBalance = await getTokenBalance(token, worker);
-//             expect(initialWorkerBalance.toString()).to.be.equal('0');
+        const signature = createValidPersonalSignSignature(
+          privateKey,
+          dataToSign
+        );
 
-//             await expect(SmartWallet.at(smartWalletAddress)).to.be.rejectedWith(
-//                 `Cannot create instance of SmartWallet; no code at address ${smartWalletAddress}`
-//             );
+        await expect(
+          smartWalletFactory.createUserSmartWallet(
+            owner.address,
+            recoverer,
+            index,
+            signature
+          )
+        ).to.be.rejectedWith('Invalid signature');
+      });
 
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '0',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+      it('should fail when signature does not match', async function () {
+        const dataToSign = utils.solidityKeccak256(
+          ['address', 'address', 'address', 'uint256'],
+          [smartWalletFactory.address, owner.address, recoverer, index]
+        );
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
 
-//             await factory.relayedUserSmartWalletCreation(
-//                 relayRequest.request,
-//                 suffixData,
-//                 worker,
-//                 signature,
-//                 {
-//                     from: worker
-//                 }
-//             );
+        const signature = createValidPersonalSignSignature(
+          privateKey,
+          dataToSign
+        );
 
-//             const smartWallet: SmartWalletInstance = await SmartWallet.at(
-//                 smartWalletAddress
-//             );
+        const otherAccount = Wallet.createRandom();
 
-//             await expect(smartWallet.isInitialized()).to.eventually.be.true;
+        await expect(
+          smartWalletFactory.createUserSmartWallet(
+            otherAccount.address,
+            recoverer,
+            index,
+            signature
+          )
+        ).to.be.rejectedWith('Invalid signature');
+      });
+    });
 
-//             const finalWorkerBalance = await getTokenBalance(token, worker);
-//             await expect(finalWorkerBalance.toString()).to.be.equal('0');
-//         });
+    describe('relayedUserSmartWalletCreation', function () {
+      let recoverer: string;
+      let index: number;
+      let smartWalletAddress: string;
+      let worker: SignerWithAddress;
+      let otherCaller: SignerWithAddress;
+      let token: UtilToken;
 
-//         it('Should initialize the smart wallet in the expected address paying fee', async () => {
-//             const initialWorkerBalance = await getTokenBalance(token, worker);
-//             expect(initialWorkerBalance.toString()).to.be.equal('0');
+      beforeEach(async function () {
+        recoverer = constants.AddressZero;
+        index = nextIndex();
+        smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
+          owner.address,
+          recoverer,
+          index
+        );
+        [worker, otherCaller] = await ethers.getSigners();
+        token = await deployContract('UtilToken');
+      });
 
-//             await mintTokens(token, smartWalletAddress, '1000');
-//             const fee = '500';
+      it('should initialize the smart wallet in the expected address without paying fee', async function () {
+        const initialWorkerBalance = await token.balanceOf(worker.address);
 
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: fee,
-//                     tokenGas: '50000',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        expect(initialWorkerBalance).to.be.equal(0);
+        await expect(
+          provider.getCode(smartWalletAddress)
+        ).to.eventually.be.equal('0x');
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: '0',
+            tokenGas: '0',
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
 
-//             await factory.relayedUserSmartWalletCreation(
-//                 relayRequest.request,
-//                 suffixData,
-//                 worker,
-//                 signature,
-//                 {
-//                     from: worker
-//                 }
-//             );
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
 
-//             const smartWallet: SmartWalletInstance = await SmartWallet.at(
-//                 smartWalletAddress
-//             );
+        const suffixData = getSuffixData(typedDeployData);
 
-//             await expect(smartWallet.isInitialized()).to.eventually.be.true;
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
 
-//             const finalWorkerBalance = await getTokenBalance(token, worker);
-//             await expect(finalWorkerBalance.toString()).to.be.equal(fee);
-//         });
+        await smartWalletFactory
+          .connect(worker)
+          .relayedUserSmartWalletCreation(
+            deployRequest.request,
+            suffixData,
+            worker.address,
+            signature
+          );
 
-//         it('Should fail with negative token amount', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '-100',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        const smartWallet = await ethers.getContractAt(
+          'SmartWallet',
+          smartWalletAddress
+        );
 
-//             expect(() =>
-//                 signRequest(owner.privateKey, relayRequest, chainId)
-//             ).to.throw('Supplied uint is negative');
-//         });
+        const finalWorkerBalance = await token.balanceOf(worker.address);
 
-//         it('Should fail with token as ZERO address parameter', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: constants.ZERO_ADDRESS,
-//                     tokenAmount: '5000',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        expect(finalWorkerBalance).to.be.equal(0);
+        await expect(smartWallet.isInitialized()).to.eventually.be.true;
+      });
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+      it('should initialize the smart wallet in the expected address paying fee', async function () {
+        const initialWorkerBalance = await token.balanceOf(worker.address);
 
-//             await factory.relayedUserSmartWalletCreation(
-//                 relayRequest.request,
-//                 suffixData,
-//                 worker,
-//                 signature,
-//                 {
-//                     from: worker
-//                 }
-//             );
-//             const smartWallet: SmartWalletInstance = await SmartWallet.at(
-//                 smartWalletAddress
-//             );
+        expect(initialWorkerBalance).to.be.equal(0);
+        await expect(
+          provider.getCode(smartWalletAddress)
+        ).to.eventually.be.equal('0x');
 
-//             await expect(smartWallet.isInitialized()).to.eventually.be.true;
-//         });
+        await token.mint(1000, smartWalletAddress);
 
-//         it('Should fail when owner does not have funds to pay', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '5000',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        const amountToBePay = 500;
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: amountToBePay,
+            tokenGas: 55000,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
 
-//             await expect(
-//                 factory.relayedUserSmartWalletCreation(
-//                     relayRequest.request,
-//                     suffixData,
-//                     worker,
-//                     signature,
-//                     {
-//                         from: worker
-//                     }
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert Unable to initialize SW'
-//             );
-//         });
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
 
-//         it('Should fail when invalid caller(Not relayHub)', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '5000',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: otherAccount
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        const suffixData = getSuffixData(typedDeployData);
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
 
-//             await expect(
-//                 factory.relayedUserSmartWalletCreation(
-//                     relayRequest.request,
-//                     suffixData,
-//                     worker,
-//                     signature,
-//                     {
-//                         from: worker
-//                     }
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert Invalid caller'
-//             );
-//         });
+        await smartWalletFactory
+          .connect(worker)
+          .relayedUserSmartWalletCreation(
+            deployRequest.request,
+            suffixData,
+            worker.address,
+            signature
+          );
 
-//         it('Should fail when nonce does not match', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '5000',
-//                     tokenGas: '0',
-//                     recoverer: recoverer,
-//                     index: index,
-//                     relayHub: worker,
-//                     nonce: '1'
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+        const smartWallet = await ethers.getContractAt(
+          'SmartWallet',
+          smartWalletAddress
+        );
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        const finalWorkerBalance = await token.balanceOf(worker.address);
 
-//             await expect(
-//                 factory.relayedUserSmartWalletCreation(
-//                     relayRequest.request,
-//                     suffixData,
-//                     worker,
-//                     signature,
-//                     {
-//                         from: worker
-//                     }
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert nonce mismatch'
-//             );
-//         });
+        expect(finalWorkerBalance).to.be.equal(amountToBePay);
+        await expect(smartWallet.isInitialized()).to.eventually.be.true;
+      });
 
-//         it('Should fail when signature does not match', async () => {
-//             const relayRequest = createRequest(
-//                 {
-//                     from: owner.address,
-//                     to: logicAddress,
-//                     data: initParams,
-//                     tokenContract: token.address,
-//                     tokenAmount: '5000',
-//                     tokenGas: '0',
-//                     index: index,
-//                     relayHub: worker
-//                 },
-//                 {
-//                     callForwarder: factory.address
-//                 }
-//             );
+      it('should fail with tokenGas equals to zero paying fee', async function () {
+        const initialWorkerBalance = await token.balanceOf(worker.address);
 
-//             const { signature, suffixData } = signRequest(
-//                 owner.privateKey,
-//                 relayRequest,
-//                 chainId
-//             );
+        expect(initialWorkerBalance).to.be.equal(constants.Zero);
+        await expect(
+          provider.getCode(smartWalletAddress)
+        ).to.eventually.be.equal('0x');
 
-//             relayRequest.request.from = otherAccount;
+        await token.mint(1000, smartWalletAddress);
 
-//             await expect(
-//                 factory.relayedUserSmartWalletCreation(
-//                     relayRequest.request,
-//                     suffixData,
-//                     worker,
-//                     signature,
-//                     {
-//                         from: worker
-//                     }
-//                 )
-//             ).to.be.rejectedWith(
-//                 'Returned error: VM Exception while processing transaction: revert Signature mismatch'
-//             );
-//         });
-//     });
-// });
+        const amountToBePay = 500;
+
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: amountToBePay,
+            tokenGas: 0,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
+
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
+
+        const suffixData = getSuffixData(typedDeployData);
+
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
+
+        await expect(
+          smartWalletFactory
+            .connect(worker)
+            .relayedUserSmartWalletCreation(
+              deployRequest.request,
+              suffixData,
+              worker.address,
+              signature
+            )
+        ).to.be.rejectedWith('Unable to initialize SW');
+
+        const finalWorkerBalance = await token.balanceOf(worker.address);
+
+        expect(finalWorkerBalance).to.be.equal(0);
+      });
+
+      it('should fail when owner does not have funds to pay', async function () {
+        await token.mint(500, smartWalletAddress);
+
+        const amountToBePay = 1000;
+
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: amountToBePay,
+            tokenGas: 55000,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
+
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
+
+        const suffixData = getSuffixData(typedDeployData);
+
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
+
+        await expect(
+          smartWalletFactory
+            .connect(worker)
+            .relayedUserSmartWalletCreation(
+              deployRequest.request,
+              suffixData,
+              worker.address,
+              signature
+            )
+        ).to.be.rejectedWith('Unable to initialize SW');
+      });
+
+      it('should fail when invalid caller(Not relayHub)', async function () {
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: 0,
+            tokenGas: 0,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
+
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
+
+        const suffixData = getSuffixData(typedDeployData);
+
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
+
+        await expect(
+          smartWalletFactory
+            .connect(otherCaller)
+            .relayedUserSmartWalletCreation(
+              deployRequest.request,
+              suffixData,
+              worker.address,
+              signature
+            )
+        ).to.be.rejectedWith('Invalid caller');
+      });
+
+      it('should fail when nonce does not match', async function () {
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: 0,
+            tokenGas: 0,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+            nonce: 1,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
+
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
+
+        const suffixData = getSuffixData(typedDeployData);
+
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
+
+        await expect(
+          smartWalletFactory
+            .connect(worker)
+            .relayedUserSmartWalletCreation(
+              deployRequest.request,
+              suffixData,
+              worker.address,
+              signature
+            )
+        ).to.be.rejectedWith('nonce mismatch');
+      });
+
+      it('should fail when signature does not match', async function () {
+        const deployRequest = createDeployRequest(
+          {
+            from: owner.address,
+            tokenContract: token.address,
+            tokenAmount: 0,
+            tokenGas: 0,
+            recoverer: recoverer,
+            index: index,
+            relayHub: worker.address,
+          },
+          {
+            callForwarder: smartWalletFactory.address,
+          }
+        );
+
+        const typedDeployData = new TypedDeployRequestData(
+          HARDHAT_CHAIN_ID,
+          smartWalletFactory.address,
+          deployRequest
+        );
+
+        const suffixData = getSuffixData(typedDeployData);
+
+        const privateKey = Buffer.from(
+          owner.privateKey.substring(2, 66),
+          'hex'
+        );
+        const signature = getLocalEip712DeploySignature(
+          typedDeployData,
+          privateKey
+        );
+
+        const otherAccount = Wallet.createRandom();
+
+        deployRequest.request.from = otherAccount.address;
+
+        await expect(
+          smartWalletFactory
+            .connect(worker)
+            .relayedUserSmartWalletCreation(
+              deployRequest.request,
+              suffixData,
+              worker.address,
+              signature
+            )
+        ).to.be.rejectedWith('Signature mismatch');
+      });
+    });
+  });
+});
