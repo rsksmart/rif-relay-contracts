@@ -1,12 +1,10 @@
 import { BigNumber, BigNumberish } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { parseJsonFile } from './utils';
-import type { PartnerConfig } from './changePartnerShares';
 import { PromiseOrValue } from 'typechain-types/common';
 
 export type WithdrawSharesArg = {
   collectorAddress: string;
-  partnerConfig: string;
+  tokenAddress?: string;
   gasLimit?: BigNumberish;
 };
 
@@ -14,17 +12,40 @@ type MinimumErc20TokenContract = {
   balanceOf: (address: string) => Promise<BigNumber>;
 };
 
+const minimumABI = [
+  {
+    constant: true,
+    inputs: [{ name: '_owner', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: 'balance', type: 'uint256' }],
+    type: 'function',
+  },
+];
+
 const printStatus = async (
   collectorAddress: string,
   partners: PromiseOrValue<string>[],
-  erc20TokenInstance: MinimumErc20TokenContract
+  tokenAddresses: string[],
+  hre: HardhatRuntimeEnvironment
 ) => {
-  const collectorBalance = await erc20TokenInstance.balanceOf(collectorAddress);
+  for (const tokenAddress of tokenAddresses) {
+    console.log(`\tToken address: ${tokenAddress}`);
 
-  console.log(`Collector balance: ${collectorBalance.toNumber()}`);
-  for (const partner of partners) {
-    const balance = await erc20TokenInstance.balanceOf(await partner);
-    console.log(`Address ${await partner} balance: ${balance.toNumber()}`);
+    const tokenInstance = (await hre.ethers.getContractAt(
+      minimumABI,
+      tokenAddress
+    )) as unknown as MinimumErc20TokenContract;
+
+    const collectorBalance = await tokenInstance.balanceOf(collectorAddress);
+
+    console.log(`\t\tCollector balance: ${collectorBalance.toString()}`);
+
+    for (const partner of partners) {
+      const balance = await tokenInstance.balanceOf(await partner);
+      console.log(
+        `\t\tAddress ${await partner} balance: ${balance.toString()}`
+      );
+    }
   }
 };
 
@@ -33,56 +54,43 @@ const DEFAULT_TX_GAS = 200000;
 export const withdraw = async (
   {
     collectorAddress,
-    partnerConfig,
+    tokenAddress,
     gasLimit = DEFAULT_TX_GAS,
   }: WithdrawSharesArg,
   hre: HardhatRuntimeEnvironment
 ) => {
-  const parsedPartnerConfig = parseJsonFile<PartnerConfig>(partnerConfig);
-
-  const parsedPartners = parsedPartnerConfig.partners.map((partnerConfig) => {
-    return partnerConfig.beneficiary;
-  });
-
-  if (!parsedPartners.length) {
-    throw new Error(`invalid partners in ${partnerConfig}`);
-  }
-
-  const { tokenAddress } = parsedPartnerConfig;
-
-  const minABI = [
-    // balanceOf
-    {
-      constant: true,
-      inputs: [{ name: '_owner', type: 'address' }],
-      name: 'balanceOf',
-      outputs: [{ name: 'balance', type: 'uint256' }],
-      type: 'function',
-    },
-  ];
-
-  const erc20TokenInstance = (await hre.ethers.getContractAt(
-    minABI,
-    tokenAddress
-  )) as unknown as MinimumErc20TokenContract;
-
-  console.log('---Token balance before---');
-  await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
-
   const collector = await hre.ethers.getContractAt(
     'Collector',
     collectorAddress
   );
 
+  const partners = await collector.getPartners();
+
+  const parsedPartners = partners.map((partnerConfig) => {
+    return partnerConfig.beneficiary;
+  });
+
+  const tokenAddresses = tokenAddress
+    ? [tokenAddress]
+    : await collector.getTokens();
+
+  console.log('---Balance before---');
+  await printStatus(collectorAddress, parsedPartners, tokenAddresses, hre);
+
   try {
-    await collector.withdraw({ gasLimit });
+    tokenAddress
+      ? await collector.withdrawToken(tokenAddress, { gasLimit })
+      : await collector.withdraw({ gasLimit });
   } catch (error) {
     console.error(
-      `Error withdrawing funds from collector with address ${collectorAddress}`
+      `Error withdrawing funds from collector with address ${collectorAddress}: ${
+        (error as Error).message
+      }`
     );
+
     throw error;
   }
 
-  console.log('---Token balance after---');
-  await printStatus(collectorAddress, parsedPartners, erc20TokenInstance);
+  console.log('---Balance after---');
+  await printStatus(collectorAddress, parsedPartners, tokenAddresses, hre);
 };
