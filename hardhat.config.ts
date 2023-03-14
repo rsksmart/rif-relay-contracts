@@ -151,9 +151,9 @@ task('collector:withdraw', 'Withdraws funds from a collector contract')
     'collectorAddress',
     'address of the collector we want to withdraw from'
   )
-  .addParam(
-    'partnerConfig',
-    'path of the file that includes the partner shares configuration'
+  .addOptionalParam(
+    'tokenAddress',
+    'Token to withdraw. If undefined, all tokens will be withdrawn'
   )
   .addOptionalParam('gasLimit', 'gasLimit to be used for the transaction')
   .setAction(async (taskArgs: WithdrawSharesArg, hre) => {
