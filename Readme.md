@@ -186,19 +186,19 @@ For further info about `truffle exec`, please have a look at its [official docum
 
 ### Withdraw
 
-To call the withdraw() method available on the Collector contract, the repo provides the utility script `collector:withdraw`. It allows the user to call the `withdraw()` function from the Collector contract. It receives the following parameters:
+To withdraw (share) the funds from the Collector contract, the repository provides the utility script `collector:withdraw`. It allows the user to call either the `withdraw()` or `withdrawToken()` function from the Collector contract. It receives the following parameters:
 
-- `collector-address`: mandatory, it's the address of the collector we want to change;
-- `partner-config`: a path specifying the file that contains the partner configuration for the deployed collector;
-- `gas-limit`: optional, it's the gas limit used for the transaction. If the transaction fails, we may probably need to specify an higher value; default value is `200000`;
+- `collector-address`: Mandatory. It's the address of the collector;
+- `token-address`: Optional. It's the address of the token contract to withdraw. If provided, the function `withdrawToken()` will be called with this specific value, otherwise the function `withdraw()` will be called and the withdraw will be executed on all the allowed tokens;
+- `gas-limit`: Optional. It's the gas limit used for the transaction. Default value is `200000`;
 
 ```bash
-npx hardhat collector:withdraw --collector-address='<0xcollector_address>' --partner-config "<file_including_partners_config.json>"  --gas-limit='<gas_limit>' --network regtest
+npx hardhat collector:withdraw --collector-address '<0xcollector_address>' --token-address '<0xtoken_address>'  --gas-limit <gas_limit> --network <network-name>
 ```
 
 Example:
 ```bash
-npx hardhat collector:withdraw --collector-address "0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "300000" --network regtest
+npx hardhat collector:withdraw --collector-address "0x0Aa058aD63E36bC2f98806f2D638353AE89C3634" --token-address "0x6f217dEd6c86A57f1211F464302e6fA544045B4f" --gas-limit 500000 --network regtest 
 ```
 
 ## Library usage

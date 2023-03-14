@@ -12,7 +12,7 @@ type MinimumErc20TokenContract = {
   balanceOf: (address: string) => Promise<BigNumber>;
 };
 
-const minimumABI = [
+const MINIMUM_ABI = [
   {
     constant: true,
     inputs: [{ name: '_owner', type: 'address' }],
@@ -21,6 +21,8 @@ const minimumABI = [
     type: 'function',
   },
 ];
+
+export const DEFAULT_TX_GAS = 200000;
 
 const printStatus = async (
   collectorAddress: string,
@@ -32,7 +34,7 @@ const printStatus = async (
     console.log(`\tToken address: ${tokenAddress}`);
 
     const tokenInstance = (await hre.ethers.getContractAt(
-      minimumABI,
+      MINIMUM_ABI,
       tokenAddress
     )) as unknown as MinimumErc20TokenContract;
 
@@ -49,8 +51,6 @@ const printStatus = async (
   }
 };
 
-const DEFAULT_TX_GAS = 200000;
-
 export const withdraw = async (
   {
     collectorAddress,
@@ -65,17 +65,23 @@ export const withdraw = async (
   );
 
   const partners = await collector.getPartners();
+  console.log('partners: ', partners);
 
-  const parsedPartners = partners.map((partnerConfig) => {
-    return partnerConfig.beneficiary;
+  const partnersAddresses = partners.map((partner) => {
+    return partner.beneficiary;
   });
 
-  const tokenAddresses = tokenAddress
+  const tokenAddressesToWithdraw = tokenAddress
     ? [tokenAddress]
     : await collector.getTokens();
 
   console.log('---Balance before---');
-  await printStatus(collectorAddress, parsedPartners, tokenAddresses, hre);
+  await printStatus(
+    collectorAddress,
+    partnersAddresses,
+    tokenAddressesToWithdraw,
+    hre
+  );
 
   try {
     tokenAddress
@@ -92,5 +98,10 @@ export const withdraw = async (
   }
 
   console.log('---Balance after---');
-  await printStatus(collectorAddress, parsedPartners, tokenAddresses, hre);
+  await printStatus(
+    collectorAddress,
+    partnersAddresses,
+    tokenAddressesToWithdraw,
+    hre
+  );
 };
