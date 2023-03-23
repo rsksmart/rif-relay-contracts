@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { SmartWallet, SmartWalletFactory, UtilToken } from 'typechain-types';
+import {
+  SmartWallet,
+  SmartWalletFactory,
+  SmartWalletFactory__factory,
+  UtilToken,
+} from 'typechain-types';
 import { ethers } from 'hardhat';
 import { constants, utils, Wallet } from 'ethers';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
@@ -10,6 +15,7 @@ import {
   TypedDeployRequestData,
 } from '../utils/EIP712Utils';
 import { getSuffixData, HARDHAT_CHAIN_ID } from '../smartwallet/utils';
+import { deployContract } from '../../utils/deployment/deployment.utils';
 
 const minIndex = 0;
 const maxIndex = 1000000000;
@@ -17,13 +23,9 @@ const maxIndex = 1000000000;
 const nextIndex = () =>
   Math.floor(Math.random() * (maxIndex - minIndex + 1) + minIndex);
 
-const deployContract = <T>(contract: string) => {
-  return ethers
-    .getContractFactory(contract)
-    .then((contractFactory) => contractFactory.deploy() as T);
-};
-
-const provider = ethers.provider;
+type SmartWalletFactoryOptions = Parameters<
+  SmartWalletFactory__factory['deploy']
+>;
 
 describe('SmartWalletFactory', function () {
   describe('constructor', function () {
@@ -32,8 +34,13 @@ describe('SmartWalletFactory', function () {
 
     beforeEach(async function () {
       template = ethers.Wallet.createRandom();
-      const factory = await ethers.getContractFactory('SmartWalletFactory');
-      smartWalletFactory = await factory.deploy(template.address);
+      ({ contract: smartWalletFactory } = await deployContract<
+        SmartWalletFactory,
+        SmartWalletFactoryOptions
+      >({
+        contractName: 'SmartWalletFactory',
+        constructorArgs: [template.address],
+      }));
     });
 
     it('should update master copy', async function () {
@@ -48,9 +55,17 @@ describe('SmartWalletFactory', function () {
     let owner: Wallet;
 
     beforeEach(async function () {
-      const factory = await ethers.getContractFactory('SmartWalletFactory');
-      const template: SmartWallet = await deployContract('SmartWallet');
-      smartWalletFactory = await factory.deploy(template.address);
+      const { contract: template } = await deployContract<SmartWallet, []>({
+        contractName: 'SmartWallet',
+        constructorArgs: [],
+      });
+      ({ contract: smartWalletFactory } = await deployContract<
+        SmartWalletFactory,
+        SmartWalletFactoryOptions
+      >({
+        contractName: 'SmartWalletFactory',
+        constructorArgs: [template.address],
+      }));
       owner = ethers.Wallet.createRandom();
     });
 
@@ -70,10 +85,6 @@ describe('SmartWalletFactory', function () {
             recoverer,
             index
           );
-
-        await expect(
-          provider.getCode(smartWalletAddress)
-        ).to.eventually.be.equal('0x');
 
         const dataToSign = utils.solidityKeccak256(
           ['address', 'address', 'address', 'uint256'],
@@ -123,7 +134,7 @@ describe('SmartWalletFactory', function () {
 
         await expect(
           smartWalletFactory.createUserSmartWallet(
-            owner.address,
+            constants.AddressZero,
             recoverer,
             index,
             signature
@@ -177,17 +188,14 @@ describe('SmartWalletFactory', function () {
           index
         );
         [worker, otherCaller] = await ethers.getSigners();
-        token = await deployContract('UtilToken');
+        ({ contract: token } = await deployContract<UtilToken, []>({
+          contractName: 'UtilToken',
+          constructorArgs: [],
+        }));
+        await token.mint(1000, smartWalletAddress);
       });
 
       it('should initialize the smart wallet in the expected address without paying fee', async function () {
-        const initialWorkerBalance = await token.balanceOf(worker.address);
-
-        expect(initialWorkerBalance).to.be.equal(0);
-        await expect(
-          provider.getCode(smartWalletAddress)
-        ).to.eventually.be.equal('0x');
-
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
@@ -220,6 +228,8 @@ describe('SmartWalletFactory', function () {
           privateKey
         );
 
+        const initialWorkerBalance = await token.balanceOf(worker.address);
+
         await smartWalletFactory
           .connect(worker)
           .relayedUserSmartWalletCreation(
@@ -236,27 +246,18 @@ describe('SmartWalletFactory', function () {
 
         const finalWorkerBalance = await token.balanceOf(worker.address);
 
-        expect(finalWorkerBalance).to.be.equal(0);
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
         await expect(smartWallet.isInitialized()).to.eventually.be.true;
       });
 
       it('should initialize the smart wallet in the expected address paying fee', async function () {
-        const initialWorkerBalance = await token.balanceOf(worker.address);
-
-        expect(initialWorkerBalance).to.be.equal(0);
-        await expect(
-          provider.getCode(smartWalletAddress)
-        ).to.eventually.be.equal('0x');
-
-        await token.mint(1000, smartWalletAddress);
-
-        const amountToBePay = 500;
+        const amountToPay = 500;
 
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
             tokenContract: token.address,
-            tokenAmount: amountToBePay,
+            tokenAmount: amountToPay,
             tokenGas: 55000,
             recoverer: recoverer,
             index: index,
@@ -279,10 +280,13 @@ describe('SmartWalletFactory', function () {
           owner.privateKey.substring(2, 66),
           'hex'
         );
+
         const signature = getLocalEip712DeploySignature(
           typedDeployData,
           privateKey
         );
+
+        const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await smartWalletFactory
           .connect(worker)
@@ -300,27 +304,20 @@ describe('SmartWalletFactory', function () {
 
         const finalWorkerBalance = await token.balanceOf(worker.address);
 
-        expect(finalWorkerBalance).to.be.equal(amountToBePay);
+        expect(finalWorkerBalance).to.be.equal(
+          initialWorkerBalance.add(amountToPay)
+        );
         await expect(smartWallet.isInitialized()).to.eventually.be.true;
       });
 
-      it('should fail with tokenGas equals to zero paying fee', async function () {
-        const initialWorkerBalance = await token.balanceOf(worker.address);
-
-        expect(initialWorkerBalance).to.be.equal(constants.Zero);
-        await expect(
-          provider.getCode(smartWalletAddress)
-        ).to.eventually.be.equal('0x');
-
-        await token.mint(1000, smartWalletAddress);
-
-        const amountToBePay = 500;
+      it('should fail with tokenGas equals to zero while paying fee', async function () {
+        const amountToPay = 500;
 
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
             tokenContract: token.address,
-            tokenAmount: amountToBePay,
+            tokenAmount: amountToPay,
             tokenGas: 0,
             recoverer: recoverer,
             index: index,
@@ -348,6 +345,8 @@ describe('SmartWalletFactory', function () {
           privateKey
         );
 
+        const initialWorkerBalance = await token.balanceOf(worker.address);
+
         await expect(
           smartWalletFactory
             .connect(worker)
@@ -361,19 +360,17 @@ describe('SmartWalletFactory', function () {
 
         const finalWorkerBalance = await token.balanceOf(worker.address);
 
-        expect(finalWorkerBalance).to.be.equal(0);
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
 
       it('should fail when owner does not have funds to pay', async function () {
-        await token.mint(500, smartWalletAddress);
-
-        const amountToBePay = 1000;
+        const amountToPay = 1500;
 
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
             tokenContract: token.address,
-            tokenAmount: amountToBePay,
+            tokenAmount: amountToPay,
             tokenGas: 55000,
             recoverer: recoverer,
             index: index,
@@ -401,6 +398,8 @@ describe('SmartWalletFactory', function () {
           privateKey
         );
 
+        const initialWorkerBalance = await token.balanceOf(worker.address);
+
         await expect(
           smartWalletFactory
             .connect(worker)
@@ -411,6 +410,10 @@ describe('SmartWalletFactory', function () {
               signature
             )
         ).to.be.rejectedWith('Unable to initialize SW');
+
+        const finalWorkerBalance = await token.balanceOf(worker.address);
+
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
 
       it('should fail when invalid caller(Not relayHub)', async function () {
@@ -446,6 +449,8 @@ describe('SmartWalletFactory', function () {
           privateKey
         );
 
+        const initialWorkerBalance = await token.balanceOf(worker.address);
+
         await expect(
           smartWalletFactory
             .connect(otherCaller)
@@ -456,6 +461,10 @@ describe('SmartWalletFactory', function () {
               signature
             )
         ).to.be.rejectedWith('Invalid caller');
+
+        const finalWorkerBalance = await token.balanceOf(worker.address);
+
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
 
       it('should fail when nonce does not match', async function () {
@@ -487,10 +496,13 @@ describe('SmartWalletFactory', function () {
           owner.privateKey.substring(2, 66),
           'hex'
         );
+
         const signature = getLocalEip712DeploySignature(
           typedDeployData,
           privateKey
         );
+
+        const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await expect(
           smartWalletFactory
@@ -502,6 +514,10 @@ describe('SmartWalletFactory', function () {
               signature
             )
         ).to.be.rejectedWith('nonce mismatch');
+
+        const finalWorkerBalance = await token.balanceOf(worker.address);
+
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
 
       it('should fail when signature does not match', async function () {
@@ -541,6 +557,8 @@ describe('SmartWalletFactory', function () {
 
         deployRequest.request.from = otherAccount.address;
 
+        const initialWorkerBalance = await token.balanceOf(worker.address);
+
         await expect(
           smartWalletFactory
             .connect(worker)
@@ -551,6 +569,10 @@ describe('SmartWalletFactory', function () {
               signature
             )
         ).to.be.rejectedWith('Signature mismatch');
+
+        const finalWorkerBalance = await token.balanceOf(worker.address);
+
+        expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
     });
   });
