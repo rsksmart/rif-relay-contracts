@@ -7,8 +7,9 @@ import {
 } from 'typechain-types';
 import { ethers } from 'hardhat';
 import { constants, utils, Wallet } from 'ethers';
-import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import seedrandom from 'seedrandom';
+import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import { createDeployRequest } from './utils';
 import {
   getLocalEip712DeploySignature,
@@ -17,11 +18,12 @@ import {
 import { getSuffixData, HARDHAT_CHAIN_ID } from '../smartwallet/utils';
 import { deployContract } from '../../utils/deployment/deployment.utils';
 
+const random = seedrandom('rif');
 const minIndex = 0;
 const maxIndex = 1000000000;
 
 const nextIndex = () =>
-  Math.floor(Math.random() * (maxIndex - minIndex + 1) + minIndex);
+  Math.floor(random() * (maxIndex - minIndex + 1) + minIndex);
 
 type SmartWalletFactoryOptions = Parameters<
   SmartWalletFactory__factory['deploy']
