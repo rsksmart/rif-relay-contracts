@@ -8,27 +8,20 @@ import {
   UtilToken,
 } from 'typechain-types';
 import { deployContract } from '../../utils/deployment/deployment.utils';
-import seedrandom from 'seedrandom';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import {
-  getLocalEip712DeploySignature,
-  TypedDeployRequestData,
-} from '../utils/EIP712Utils';
-import { getSuffixData, HARDHAT_CHAIN_ID } from '../smartwallet/utils';
-import { createDeployRequest } from './utils';
-
-const random = seedrandom('rif');
-const minIndex = 0;
-const maxIndex = 1000000000;
-
-const nextIndex = () =>
-  Math.floor(random() * (maxIndex - minIndex + 1) + minIndex);
+import { createDeployRequest, randomNumber, signDeployRequest } from './utils';
 
 type CustomSmartWalletFactoryOptions = Parameters<
   CustomSmartWalletFactory__factory['deploy']
 >;
 
 describe('CustomSmartWalletFactory', function () {
+  let chainId: number;
+
+  before(async function () {
+    ({ chainId } = await ethers.provider.getNetwork());
+  });
+
   describe('constructor', function () {
     let customSmartWalletFactory: CustomSmartWalletFactory;
     let template: Wallet;
@@ -76,7 +69,7 @@ describe('CustomSmartWalletFactory', function () {
 
       beforeEach(function () {
         recoverer = constants.AddressZero;
-        index = nextIndex();
+        index = randomNumber();
         logicAddress = constants.AddressZero;
       });
 
@@ -215,7 +208,7 @@ describe('CustomSmartWalletFactory', function () {
       beforeEach(async function () {
         recoverer = constants.AddressZero;
         logicAddress = constants.AddressZero;
-        index = nextIndex();
+        index = randomNumber();
         smartWalletAddress =
           await customSmartWalletFactory.getSmartWalletAddress(
             owner.address,
@@ -248,21 +241,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -305,22 +288,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -365,21 +337,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -418,21 +380,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -469,21 +421,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -521,22 +463,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
@@ -573,21 +504,11 @@ describe('CustomSmartWalletFactory', function () {
           }
         );
 
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
+        const { suffixData, signature } = signDeployRequest(
+          owner,
+          deployRequest,
           customSmartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
+          chainId
         );
 
         const otherAccount = Wallet.createRandom();
