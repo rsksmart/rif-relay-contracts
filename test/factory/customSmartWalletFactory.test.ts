@@ -1,22 +1,21 @@
 import { expect } from 'chai';
+import { constants, utils, Wallet } from 'ethers';
+import { ethers } from 'hardhat';
+import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import {
-  SmartWallet,
-  SmartWalletFactory,
-  SmartWalletFactory__factory,
+  CustomSmartWalletFactory,
+  CustomSmartWalletFactory__factory,
   UtilToken,
 } from 'typechain-types';
-import { ethers } from 'hardhat';
-import { constants, utils, Wallet } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
-import { createDeployRequest, randomNumber, signDeployRequest } from './utils';
 import { deployContract } from '../../utils/deployment/deployment.utils';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { createDeployRequest, randomNumber, signDeployRequest } from './utils';
 
-type SmartWalletFactoryOptions = Parameters<
-  SmartWalletFactory__factory['deploy']
+type CustomSmartWalletFactoryOptions = Parameters<
+  CustomSmartWalletFactory__factory['deploy']
 >;
 
-describe('SmartWalletFactory', function () {
+describe('CustomSmartWalletFactory', function () {
   let chainId: number;
 
   before(async function () {
@@ -24,41 +23,39 @@ describe('SmartWalletFactory', function () {
   });
 
   describe('constructor', function () {
-    let smartWalletFactory: SmartWalletFactory;
+    let customSmartWalletFactory: CustomSmartWalletFactory;
     let template: Wallet;
 
     beforeEach(async function () {
       template = ethers.Wallet.createRandom();
-      ({ contract: smartWalletFactory } = await deployContract<
-        SmartWalletFactory,
-        SmartWalletFactoryOptions
-      >({
-        contractName: 'SmartWalletFactory',
-        constructorArgs: [template.address],
-      }));
+      const factory = await ethers.getContractFactory(
+        'CustomSmartWalletFactory'
+      );
+      customSmartWalletFactory = await factory.deploy(template.address);
     });
 
     it('should update master copy', async function () {
-      await expect(smartWalletFactory.masterCopy()).to.eventually.be.equal(
-        template.address
-      );
+      await expect(
+        customSmartWalletFactory.masterCopy()
+      ).to.eventually.be.equal(template.address);
     });
   });
 
   describe('methods', function () {
-    let smartWalletFactory: SmartWalletFactory;
+    let customSmartWalletFactory: CustomSmartWalletFactory;
     let owner: Wallet;
 
     beforeEach(async function () {
-      const { contract: template } = await deployContract<SmartWallet, []>({
-        contractName: 'SmartWallet',
+      const { contract: template } = await deployContract({
+        contractName: 'CustomSmartWallet',
         constructorArgs: [],
       });
-      ({ contract: smartWalletFactory } = await deployContract<
-        SmartWalletFactory,
-        SmartWalletFactoryOptions
+
+      ({ contract: customSmartWalletFactory } = await deployContract<
+        CustomSmartWalletFactory,
+        CustomSmartWalletFactoryOptions
       >({
-        contractName: 'SmartWalletFactory',
+        contractName: 'CustomSmartWalletFactory',
         constructorArgs: [template.address],
       }));
       owner = ethers.Wallet.createRandom();
@@ -67,23 +64,35 @@ describe('SmartWalletFactory', function () {
     describe('createUserSmartWallet', function () {
       let recoverer: string;
       let index: number;
+      let logicAddress: string;
+      const initParams = '0x';
 
       beforeEach(function () {
         recoverer = constants.AddressZero;
         index = randomNumber();
+        logicAddress = constants.AddressZero;
       });
 
       it('should initiate the smart wallet in the expected address', async function () {
         const smartWalletAddress =
-          await smartWalletFactory.getSmartWalletAddress(
+          await customSmartWalletFactory.getSmartWalletAddress(
             owner.address,
             recoverer,
+            logicAddress,
+            utils.keccak256(initParams),
             index
           );
 
         const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [smartWalletFactory.address, owner.address, recoverer, index]
+          ['address', 'address', 'address', 'address', 'uint256', 'bytes'],
+          [
+            customSmartWalletFactory.address,
+            owner.address,
+            recoverer,
+            logicAddress,
+            index,
+            initParams,
+          ]
         );
 
         const privateKey = Buffer.from(
@@ -96,10 +105,12 @@ describe('SmartWalletFactory', function () {
           dataToSign
         );
 
-        await smartWalletFactory.createUserSmartWallet(
+        await customSmartWalletFactory.createUserSmartWallet(
           owner.address,
           recoverer,
+          logicAddress,
           index,
+          initParams,
           signature
         );
 
@@ -114,8 +125,15 @@ describe('SmartWalletFactory', function () {
 
       it('should fail with a ZERO owner address parameter', async function () {
         const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [smartWalletFactory.address, constants.AddressZero, recoverer, index]
+          ['address', 'address', 'address', 'address', 'uint256', 'bytes'],
+          [
+            customSmartWalletFactory.address,
+            constants.AddressZero,
+            recoverer,
+            logicAddress,
+            index,
+            initParams,
+          ]
         );
 
         const privateKey = Buffer.from(
@@ -129,10 +147,12 @@ describe('SmartWalletFactory', function () {
         );
 
         await expect(
-          smartWalletFactory.createUserSmartWallet(
+          customSmartWalletFactory.createUserSmartWallet(
             constants.AddressZero,
             recoverer,
+            logicAddress,
             index,
+            initParams,
             signature
           )
         ).to.be.rejectedWith('Invalid signature');
@@ -140,8 +160,15 @@ describe('SmartWalletFactory', function () {
 
       it('should fail when signature does not match', async function () {
         const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [smartWalletFactory.address, owner.address, recoverer, index]
+          ['address', 'address', 'address', 'address', 'uint256', 'bytes'],
+          [
+            customSmartWalletFactory.address,
+            constants.AddressZero,
+            recoverer,
+            logicAddress,
+            index,
+            initParams,
+          ]
         );
 
         const privateKey = Buffer.from(
@@ -157,10 +184,12 @@ describe('SmartWalletFactory', function () {
         const otherAccount = Wallet.createRandom();
 
         await expect(
-          smartWalletFactory.createUserSmartWallet(
+          customSmartWalletFactory.createUserSmartWallet(
             otherAccount.address,
             recoverer,
+            logicAddress,
             index,
+            initParams,
             signature
           )
         ).to.be.rejectedWith('Invalid signature');
@@ -174,15 +203,21 @@ describe('SmartWalletFactory', function () {
       let worker: SignerWithAddress;
       let token: UtilToken;
       const tokenGas = 55000;
+      let logicAddress: string;
+      const initParams = '0x';
 
       beforeEach(async function () {
         recoverer = constants.AddressZero;
+        logicAddress = constants.AddressZero;
         index = randomNumber();
-        smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
-          owner.address,
-          recoverer,
-          index
-        );
+        smartWalletAddress =
+          await customSmartWalletFactory.getSmartWalletAddress(
+            owner.address,
+            recoverer,
+            logicAddress,
+            utils.keccak256(initParams),
+            index
+          );
         [worker] = await ethers.getSigners();
         ({ contract: token } = await deployContract<UtilToken, []>({
           contractName: 'UtilToken',
@@ -196,27 +231,27 @@ describe('SmartWalletFactory', function () {
           {
             from: owner.address,
             tokenContract: token.address,
-            tokenAmount: 0,
-            tokenGas: 0,
+            tokenAmount: '0',
+            tokenGas: '0',
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
-        await smartWalletFactory
+        await customSmartWalletFactory
           .connect(worker)
           .relayedUserSmartWalletCreation(
             deployRequest.request,
@@ -250,20 +285,20 @@ describe('SmartWalletFactory', function () {
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
-        await smartWalletFactory
+        await customSmartWalletFactory
           .connect(worker)
           .relayedUserSmartWalletCreation(
             deployRequest.request,
@@ -299,21 +334,21 @@ describe('SmartWalletFactory', function () {
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await expect(
-          smartWalletFactory
+          customSmartWalletFactory
             .connect(worker)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
@@ -342,21 +377,21 @@ describe('SmartWalletFactory', function () {
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await expect(
-          smartWalletFactory
+          customSmartWalletFactory
             .connect(worker)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
@@ -383,14 +418,14 @@ describe('SmartWalletFactory', function () {
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
@@ -401,7 +436,7 @@ describe('SmartWalletFactory', function () {
         ) as SignerWithAddress;
 
         await expect(
-          smartWalletFactory
+          customSmartWalletFactory
             .connect(invalidRelayHub)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
@@ -429,21 +464,21 @@ describe('SmartWalletFactory', function () {
             nonce: 1,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await expect(
-          smartWalletFactory
+          customSmartWalletFactory
             .connect(worker)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
@@ -470,14 +505,14 @@ describe('SmartWalletFactory', function () {
             relayHub: worker.address,
           },
           {
-            callForwarder: smartWalletFactory.address,
+            callForwarder: customSmartWalletFactory.address,
           }
         );
 
         const { suffixData, signature } = signDeployRequest(
           owner,
           deployRequest,
-          smartWalletFactory.address,
+          customSmartWalletFactory.address,
           chainId
         );
 
@@ -488,7 +523,7 @@ describe('SmartWalletFactory', function () {
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
         await expect(
-          smartWalletFactory
+          customSmartWalletFactory
             .connect(worker)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
