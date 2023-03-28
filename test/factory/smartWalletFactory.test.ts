@@ -108,6 +108,7 @@ describe('SmartWalletFactory', function () {
           smartWalletAddress
         );
 
+        expect(smartWallet.address).to.be.equal(smartWalletAddress);
         await expect(smartWallet.isInitialized()).to.eventually.be.true;
       });
 
@@ -171,8 +172,8 @@ describe('SmartWalletFactory', function () {
       let index: number;
       let smartWalletAddress: string;
       let worker: SignerWithAddress;
-      let otherCaller: SignerWithAddress;
       let token: UtilToken;
+      const tokenGas = 55000;
 
       beforeEach(async function () {
         recoverer = constants.AddressZero;
@@ -182,12 +183,12 @@ describe('SmartWalletFactory', function () {
           recoverer,
           index
         );
-        [worker, otherCaller] = await ethers.getSigners();
+        [worker] = await ethers.getSigners();
         ({ contract: token } = await deployContract<UtilToken, []>({
           contractName: 'UtilToken',
           constructorArgs: [],
         }));
-        await token.mint(1000, smartWalletAddress);
+        await token.mint(utils.parseEther('5'), smartWalletAddress);
       });
 
       it('should initialize the smart wallet in the expected address without paying fee', async function () {
@@ -195,8 +196,8 @@ describe('SmartWalletFactory', function () {
           {
             from: owner.address,
             tokenContract: token.address,
-            tokenAmount: '0',
-            tokenGas: '0',
+            tokenAmount: 0,
+            tokenGas: 0,
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
@@ -236,14 +237,14 @@ describe('SmartWalletFactory', function () {
       });
 
       it('should initialize the smart wallet in the expected address paying fee', async function () {
-        const amountToPay = 500;
+        const amountToPay = utils.parseEther('2').toString();
 
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
             tokenContract: token.address,
             tokenAmount: amountToPay,
-            tokenGas: 55000,
+            tokenGas,
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
@@ -285,7 +286,7 @@ describe('SmartWalletFactory', function () {
       });
 
       it('should fail with tokenGas equals to zero while paying fee', async function () {
-        const amountToPay = 500;
+        const amountToPay = utils.parseEther('2').toString();
 
         const deployRequest = createDeployRequest(
           {
@@ -327,15 +328,15 @@ describe('SmartWalletFactory', function () {
         expect(finalWorkerBalance).to.be.equal(initialWorkerBalance);
       });
 
-      it('should fail when owner does not have funds to pay', async function () {
-        const amountToPay = 1500;
+      it('should fail when the smart wallet does not have funds to pay', async function () {
+        const amountToPay = utils.parseEther('6').toString();
 
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
             tokenContract: token.address,
             tokenAmount: amountToPay,
-            tokenGas: 55000,
+            tokenGas,
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
@@ -395,9 +396,13 @@ describe('SmartWalletFactory', function () {
 
         const initialWorkerBalance = await token.balanceOf(worker.address);
 
+        const invalidRelayHub = (await ethers.getSigners()).at(
+          1
+        ) as SignerWithAddress;
+
         await expect(
           smartWalletFactory
-            .connect(otherCaller)
+            .connect(invalidRelayHub)
             .relayedUserSmartWalletCreation(
               deployRequest.request,
               suffixData,
