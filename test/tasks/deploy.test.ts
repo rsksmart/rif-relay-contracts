@@ -100,28 +100,28 @@ describe('Deploy Script', function () {
       sinon.restore();
     });
 
-    it('should generate a json config file with existing config file', function () {
+    it('should generate a json config file with existing config file', async function () {
       sinon.stub(fs, 'existsSync').returns(true);
       sinon
         .stub(fs, 'readFileSync')
         .returns(JSON.stringify(chainContractAddresses));
-      updateConfig(contractAddresses, hre);
+      await updateConfig(contractAddresses, hre);
       spyWriteFileSync.calledOnceWith(
         'contract-addresses.json',
         JSON.stringify(chainContractAddresses)
       );
     });
 
-    it('should generate a json config file when config file is not present', function () {
+    it('should generate a json config file when config file is not present', async function () {
       sinon.stub(fs, 'existsSync').returns(false);
-      updateConfig(contractAddresses, hre);
+      await updateConfig(contractAddresses, hre);
       spyWriteFileSync.calledOnceWith(
         'contract-addresses.json',
         JSON.stringify(chainContractAddresses)
       );
     });
 
-    it('should throw if network is undefined', function () {
+    it('should throw if network is undefined', async function () {
       sinon.stub(fs, 'existsSync').returns(true);
       sinon
         .stub(fs, 'readFileSync')
@@ -130,12 +130,12 @@ describe('Deploy Script', function () {
       if (hre.config.networks['regtest']) {
         hre.config.networks['regtest'].chainId = 33;
       }
-      expect(() => updateConfig(contractAddresses, hre)).to.throw(
+      await expect(updateConfig(contractAddresses, hre)).to.be.rejectedWith(
         'Unknown Network'
       );
     });
 
-    it('should throw if chainId is undefined', function () {
+    it('should throw if chainId is undefined', async function () {
       sinon.stub(fs, 'existsSync').returns(true);
       sinon
         .stub(fs, 'readFileSync')
@@ -144,7 +144,7 @@ describe('Deploy Script', function () {
       if (hre.config.networks['regtest']) {
         hre.config.networks['regtest'].chainId = undefined;
       }
-      expect(() => updateConfig(contractAddresses, hre)).to.throw(
+      await expect(updateConfig(contractAddresses, hre)).to.to.be.rejectedWith(
         'Unknown Chain Id'
       );
     });

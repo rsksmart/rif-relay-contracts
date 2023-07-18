@@ -1,21 +1,22 @@
 import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
-import { getExistingConfig } from './utils';
+import { parseJsonFile } from './utils';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
 
+// TODO: Use the async version of fs.writeFile
 export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
-  console.log(`address file available at: ${ADDRESS_FILE}`);
+  console.log(`Address file available at: "${ADDRESS_FILE}"`);
 };
 
-export const updateConfig = (
+export const updateConfig = async (
   contractAddresses: ContractAddresses,
   { hardhatArguments, config: { networks } }: HardhatRuntimeEnvironment
-): NetworkConfig => {
+): Promise<NetworkConfig> => {
   console.log('Generating network config...');
 
   const { network } = hardhatArguments;
@@ -32,8 +33,14 @@ export const updateConfig = (
     throw new Error('Unknown Chain Id');
   }
 
+  const existingConfig = (await new Promise<AddressesConfig>((resolve) => {
+    resolve(parseJsonFile<AddressesConfig>(ADDRESS_FILE));
+  }).catch(() =>
+    console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`)
+  )) as AddressesConfig;
+
   return {
-    ...getExistingConfig(ADDRESS_FILE),
+    ...existingConfig,
     [`${network}.${chainId}`]: contractAddresses,
   };
 };
@@ -146,6 +153,6 @@ export const deploy = async (hre: HardhatRuntimeEnvironment) => {
   } = hre;
   const contractAddresses = await deployContracts(ethers, network);
   console.table(contractAddresses);
-  const newConfig = updateConfig(contractAddresses, hre);
+  const newConfig = await updateConfig(contractAddresses, hre);
   writeConfigToDisk(newConfig);
 };
