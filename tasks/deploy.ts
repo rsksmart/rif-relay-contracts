@@ -35,9 +35,9 @@ export const updateConfig = async (
 
   const existingConfig = (await new Promise<AddressesConfig>((resolve) => {
     resolve(parseJsonFile<AddressesConfig>(ADDRESS_FILE));
-  }).catch((_) => {
-    console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`);
-  })) as AddressesConfig;
+  }).catch(() =>
+    console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`)
+  )) as AddressesConfig;
 
   return {
     ...existingConfig,
