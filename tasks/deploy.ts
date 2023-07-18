@@ -13,10 +13,10 @@ export const writeConfigToDisk = (config: NetworkConfig) => {
   console.log(`Address file available at: "${ADDRESS_FILE}"`);
 };
 
-export const updateConfig = (
+export const updateConfig = async (
   contractAddresses: ContractAddresses,
   { hardhatArguments, config: { networks } }: HardhatRuntimeEnvironment
-): NetworkConfig => {
+): Promise<NetworkConfig> => {
   console.log('Generating network config...');
 
   const { network } = hardhatArguments;
@@ -33,12 +33,11 @@ export const updateConfig = (
     throw new Error('Unknown Chain Id');
   }
 
-  let existingConfig = {};
-  try {
-    existingConfig = parseJsonFile<AddressesConfig>(ADDRESS_FILE);
-  } catch (error) {
+  const existingConfig = (await new Promise<AddressesConfig>((resolve) => {
+    resolve(parseJsonFile<AddressesConfig>(ADDRESS_FILE));
+  }).catch((_) => {
     console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`);
-  }
+  })) as AddressesConfig;
 
   return {
     ...existingConfig,
@@ -154,6 +153,6 @@ export const deploy = async (hre: HardhatRuntimeEnvironment) => {
   } = hre;
   const contractAddresses = await deployContracts(ethers, network);
   console.table(contractAddresses);
-  const newConfig = updateConfig(contractAddresses, hre);
+  const newConfig = await updateConfig(contractAddresses, hre);
   writeConfigToDisk(newConfig);
 };
