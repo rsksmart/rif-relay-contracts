@@ -1,15 +1,16 @@
 import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
-import { getExistingConfig } from './utils';
+import { parseJsonFile } from './utils';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
 
+// TODO: Use the async version of fs.writeFile
 export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
-  console.log(`address file available at: ${ADDRESS_FILE}`);
+  console.log(`Address file available at: "${ADDRESS_FILE}"`);
 };
 
 export const updateConfig = (
@@ -32,8 +33,15 @@ export const updateConfig = (
     throw new Error('Unknown Chain Id');
   }
 
+  let existingConfig = {};
+  try {
+    existingConfig = parseJsonFile<AddressesConfig>(ADDRESS_FILE);
+  } catch (error) {
+    console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`);
+  }
+
   return {
-    ...getExistingConfig(ADDRESS_FILE),
+    ...existingConfig,
     [`${network}.${chainId}`]: contractAddresses,
   };
 };
