@@ -3,13 +3,14 @@ import { AllowedTokensArgs } from './allowTokens';
 import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
 
 export const removeTokens = async (
-  {tokenList, verifierList}: AllowedTokensArgs,
+  { tokenList, verifierList }: AllowedTokensArgs,
   hre: HardhatRuntimeEnvironment
 ) => {
-
   const tokenAddresses = tokenList.split(',');
 
-  const verifiers = verifierList ? await getVerifiersFromArgs(verifierList, hre) : await getVerifiersFromFile(hre);
+  const verifiers = verifierList
+    ? await getVerifiersFromArgs(verifierList, hre)
+    : await getVerifiersFromFile(hre);
 
   for (const tokenAddress of tokenAddresses) {
     for (const verifier of verifiers) {

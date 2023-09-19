@@ -126,7 +126,6 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
   };
 }
 
-
 export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
   const {
     deployVerifier,
@@ -143,14 +142,21 @@ export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
     customDeployVerifier,
     customRelayVerifier,
     nativeHolderDeployVerifier,
-    nativeHolderRelayVerifier
+    nativeHolderRelayVerifier,
   ] as TokenHandler[];
 };
 
-export const getTokenHandlerFromAddress = async (address: string, { ethers }: HardhatRuntimeEnvironment): Promise<TokenHandler> => await ethers.getContractAt(
-  'TokenHandler',
-  address
-);
+export const getTokenHandlerFromAddress = async (
+  address: string,
+  { ethers }: HardhatRuntimeEnvironment
+): Promise<TokenHandler> => await ethers.getContractAt('TokenHandler', address);
 
-export const getVerifiersFromArgs = async (verifierList: string, hre: HardhatRuntimeEnvironment) => Promise.all(verifierList.split(',').map((address) => getTokenHandlerFromAddress(address, hre)));
-
+export const getVerifiersFromArgs = async (
+  verifierList: string,
+  hre: HardhatRuntimeEnvironment
+) =>
+  Promise.all(
+    verifierList
+      .split(',')
+      .map((address) => getTokenHandlerFromAddress(address, hre))
+  );

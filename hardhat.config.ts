@@ -17,7 +17,10 @@ import {
   deployCollector,
   DeployCollectorArg,
 } from './tasks/collector/deployCollector';
-import { GetAllowedTokensArgs, getAllowedTokens } from './tasks/getAllowedTokens';
+import {
+  GetAllowedTokensArgs,
+  getAllowedTokens,
+} from './tasks/getAllowedTokens';
 import { removeTokens } from './tasks/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import {
@@ -136,22 +139,29 @@ task('collector:deploy', 'Deploys the collector')
 
 task('allow-tokens', 'Allows a list of tokens')
   .addParam('tokenList', 'list of tokens')
-  .addOptionalParam('verifierList', 'list of tokens in a comma-separated format (e.g.: "address1,address2")')
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .setAction(async (taskArgs: AllowedTokensArgs, hre) => {
     await allowTokens(taskArgs, hre);
   });
 
 task('allowed-tokens', 'Retrieves a list of allowed tokens')
-  .addOptionalParam('verifierList', 'list of tokens in a comma-separated format (e.g.: "address1,address2")')
-  .setAction(
-    async (taskArgs: GetAllowedTokensArgs, hre) => {
-      await getAllowedTokens(taskArgs, hre);
-    }
-);
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: GetAllowedTokensArgs, hre) => {
+    await getAllowedTokens(taskArgs, hre);
+  });
 
 task('remove-tokens', 'Removes a list of tokens')
   .addParam('tokenList', 'list of tokens')
-  .addOptionalParam('verifierList', 'list of tokens in a comma-separated format (e.g.: "address1,address2")')
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .setAction(async (taskArgs: AllowedTokensArgs, hre) => {
     await removeTokens(taskArgs, hre);
   });
