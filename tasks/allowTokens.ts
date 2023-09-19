@@ -1,40 +1,26 @@
-import { ContractTransaction } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getVerifiers } from './utils';
+import { GetAllowedTokensArgs } from './getAllowedTokens';
+import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
+
+export type AllowedTokensArgs = GetAllowedTokensArgs & {
+  tokenList: string 
+}
 
 export const allowTokens = async (
-  taskArgs: { tokenlist: string },
+  {tokenList, verifierList}: AllowedTokensArgs,
   hre: HardhatRuntimeEnvironment
 ) => {
-  const tokenAddresses = taskArgs.tokenlist.split(',');
+  const tokenAddresses = tokenList.split(',');
 
-  const {
-    deployVerifier,
-    relayVerifier,
-    customDeployVerifier,
-    customRelayVerifier,
-    nativeHolderDeployVerifier,
-    nativeHolderRelayVerifier,
-  } = await getVerifiers(hre);
-
-  const verifierMap: Map<
-    string,
-    { acceptToken: (tokenAddress: string) => Promise<ContractTransaction> }
-  > = new Map();
-  verifierMap.set('deployVerifier', deployVerifier);
-  verifierMap.set('relayVerifier', relayVerifier);
-  verifierMap.set('customDeployVerifier', customDeployVerifier);
-  verifierMap.set('customRelayVerifier', customRelayVerifier);
-  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
-  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
+  const verifiers = verifierList ? await getVerifiersFromArgs(verifierList, hre) : await getVerifiersFromFile(hre);
 
   for (const tokenAddress of tokenAddresses) {
-    for (const [key, verifier] of verifierMap) {
+    for (const verifier of verifiers) {
       try {
         await verifier.acceptToken(tokenAddress);
       } catch (error) {
         console.error(
-          `Error adding token with address ${tokenAddress} to allowed tokens on ${key}`
+          `Error adding token with address ${tokenAddress} to allowed tokens on Verifier at ${verifier.address}`
         );
         throw error;
       }

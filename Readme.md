@@ -156,13 +156,15 @@ This file also is being exported on the distributable version to provide the con
 
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. In the same way, tokens can be removed from the list of previously allowed tokens. There are some helpful commands for this:
 
-1. To allow a specific token, run `npx hardhat allow-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+1. To allow a specific token, run `npx hardhat allow-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allow-tokens --network <NETWORK_NAME> --verifier-list <address1,address2>`
 2. To query allowed tokens run `npx hardhat allowed-tokens --network <NETWORK_NAME>`. This will display them on the console. If you want to query just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allowed-tokens --network <NETWORK_NAME> --verifier-list <address1,address2>`
-3. To remove a sepecific token, run `npx hardhat remove-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+3. To remove a sepecific token, run `npx hardhat remove-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers.
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat remove-tokens --network <NETWORK_NAME> --verifier-list <address1,address2>`
 
 ### UtilToken Minting
 

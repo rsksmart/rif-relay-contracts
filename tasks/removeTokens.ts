@@ -1,42 +1,18 @@
-import { ContractTransaction } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getVerifiers } from './utils';
+import { AllowedTokensArgs } from './allowTokens';
+import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
 
 export const removeTokens = async (
-  taskArgs: { tokenlist: string },
+  {tokenList, verifierList}: AllowedTokensArgs,
   hre: HardhatRuntimeEnvironment
 ) => {
-  const tokenAddresses = taskArgs.tokenlist.split(',');
 
-  const {
-    deployVerifier,
-    relayVerifier,
-    customDeployVerifier,
-    customRelayVerifier,
-    nativeHolderDeployVerifier,
-    nativeHolderRelayVerifier,
-  } = await getVerifiers(hre);
+  const tokenAddresses = tokenList.split(',');
 
-  const verifierMap: Map<
-    string,
-    {
-      removeToken: (
-        tokenAddress: string,
-        index: number
-      ) => Promise<ContractTransaction>;
-      getAcceptedTokens: () => Promise<string[]>;
-    }
-  > = new Map();
-
-  verifierMap.set('deployVerifier', deployVerifier);
-  verifierMap.set('relayVerifier', relayVerifier);
-  verifierMap.set('customDeployVerifier', customDeployVerifier);
-  verifierMap.set('customRelayVerifier', customRelayVerifier);
-  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
-  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
+  const verifiers = verifierList ? await getVerifiersFromArgs(verifierList, hre) : await getVerifiersFromFile(hre);
 
   for (const tokenAddress of tokenAddresses) {
-    for (const [key, verifier] of verifierMap) {
+    for (const verifier of verifiers) {
       try {
         const index = (await verifier.getAcceptedTokens()).indexOf(
           tokenAddress
@@ -44,7 +20,7 @@ export const removeTokens = async (
         await verifier.removeToken(tokenAddress, index);
       } catch (error) {
         console.error(
-          `Error removing token with address ${tokenAddress} from allowed tokens on ${key}`
+          `Error removing token with address ${tokenAddress} from allowed tokens on Verifier at ${verifier.address}`
         );
         throw error;
       }
