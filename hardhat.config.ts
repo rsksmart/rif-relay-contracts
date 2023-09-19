@@ -17,7 +17,7 @@ import {
   deployCollector,
   DeployCollectorArg,
 } from './tasks/collector/deployCollector';
-import { getAllowedTokens } from './tasks/getAllowedTokens';
+import { AllowedTokensArgs, getAllowedTokens } from './tasks/getAllowedTokens';
 import { removeTokens } from './tasks/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import {
@@ -140,10 +140,12 @@ task('allow-tokens', 'Allows a list of tokens')
     await allowTokens(taskArgs, hre);
   });
 
-task('allowed-tokens', 'Retrieves a list of allowed tokens').setAction(
-  async (_, hre) => {
-    await getAllowedTokens(hre);
-  }
+task('allowed-tokens', 'Retrieves a list of allowed tokens')
+  .addOptionalParam('verifierList', 'list of tokens in a comma-separated format (e.g.: "address1,address2")')
+  .setAction(
+    async (taskArgs: AllowedTokensArgs, hre) => {
+      await getAllowedTokens(taskArgs, hre);
+    }
 );
 
 task('collector:withdraw', 'Withdraws funds from a collector contract')

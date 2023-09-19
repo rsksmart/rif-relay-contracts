@@ -1,7 +1,12 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { TokenHandler } from 'typechain-types';
 import { getVerifiers } from './utils';
 
-export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
+export type AllowedTokensArgs = {
+  verifierList?: string
+}
+
+const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
   const {
     deployVerifier,
     relayVerifier,
@@ -11,23 +16,34 @@ export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
     nativeHolderRelayVerifier,
   } = await getVerifiers(hre);
 
-  const verifierMap: Map<
-    string,
-    { getAcceptedTokens: () => Promise<string[]> }
-  > = new Map();
-  verifierMap.set('deployVerifier', deployVerifier);
-  verifierMap.set('relayVerifier', relayVerifier);
-  verifierMap.set('customDeployVerifier', customDeployVerifier);
-  verifierMap.set('customRelayVerifier', customRelayVerifier);
-  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
-  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
+  return [
+    deployVerifier,
+    relayVerifier,
+    customDeployVerifier,
+    customRelayVerifier,
+    nativeHolderDeployVerifier,
+    nativeHolderRelayVerifier
+  ] as TokenHandler[];
+};
 
-  for (const [key, verifier] of verifierMap) {
+const getTokenHandlerFromAddress = async (address: string, { ethers }: HardhatRuntimeEnvironment): Promise<TokenHandler> => await ethers.getContractAt(
+  'TokenHandler',
+  address
+);
+
+const getVerifiersFromArgs = async (verifierList: string, hre: HardhatRuntimeEnvironment) => Promise.all(verifierList.split(',').map((address) => getTokenHandlerFromAddress(address, hre)))
+
+export const getAllowedTokens = async ({ verifierList }: AllowedTokensArgs, hre: HardhatRuntimeEnvironment) => {
+  console.log('verifierList', verifierList);
+
+  const verifiers = verifierList ? await getVerifiersFromArgs(verifierList, hre) : await getVerifiersFromFile(hre);
+
+  for (const verifier of verifiers) {
     try {
       const allowedTokens = await verifier.getAcceptedTokens();
-      console.log(key, allowedTokens);
+      console.log(`Verifier: ${verifier.address}, allowedTokens `, allowedTokens);
     } catch (error) {
-      console.error(`Error getting allowed tokens for ${key}`);
+      console.error(`Error getting allowed tokens for verifier at ${verifier.address}`);
       throw error;
     }
   }
