@@ -22,11 +22,11 @@ describe('Get Allowed Tokens Script', function () {
       sinon.restore();
     });
 
-    it('should get several lists of allowed tokens succesfully', async function () {
+    it('should get several lists of allowed tokens successfully', async function () {
       const stubContract = sinon.createStubInstance(Contract);
       stubContract['getAcceptedTokens'] = () => undefined;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(getAllowedTokens(hre)).to.not.be.rejected;
+      await expect(getAllowedTokens({}, hre)).to.not.be.rejected;
     });
 
     it('should throw error and print it if error while getting allowed tokens', async function () {
@@ -35,7 +35,7 @@ describe('Get Allowed Tokens Script', function () {
         throw new Error();
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(getAllowedTokens(hre)).to.be.rejected;
+      await expect(getAllowedTokens({}, hre)).to.be.rejected;
     });
   });
 });

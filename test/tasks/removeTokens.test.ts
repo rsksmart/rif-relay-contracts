@@ -7,13 +7,14 @@ import { ethers } from 'hardhat';
 import sinon from 'sinon';
 import { removeTokens } from '../../tasks/removeTokens';
 import { stubReadFileSync } from './utils';
+import { AllowedTokensArgs } from 'tasks/allowTokens';
 
 use(chaiAsPromised);
 
 describe('Remove Tokens Script', function () {
   describe('removeTokens', function () {
-    const taskArgs = {
-      tokenlist: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+    const taskArgs: AllowedTokensArgs = {
+      tokenList: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
 
     beforeEach(function () {
