@@ -74,6 +74,7 @@ const config: HardhatUserConfig = {
       ...sharedNetworkConfig,
       url: 'https://public-node.testnet.rsk.co',
       chainId: 31,
+      gasPrice: 40000,
     },
     mainnet: {
       ...sharedNetworkConfig,
