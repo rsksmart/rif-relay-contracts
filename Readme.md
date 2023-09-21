@@ -170,7 +170,7 @@ If you want to modify just one or few verifiers, please specify it with the argu
 
 Once the smart contracts are deployed, [UtilToken](./contracts/utils/UtilToken.sol)s can be minted and transferred by using the related script:
 ```bash
-npx hardhat mint --token-address <0xabc123> --amount <amount_in_wei> --receiver <0xabc123> --network <network_name> 
+npx hardhat mint --token-address <0xabc123> --amount <amount_in_wei> --receiver <0xabc123> --network <NETWORK_NAME> 
 ```
 Parameters:
 - `token-address`: the address of the token that will be minted. The ERC20 token that will be used, needs to have a mint function. 
