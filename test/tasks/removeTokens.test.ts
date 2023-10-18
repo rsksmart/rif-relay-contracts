@@ -18,26 +18,16 @@ const B_VERIFIER_ADDRESS = '0xabc123';
 
 describe('Remove Tokens Script', function () {
   const expectRemoveTokensNotToBeRejected = async (
-    taskArgs: AllowedTokensArgs
+    taskArgs: AllowedTokensArgs,
+    expectedAcceptedTokens: string[] = []
   ) => {
     const stubContract = sinon.createStubInstance(Contract);
     stubContract['removeToken'] = () => undefined;
     stubContract['getAcceptedTokens'] = () => {
-      return [A_TOKEN_ADDRESS, B_TOKEN_ADDRESS];
+      return expectedAcceptedTokens;
     };
     sinon.stub(ethers, 'getContractAt').resolves(stubContract);
     await expect(removeTokens(taskArgs, hre)).to.not.be.rejected;
-  };
-
-  const expectRemoveTokensToBeRejected = async (
-    taskArgs: AllowedTokensArgs
-  ) => {
-    const stubContract = sinon.createStubInstance(Contract);
-    stubContract['removeToken'] = () => {
-      throw new Error();
-    };
-    sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-    await expect(removeTokens(taskArgs, hre)).to.be.rejected;
   };
 
   describe('reading the verifiers from file', function () {
@@ -57,11 +47,14 @@ describe('Remove Tokens Script', function () {
       };
 
       it('should remove the token', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw error and print it if token cannot be removed', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
 
@@ -71,11 +64,14 @@ describe('Remove Tokens Script', function () {
       };
 
       it('should remove the tokens', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw error and print it if token cannot be removed', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
   });
@@ -96,11 +92,14 @@ describe('Remove Tokens Script', function () {
       });
 
       it('should not be rejected', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw an error', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
     describe('remoteToken using one token and multiple verifiers', function () {
@@ -118,11 +117,14 @@ describe('Remove Tokens Script', function () {
       });
 
       it('should not be rejected', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw an error', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
 
@@ -141,11 +143,14 @@ describe('Remove Tokens Script', function () {
       });
 
       it('should not be rejected', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw an error', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
 
@@ -164,11 +169,14 @@ describe('Remove Tokens Script', function () {
       });
 
       it('should not be rejected', async function () {
-        await expectRemoveTokensNotToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs, [
+          A_TOKEN_ADDRESS,
+          B_TOKEN_ADDRESS,
+        ]);
       });
 
       it('should throw an error', async function () {
-        await expectRemoveTokensToBeRejected(taskArgs);
+        await expectRemoveTokensNotToBeRejected(taskArgs);
       });
     });
   });

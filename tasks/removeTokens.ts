@@ -18,6 +18,12 @@ export const removeTokens = async (
         const index = (await verifier.getAcceptedTokens()).indexOf(
           tokenAddress
         );
+        if (index === -1) {
+          console.log(
+            `Token with address ${tokenAddress} is not accepted on Verifier at ${verifier.address}`
+          );
+          continue;
+        }
         await verifier.removeToken(tokenAddress, index);
       } catch (error) {
         console.error(
