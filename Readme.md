@@ -90,7 +90,7 @@ npx hardhat collector:change-partners --collector-address "<collector_address>" 
 ```
 Example:
 ```bash
-npx hardhat collector:change-partners --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
+npx hardhat collector:change-partners --collector-address "0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
 ```
 
 #### Add collector token
