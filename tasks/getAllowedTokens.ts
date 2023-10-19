@@ -1,33 +1,29 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getVerifiers } from './utils';
+import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
 
-export const getAllowedTokens = async (hre: HardhatRuntimeEnvironment) => {
-  const {
-    deployVerifier,
-    relayVerifier,
-    customDeployVerifier,
-    customRelayVerifier,
-    nativeHolderDeployVerifier,
-    nativeHolderRelayVerifier,
-  } = await getVerifiers(hre);
+export type GetAllowedTokensArgs = {
+  verifierList?: string;
+};
 
-  const verifierMap: Map<
-    string,
-    { getAcceptedTokens: () => Promise<string[]> }
-  > = new Map();
-  verifierMap.set('deployVerifier', deployVerifier);
-  verifierMap.set('relayVerifier', relayVerifier);
-  verifierMap.set('customDeployVerifier', customDeployVerifier);
-  verifierMap.set('customRelayVerifier', customRelayVerifier);
-  verifierMap.set('nativeHolderDeployVerifier', nativeHolderDeployVerifier);
-  verifierMap.set('nativeHolderRelayVerifier', nativeHolderRelayVerifier);
+export const getAllowedTokens = async (
+  { verifierList }: GetAllowedTokensArgs,
+  hre: HardhatRuntimeEnvironment
+) => {
+  const verifiers = verifierList
+    ? await getVerifiersFromArgs(verifierList, hre)
+    : await getVerifiersFromFile(hre);
 
-  for (const [key, verifier] of verifierMap) {
+  for (const verifier of verifiers) {
     try {
       const allowedTokens = await verifier.getAcceptedTokens();
-      console.log(key, allowedTokens);
+      console.log(
+        `Verifier: ${verifier.address}, allowedTokens `,
+        allowedTokens
+      );
     } catch (error) {
-      console.error(`Error getting allowed tokens for ${key}`);
+      console.error(
+        `Error getting allowed tokens for verifier at ${verifier.address}`
+      );
       throw error;
     }
   }

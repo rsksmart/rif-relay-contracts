@@ -7,7 +7,7 @@ import 'hardhat-watcher';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { HttpNetworkUserConfig } from 'hardhat/types';
 import { mint, MintArgs } from './tasks/mint';
-import { allowTokens } from './tasks/allowTokens';
+import { AllowedTokensArgs, allowTokens } from './tasks/allowTokens';
 import {
   changePartnerShares,
   ChangePartnerSharesArg,
@@ -17,7 +17,10 @@ import {
   deployCollector,
   DeployCollectorArg,
 } from './tasks/collector/deployCollector';
-import { getAllowedTokens } from './tasks/getAllowedTokens';
+import {
+  GetAllowedTokensArgs,
+  getAllowedTokens,
+} from './tasks/getAllowedTokens';
 import { removeTokens } from './tasks/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import {
@@ -135,16 +138,33 @@ task('collector:deploy', 'Deploys the collector')
   });
 
 task('allow-tokens', 'Allows a list of tokens')
-  .addPositionalParam('tokenlist', 'list of tokens')
-  .setAction(async (taskArgs: { tokenlist: string }, hre) => {
+  .addParam('tokenList', 'list of tokens')
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: AllowedTokensArgs, hre) => {
     await allowTokens(taskArgs, hre);
   });
 
-task('allowed-tokens', 'Retrieves a list of allowed tokens').setAction(
-  async (_, hre) => {
-    await getAllowedTokens(hre);
-  }
-);
+task('allowed-tokens', 'Retrieves a list of allowed tokens')
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: GetAllowedTokensArgs, hre) => {
+    await getAllowedTokens(taskArgs, hre);
+  });
+
+task('remove-tokens', 'Removes a list of tokens')
+  .addParam('tokenList', 'list of tokens')
+  .addOptionalParam(
+    'verifierList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: AllowedTokensArgs, hre) => {
+    await removeTokens(taskArgs, hre);
+  });
 
 task('collector:withdraw', 'Withdraws funds from a collector contract')
   .addParam(
@@ -190,12 +210,6 @@ task(
   )
   .setAction(async (taskArgs: ManageCollectorTokenArgs, hre) => {
     await removeTokenFromCollector(taskArgs, hre);
-  });
-
-task('remove-tokens', 'Removes a list of tokens')
-  .addPositionalParam('tokenlist', 'list of tokens')
-  .setAction(async (taskArgs: { tokenlist: string }, hre) => {
-    await removeTokens(taskArgs, hre);
   });
 
 task('collector:change-partners', 'Change collector partners')

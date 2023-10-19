@@ -90,7 +90,7 @@ npx hardhat collector:change-partners --collector-address "<collector_address>" 
 ```
 Example:
 ```bash
-npx hardhat collector:change-partners --collector-address "<0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
+npx hardhat collector:change-partners --collector-address "0x9b91c655AaE10E6cd0a941Aa90A6e7aa97FB02F4" --partner-config "partner-shares.json" --gas-limit "200000" --network regtest
 ```
 
 #### Add collector token
@@ -156,19 +156,21 @@ This file also is being exported on the distributable version to provide the con
 
 Once the smart contracts are deployed, tokens must be individually allowed to be able to work with the RIF Relay system. In the same way, tokens can be removed from the list of previously allowed tokens. There are some helpful commands for this:
 
-1. To allow a specific token, run `npx hardhat allow-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+1. To allow a specific token, run `npx hardhat allow-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be allowed on the available verifiers
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
-2. To query allowed tokens run `npx hardhat allowed-tokens --network <NETWORK_NAME>`. This will display them on the console.
-3. To remove a sepecific token, run `npx hardhat remove-tokens --network <NETWORK_NAME> <TOKEN_ADDRESSES>` where:
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allow-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES> --verifier-list <address1,address2>`
+2. To query allowed tokens run `npx hardhat allowed-tokens --network <NETWORK_NAME>`. This will display them on the console. If you want to query just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allowed-tokens --network <NETWORK_NAME> --verifier-list <address1,address2>`
+3. To remove a specific token, run `npx hardhat remove-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES>` where:
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers.
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat remove-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES> --verifier-list <address1,address2>`
 
 ### UtilToken Minting
 
 Once the smart contracts are deployed, [UtilToken](./contracts/utils/UtilToken.sol)s can be minted and transferred by using the related script:
 ```bash
-npx hardhat mint --token-address <0xabc123> --amount <amount_in_wei> --receiver <0xabc123> --network <network_name> 
+npx hardhat mint --token-address <0xabc123> --amount <amount_in_wei> --receiver <0xabc123> --network <NETWORK_NAME> 
 ```
 Parameters:
 - `token-address`: the address of the token that will be minted. The ERC20 token that will be used, needs to have a mint function. 

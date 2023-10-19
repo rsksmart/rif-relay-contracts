@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { AddressesConfig } from './deploy';
+import { TokenHandler } from 'typechain-types';
 
 // TODO: we may convert this function to return a promise
 export const parseJsonFile = <T>(filePath: string) => {
@@ -124,3 +125,38 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     nativeHolderRelayVerifier,
   };
 }
+
+export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
+  const {
+    deployVerifier,
+    relayVerifier,
+    customDeployVerifier,
+    customRelayVerifier,
+    nativeHolderDeployVerifier,
+    nativeHolderRelayVerifier,
+  } = await getVerifiers(hre);
+
+  return [
+    deployVerifier,
+    relayVerifier,
+    customDeployVerifier,
+    customRelayVerifier,
+    nativeHolderDeployVerifier,
+    nativeHolderRelayVerifier,
+  ] as TokenHandler[];
+};
+
+export const getTokenHandlerFromAddress = async (
+  address: string,
+  { ethers }: HardhatRuntimeEnvironment
+): Promise<TokenHandler> => await ethers.getContractAt('TokenHandler', address);
+
+export const getVerifiersFromArgs = async (
+  verifierList: string,
+  hre: HardhatRuntimeEnvironment
+) =>
+  Promise.all(
+    verifierList
+      .split(',')
+      .map((address) => getTokenHandlerFromAddress(address, hre))
+  );
