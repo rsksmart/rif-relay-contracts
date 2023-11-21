@@ -1,6 +1,6 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { BigNumber, Contract, Wallet } from 'ethers';
+import { BigNumber, Contract, ContractTransaction, Wallet } from 'ethers';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import {
@@ -36,14 +36,18 @@ describe('Withdraw Script', function () {
     let stubbedCollector: SinonStubbedInstance<Contract>;
     let withdrawSpy: SinonSpy;
     let withdrawTokenSpy: SinonSpy;
+    let stubbedContractTransaction: SinonStubbedInstance<ContractTransaction>;
 
     beforeEach(function () {
+      stubbedContractTransaction = {
+        wait: sinon.stub(),
+      } as typeof stubbedContractTransaction;
       stubbedERC20 = sinon.createStubInstance(Contract);
       stubbedERC20['balanceOf'] = () => BigNumber.from(300000000);
 
       stubbedCollector = sinon.createStubInstance(Contract);
-      stubbedCollector['withdraw'] = () => undefined;
-      stubbedCollector['withdrawToken'] = () => undefined;
+      stubbedCollector['withdraw'] = () => stubbedContractTransaction;
+      stubbedCollector['withdrawToken'] = () => stubbedContractTransaction;
       stubbedCollector['getPartners'] = () => PARTNERS_CONFIG;
       stubbedCollector['getTokens'] = () => ALLOWED_TOKENS;
 
