@@ -84,9 +84,12 @@ export const withdraw = async (
   );
 
   try {
-    tokenAddress
+    const transaction = tokenAddress
       ? await collector.withdrawToken(tokenAddress, { gasLimit })
       : await collector.withdraw({ gasLimit });
+
+    console.log(`Waiting for transaction ${transaction.hash}...`);
+    await transaction.wait();
   } catch (error) {
     console.error(
       `Error withdrawing funds from collector with address ${collectorAddress}: ${
