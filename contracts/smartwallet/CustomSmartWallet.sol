@@ -313,7 +313,7 @@ contract CustomSmartWallet is IForwarder {
         uint256 tokenGas,
         bytes memory initParams
     ) external {
-        require(getOwner() == bytes32(0), "already initialized");
+        require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
 

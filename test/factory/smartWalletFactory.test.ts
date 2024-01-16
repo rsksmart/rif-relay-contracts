@@ -321,7 +321,7 @@ describe('SmartWalletFactory', function () {
               worker.address,
               signature
             )
-        ).to.be.rejectedWith('Unable to initialize SW');
+        ).to.be.rejectedWith('Unable to pay for deployment');
 
         const finalWorkerBalance = await token.balanceOf(worker.address);
 
@@ -364,7 +364,7 @@ describe('SmartWalletFactory', function () {
               worker.address,
               signature
             )
-        ).to.be.rejectedWith('Unable to initialize SW');
+        ).to.be.rejectedWith('Unable to pay for deployment');
 
         const finalWorkerBalance = await token.balanceOf(worker.address);
 

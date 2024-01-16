@@ -134,12 +134,16 @@ contract SmartWalletFactory is ISmartWalletFactory {
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
         bytes memory initData = abi.encodeWithSelector(
-            hex"a6b63eb8",
+            hex"88903efe",
             owner,
             address(0), // This "gas-funded" call does not pay with tokens
             address(0),
             0,
-            0 //No token transfer
+            0, //No token transfer,
+            address(0),
+            0,
+            0,
+            ""
         );
 
         _deploy(
@@ -175,12 +179,16 @@ contract SmartWalletFactory is ISmartWalletFactory {
                 abi.encodePacked(req.from, req.recoverer, req.index) // salt
             ),
             abi.encodeWithSelector(
-                hex"a6b63eb8",
+                hex"88903efe",
                 req.from,
                 req.tokenContract,
                 feesReceiver,
                 req.tokenAmount,
-                req.tokenGas
+                req.tokenGas,
+                req.to,
+                req.value,
+                req.gas,
+                req.data
             )
         );
     }
@@ -233,10 +241,14 @@ contract SmartWalletFactory is ISmartWalletFactory {
         //required is done via the runtime code, to avoid the parameters impacting on the resulting address
 
         /* solhint-disable-next-line avoid-low-level-calls */
-        (bool success, ) = addr.call(initdata);
+        (bool success, bytes memory ret) = addr.call(initdata);
 
         /* solhint-disable-next-line reason-string */
-        require(success, "Unable to initialize SW");
+        if (!success) {
+            assembly {
+                revert(add(ret, 32), mload(ret))
+            }
+        }
 
         //No info is returned, an event is emitted to inform the new deployment
         emit Deployed(addr, uint256(salt));
@@ -261,7 +273,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ),
                 abi.encode(
                     req.relayHub,
@@ -270,6 +282,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
                     req.tokenContract,
                     req.recoverer,
                     req.value,
+                    req.gas,
                     req.nonce,
                     req.tokenAmount,
                     req.tokenGas,
