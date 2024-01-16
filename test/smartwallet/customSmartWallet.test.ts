@@ -103,7 +103,7 @@ function createDeployRequest(
       tokenContract: ZERO_ADDRESS,
       recoverer: ZERO_ADDRESS,
       value: '0',
-      // gas: '10000',
+      gas: '0',
       nonce: '0',
       tokenAmount: '0',
       tokenGas: '50000',
@@ -279,7 +279,7 @@ describe('CustomSmartWallet contract', function () {
           0,
           '0x'
         )
-      ).to.be.rejectedWith('already initialized');
+      ).to.be.rejectedWith('Already initialized');
     });
 
     it('Should fail when the amount is greater than 0 and gas 0', async function () {

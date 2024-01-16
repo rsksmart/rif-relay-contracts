@@ -141,7 +141,7 @@ contract RelayHub is IRelayHub {
     function deployCall(
         EnvelopingTypes.DeployRequest calldata deployRequest,
         bytes calldata signature
-    ) external override {
+    ) external override returns (bool destinationCallSuccess) {
         (signature);
 
         bytes32 managerEntry = workerToManager[msg.sender];
@@ -164,11 +164,13 @@ contract RelayHub is IRelayHub {
             "Invalid gas price"
         );
 
-        bool deploySuccess;
         bytes memory ret;
-        (deploySuccess, ret) = Eip712Library.deploy(deployRequest, signature);
+        (destinationCallSuccess, ret) = Eip712Library.deploy(
+            deployRequest,
+            signature
+        );
 
-        if (!deploySuccess) {
+        if (!destinationCallSuccess) {
             assembly {
                 revert(add(ret, 32), mload(ret))
             }

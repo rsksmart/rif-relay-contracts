@@ -16,7 +16,7 @@ describe('SmartWallet template', function () {
 
     beforeEach(async function () {
       const smartWalletFactoryMock = await smock.mock<SmartWallet__factory>(
-        'CustomSmartWallet'
+        'SmartWallet'
       );
 
       smartWalletMock = await smartWalletFactoryMock.deploy();
@@ -33,12 +33,14 @@ describe('SmartWallet template', function () {
           owner.address,
           ZERO_ADDRESS,
           ZERO_ADDRESS,
+          '0',
+          '0',
           ZERO_ADDRESS,
           '0',
-          '50000',
-          '0x'
+          '0',
+          '0x00'
         )
-      ).to.be.rejectedWith('already initialized');
+      ).to.be.rejectedWith('Already initialized');
     });
   });
 });

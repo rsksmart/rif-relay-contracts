@@ -241,6 +241,7 @@ describe('DeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
+          gas: '0',
         },
       };
 
@@ -272,6 +273,7 @@ describe('DeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
+          gas: '0',
         },
       };
 
@@ -314,6 +316,7 @@ describe('DeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
+          gas: '0',
         },
       };
 
@@ -366,6 +369,7 @@ describe('DeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
+          gas: '0',
         },
       };
 
@@ -407,6 +411,7 @@ describe('DeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
+          gas: '0',
         },
       };
 

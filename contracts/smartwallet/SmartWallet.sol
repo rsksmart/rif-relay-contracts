@@ -270,22 +270,43 @@ contract SmartWallet is IForwarder {
         address tokenAddr,
         address tokenRecipient,
         uint256 tokenAmount,
-        uint256 tokenGas
-    ) external {
-        require(getOwner() == bytes32(0), "already initialized");
+        uint256 tokenGas,
+        address to,
+        uint256 value,
+        uint256 executionGas,
+        bytes calldata data
+    ) external returns (bool success, bytes memory ret) {
+        require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
+        if (to != address(0)) {
+            require(gasleft() > executionGas, "Not enough gas left");
+            (success, ret) = to.call{gas: executionGas, value: value}(data);
+
+            if (!success) {
+                if (ret.length == 0) revert("Unable to execute");
+                assembly {
+                    revert(add(ret, 32), mload(ret))
+                }
+            }
+        }
 
         //we need to initialize the contract
         if (tokenAmount > 0) {
-            (bool success, bytes memory ret) = tokenAddr.call{gas: tokenGas}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb", //transfer(address,uint256)
-                    tokenRecipient,
-                    tokenAmount
-                )
-            );
-
+            if (tokenAddr == address(0)) {
+                (success, ret) = payable(tokenRecipient).call{
+                    value: tokenAmount,
+                    gas: tokenGas
+                }("");
+            } else {
+                (success, ret) = tokenAddr.call{gas: tokenGas}(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb", //transfer(address,uint256)
+                        tokenRecipient,
+                        tokenAmount
+                    )
+                );
+            }
             require(
                 success && (ret.length == 0 || abi.decode(ret, (bool))),
                 "Unable to pay for deployment"

@@ -332,6 +332,7 @@ describe('RelayHub contract - Manager related scenarios', function () {
           nonce: '0',
           tokenAmount: '1',
           tokenGas: '50000',
+          gas: '0',
           data: '0x',
           recoverer: '0',
           validUntilTime: '0',
