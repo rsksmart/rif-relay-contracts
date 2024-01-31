@@ -132,7 +132,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
             "Invalid signature"
         );
 
-        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
+        //88903efe  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,uint256 destinationCallGas,bytes calldata data)
         bytes memory initData = abi.encodeWithSelector(
             hex"88903efe",
             owner,
@@ -170,7 +170,7 @@ contract SmartWalletFactory is ISmartWalletFactory {
         );
         _nonces[req.from]++;
 
-        //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
+        //88903efe  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,uint256 destinationCallGas,bytes calldata data)
         //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
         /* solhint-disable avoid-tx-origin */
         _deploy(
@@ -239,11 +239,8 @@ contract SmartWalletFactory is ISmartWalletFactory {
 
         //Since the init code determines the address of the smart wallet, any initialization
         //required is done via the runtime code, to avoid the parameters impacting on the resulting address
-
-        /* solhint-disable-next-line avoid-low-level-calls */
         (bool success, bytes memory ret) = addr.call(initdata);
 
-        /* solhint-disable-next-line reason-string */
         if (!success) {
             assembly {
                 revert(add(ret, 32), mload(ret))
