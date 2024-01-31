@@ -260,11 +260,15 @@ contract SmartWallet is IForwarder {
      * initialization scope to the wallet logic.
      * This function can only be called once, and it is called by the Factory during deployment
      * @param owner - The EOA that will own the smart wallet
-     * @param tokenAddr - The Token used for payment of the deploy
+     * @param tokenAddr - Token used for payment of the deploy
      * @param tokenRecipient - Recipient of payment
      * @param tokenAmount - Amount to pay
+     * @param tokenGas - Gas limit of payment
+     * @param to - Destination contract to execute
+     * @param value - Value to send to destination contract
+     * @param destinationCallGas - Gas limit of destination contract
+     * @param data - Data to be execute by destination contract
      */
-
     function initialize(
         address owner,
         address tokenAddr,
@@ -273,16 +277,17 @@ contract SmartWallet is IForwarder {
         uint256 tokenGas,
         address to,
         uint256 value,
-        uint256 executionGas,
+        uint256 destinationCallGas,
         bytes calldata data
     ) external returns (bool success, bytes memory ret) {
         require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
         if (to != address(0)) {
-            require(gasleft() > executionGas, "Not enough gas left");
-            (success, ret) = to.call{gas: executionGas, value: value}(data);
-
+            require(gasleft() > destinationCallGas, "Not enough gas left");
+            (success, ret) = to.call{gas: destinationCallGas, value: value}(
+                data
+            );
             if (!success) {
                 if (ret.length == 0) revert("Unable to execute");
                 assembly {
@@ -314,6 +319,13 @@ contract SmartWallet is IForwarder {
         }
 
         _buildDomainSeparator();
+
+        //If any balance has been added then trasfer it to the owner EOA
+        uint256 balanceToTransfer = address(this).balance;
+        if (balanceToTransfer > 0) {
+            //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
+            payable(owner).transfer(balanceToTransfer);
+        }
     }
 
     /* solhint-disable no-empty-blocks */

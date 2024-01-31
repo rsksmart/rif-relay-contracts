@@ -684,7 +684,7 @@ describe('Collector', function () {
       );
     });
 
-    it("should raise an error if the token isn't accepted", async function () {
+    it("Should raise an error if the token isn't accepted", async function () {
       const token = fakeERC20Tokens[0];
       const notAllowedToken = fakeERC20Tokens[1];
       [token, notAllowedToken].map((token) => token.balanceOf.returns(100));
