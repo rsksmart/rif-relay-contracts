@@ -122,9 +122,10 @@ contract SmartWallet is IForwarder {
         (success, ret) = to.call{value: msg.value}(data);
 
         //If any balance has been added then trasfer it to the owner EOA
-        if (address(this).balance > 0) {
+        uint256 balanceToTransfer = address(this).balance;
+        if (balanceToTransfer > 0) {
             //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
-            payable(msg.sender).transfer(address(this).balance);
+            payable(msg.sender).transfer(balanceToTransfer);
         }
     }
 
@@ -150,21 +151,6 @@ contract SmartWallet is IForwarder {
         );
         nonce++;
 
-        if (req.tokenAmount > 0) {
-            (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb", //transfer(address,uint256)
-                    feesReceiver,
-                    req.tokenAmount
-                )
-            );
-
-            require(
-                success && (ret.length == 0 || abi.decode(ret, (bool))),
-                "Unable to pay for relay"
-            );
-        }
-
         //Why this require is not needed: in the case that the EVM implementation
         //sends gasleft() as req.gas  if gasleft() < req.gas (see EIP-1930),  which would end in the call reverting
         //If the relayer made this on purpose in order to collect the payment, since all gasLeft()
@@ -174,9 +160,34 @@ contract SmartWallet is IForwarder {
         //not enough, in that case there might be enough gas to complete the relay and the token payment would be collected
         //For that reason, the next require line must be left uncommented, to avoid malicious relayer attacks to destination contract
         //methods that revert if the gasleft() is not enough to execute whatever logic they have.
-
         require(gasleft() > req.gas, "Not enough gas left");
         (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
+
+        if (req.tokenAmount > 0) {
+            bool successPayment;
+            bytes memory retPayment;
+            if (req.tokenContract == address(0)) {
+                (successPayment, retPayment) = payable(feesReceiver).call{
+                    value: req.tokenAmount,
+                    gas: req.tokenGas
+                }("");
+            } else {
+                (successPayment, retPayment) = req.tokenContract.call{
+                    gas: req.tokenGas
+                }(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb", //transfer(address,uint256)
+                        feesReceiver,
+                        req.tokenAmount
+                    )
+                );
+            }
+            require(
+                successPayment &&
+                    (retPayment.length == 0 || abi.decode(retPayment, (bool))),
+                "Unable to pay for relay"
+            );
+        }
 
         //If any balance has been added then trasfer it to the owner EOA
         uint256 balanceToTransfer = address(this).balance;
@@ -260,8 +271,8 @@ contract SmartWallet is IForwarder {
      * initialization scope to the wallet logic.
      * This function can only be called once, and it is called by the Factory during deployment
      * @param owner - The EOA that will own the smart wallet
-     * @param tokenAddr - Token used for payment of the deploy
-     * @param tokenRecipient - Recipient of payment
+     * @param tokenContract - Token used for payment of the deploy
+     * @param feesReceiver - Recipient of payment
      * @param tokenAmount - Amount to pay
      * @param tokenGas - Gas limit of payment
      * @param to - Destination contract to execute
@@ -271,8 +282,8 @@ contract SmartWallet is IForwarder {
      */
     function initialize(
         address owner,
-        address tokenAddr,
-        address tokenRecipient,
+        address tokenContract,
+        address feesReceiver,
         uint256 tokenAmount,
         uint256 tokenGas,
         address to,
@@ -298,16 +309,16 @@ contract SmartWallet is IForwarder {
 
         //we need to initialize the contract
         if (tokenAmount > 0) {
-            if (tokenAddr == address(0)) {
-                (success, ret) = payable(tokenRecipient).call{
+            if (tokenContract == address(0)) {
+                (success, ret) = payable(feesReceiver).call{
                     value: tokenAmount,
                     gas: tokenGas
                 }("");
             } else {
-                (success, ret) = tokenAddr.call{gas: tokenGas}(
+                (success, ret) = tokenContract.call{gas: tokenGas}(
                     abi.encodeWithSelector(
                         hex"a9059cbb", //transfer(address,uint256)
-                        tokenRecipient,
+                        feesReceiver,
                         tokenAmount
                     )
                 );
