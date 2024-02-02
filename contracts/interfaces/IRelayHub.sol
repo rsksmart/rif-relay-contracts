@@ -82,7 +82,7 @@ interface IRelayHub {
     function deployCall(
         EnvelopingTypes.DeployRequest calldata deployRequest,
         bytes calldata signature
-    ) external returns (bool destinationCallSuccess);
+    ) external;
 
     function penalize(
         address relayWorker,

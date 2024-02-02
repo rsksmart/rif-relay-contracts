@@ -9,7 +9,7 @@ import "../utils/RSKAddrValidator.sol";
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
 
-contract SmartWallet is IForwarder {
+contract BoltzSmartWallet is IForwarder {
     //slot for owner = bytes32(uint256(keccak256('eip1967.proxy.owner')) - 1) = a7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a
     bytes32 private constant _OWNER_SLOT =
         0xa7b53796fd2d99cb1f5ae019b54f9e024446c3d12b483f733ccc62ed04eb126a;
@@ -150,33 +150,33 @@ contract SmartWallet is IForwarder {
         );
         nonce++;
 
-        if (req.tokenAmount > 0) {
-            (success, ret) = req.tokenContract.call{gas: req.tokenGas}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb", //transfer(address,uint256)
-                    feesReceiver,
-                    req.tokenAmount
-                )
-            );
+        (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
 
+        if (req.tokenAmount > 0) {
+            bool successPayment;
+            bytes memory retPayment;
+            if (req.tokenContract == address(0)) {
+                (successPayment, retPayment) = payable(feesReceiver).call{
+                    value: req.tokenAmount,
+                    gas: req.tokenGas
+                }("");
+            } else {
+                (successPayment, retPayment) = req.tokenContract.call{
+                    gas: req.tokenGas
+                }(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb", //transfer(address,uint256)
+                        feesReceiver,
+                        req.tokenAmount
+                    )
+                );
+            }
             require(
-                success && (ret.length == 0 || abi.decode(ret, (bool))),
+                successPayment &&
+                    (retPayment.length == 0 || abi.decode(retPayment, (bool))),
                 "Unable to pay for relay"
             );
         }
-
-        //Why this require is not needed: in the case that the EVM implementation
-        //sends gasleft() as req.gas  if gasleft() < req.gas (see EIP-1930),  which would end in the call reverting
-        //If the relayer made this on purpose in order to collect the payment, since all gasLeft()
-        //was sent to this call, then the next line would give an out of gas, and, as a consequence, will
-        //revert the whole transaction, and the payment will not happen
-        //But it could happen that the destination call makes a gasleft() check and decides to revert if it is
-        //not enough, in that case there might be enough gas to complete the relay and the token payment would be collected
-        //For that reason, the next require line must be left uncommented, to avoid malicious relayer attacks to destination contract
-        //methods that revert if the gasleft() is not enough to execute whatever logic they have.
-
-        require(gasleft() > req.gas, "Not enough gas left");
-        (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
 
         //If any balance has been added then trasfer it to the owner EOA
         if (address(this).balance > 0) {
@@ -259,32 +259,57 @@ contract SmartWallet is IForwarder {
      * initialization scope to the wallet logic.
      * This function can only be called once, and it is called by the Factory during deployment
      * @param owner - The EOA that will own the smart wallet
-     * @param tokenAddr - The Token used for payment of the deploy
-     * @param tokenRecipient - Recipient of payment
+     * @param tokenContract - Token used for payment of the deploy
+     * @param feesReceiver - Recipient of payment
      * @param tokenAmount - Amount to pay
+     * @param tokenGas - Gas limit of payment
+     * @param to - Destination contract to execute
+     * @param value - Value to send to destination contract
+     * @param destinationCallGas - Gas limit of destination contract
+     * @param data - Data to be execute by destination contract
      */
-
     function initialize(
         address owner,
-        address tokenAddr,
-        address tokenRecipient,
+        address tokenContract,
+        address feesReceiver,
         uint256 tokenAmount,
-        uint256 tokenGas
-    ) external {
+        uint256 tokenGas,
+        address to,
+        uint256 value,
+        uint256 destinationCallGas,
+        bytes calldata data
+    ) external returns (bool success, bytes memory ret) {
         require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
+        if (to != address(0)) {
+            (success, ret) = to.call{gas: destinationCallGas, value: value}(
+                data
+            );
+            if (!success) {
+                if (ret.length == 0) revert("Unable to execute");
+                assembly {
+                    revert(add(ret, 32), mload(ret))
+                }
+            }
+        }
 
         //we need to initialize the contract
         if (tokenAmount > 0) {
-            (bool success, bytes memory ret) = tokenAddr.call{gas: tokenGas}(
-                abi.encodeWithSelector(
-                    hex"a9059cbb", //transfer(address,uint256)
-                    tokenRecipient,
-                    tokenAmount
-                )
-            );
-
+            if (tokenContract == address(0)) {
+                (success, ret) = payable(feesReceiver).call{
+                    value: tokenAmount,
+                    gas: tokenGas
+                }("");
+            } else {
+                (success, ret) = tokenContract.call{gas: tokenGas}(
+                    abi.encodeWithSelector(
+                        hex"a9059cbb", //transfer(address,uint256)
+                        feesReceiver,
+                        tokenAmount
+                    )
+                );
+            }
             require(
                 success && (ret.length == 0 || abi.decode(ret, (bool))),
                 "Unable to pay for deployment"
@@ -292,6 +317,12 @@ contract SmartWallet is IForwarder {
         }
 
         _buildDomainSeparator();
+
+        //If any balance has been added then trasfer it to the owner EOA
+        if (address(this).balance > 0) {
+            //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
+            payable(owner).transfer(address(this).balance);
+        }
     }
 
     /* solhint-disable no-empty-blocks */

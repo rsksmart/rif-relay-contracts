@@ -1,5 +1,5 @@
 import { MockContract, smock } from '@defi-wonderland/smock';
-import { SmartWallet, SmartWallet__factory } from 'typechain-types';
+import { BoltzSmartWallet, BoltzSmartWallet__factory } from 'typechain-types';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ethers as hardhat } from 'hardhat';
@@ -10,14 +10,13 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-describe('SmartWallet template', function () {
+describe('BoltzSmartWallet template', function () {
   describe('Function initialize()', function () {
-    let smartWalletMock: MockContract<SmartWallet>;
+    let smartWalletMock: MockContract<BoltzSmartWallet>;
 
     beforeEach(async function () {
-      const smartWalletFactoryMock = await smock.mock<SmartWallet__factory>(
-        'CustomSmartWallet'
-      );
+      const smartWalletFactoryMock =
+        await smock.mock<BoltzSmartWallet__factory>('BoltzSmartWallet');
 
       smartWalletMock = await smartWalletFactoryMock.deploy();
     });
@@ -33,10 +32,12 @@ describe('SmartWallet template', function () {
           owner.address,
           ZERO_ADDRESS,
           ZERO_ADDRESS,
+          '0',
+          '0',
           ZERO_ADDRESS,
           '0',
-          '50000',
-          '0x'
+          '0',
+          '0x00'
         )
       ).to.be.rejectedWith('Already initialized');
     });
