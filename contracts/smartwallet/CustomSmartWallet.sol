@@ -216,10 +216,9 @@ contract CustomSmartWallet is IForwarder {
         }
 
         //If any balance has been added then trasfer it to the owner EOA
-        uint256 balanceToTransfer = address(this).balance;
-        if (balanceToTransfer > 0) {
+        if (address(this).balance > 0) {
             //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
-            payable(req.from).transfer(balanceToTransfer);
+            payable(req.from).transfer(address(this).balance);
         }
     }
 
