@@ -209,6 +209,38 @@ describe('Deploy Script', function () {
         expect(result).not.to.have.any.keys(...unexpectedKeys);
       });
 
+      it('should deploy the boltz wallet', async function () {
+        const result = await deployContracts(
+          { boltzSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'BoltzSmartWallet',
+          'BoltzSmartWalletFactory',
+          'BoltzRelayVerifier',
+          'BoltzDeployVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
       it('should deploy the relay hub and the default smart wallet', async function () {
         const result = await deployContracts(
           { relayHub: true, defaultSmartWallet: true },

@@ -60,6 +60,10 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     contractAddressesDeployed.NativeHolderSmartWalletDeployVerifier;
   const nativeRelayVerifierAddress =
     contractAddressesDeployed.NativeHolderSmartWalletRelayVerifier;
+  const boltzDeployVerifierAddress =
+    contractAddressesDeployed.BoltzDeployVerifier;
+  const boltzRelayVerifierAddress =
+    contractAddressesDeployed.BoltzRelayVerifier;
 
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');
@@ -89,6 +93,14 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     );
   }
 
+  if (!boltzDeployVerifierAddress) {
+    throw new Error('Could not obtain boltz deploy verifier address');
+  }
+
+  if (!boltzRelayVerifierAddress) {
+    throw new Error('Could not obtain boltz deploy verifier address');
+  }
+
   const deployVerifier = await ethers.getContractAt(
     'DeployVerifier',
     deployVerifierAddress
@@ -116,6 +128,15 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     nativeRelayVerifierAddress
   );
 
+  const boltzDeployVerifier = await ethers.getContractAt(
+    'BoltzDeployVerifier',
+    boltzDeployVerifierAddress
+  );
+  const boltzRelayVerifier = await ethers.getContractAt(
+    'BoltzRelayVerifier',
+    boltzRelayVerifierAddress
+  );
+
   return {
     deployVerifier,
     relayVerifier,
@@ -123,6 +144,8 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     customRelayVerifier,
     nativeHolderDeployVerifier,
     nativeHolderRelayVerifier,
+    boltzDeployVerifier,
+    boltzRelayVerifier,
   };
 }
 
@@ -134,6 +157,8 @@ export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
     customRelayVerifier,
     nativeHolderDeployVerifier,
     nativeHolderRelayVerifier,
+    boltzDeployVerifier,
+    boltzRelayVerifier,
   } = await getVerifiers(hre);
 
   return [
@@ -143,6 +168,8 @@ export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
     customRelayVerifier,
     nativeHolderDeployVerifier,
     nativeHolderRelayVerifier,
+    boltzDeployVerifier,
+    boltzRelayVerifier,
   ] as TokenHandler[];
 };
 

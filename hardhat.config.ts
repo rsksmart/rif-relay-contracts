@@ -152,6 +152,10 @@ task(
     'versionRegistry',
     'If specified, it will deploy the version registry'
   )
+  .addFlag(
+    'boltzSmartWallet',
+    'If specified, it will deploy the boltz smart wallet with the factory and the verifiers (deploy, relay)'
+  )
   .setAction(async (taskArgs: DeployArg, hre) => {
     await deploy(taskArgs, hre);
   });
