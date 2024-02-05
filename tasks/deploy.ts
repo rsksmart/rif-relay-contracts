@@ -57,7 +57,6 @@ export const deployContracts = async (
   );
   const deployVerifierF = await ethers.getContractFactory('DeployVerifier');
   const relayVerifierF = await ethers.getContractFactory('RelayVerifier');
-  const utilTokenF = await ethers.getContractFactory('UtilToken');
 
   const customSmartWalletF = await ethers.getContractFactory(
     'CustomSmartWallet'
@@ -70,6 +69,17 @@ export const deployContracts = async (
   );
   const nativeHolderSmartWalletF = await ethers.getContractFactory(
     'NativeHolderSmartWallet'
+  );
+
+  const boltzSmartWalletF = await ethers.getContractFactory('BoltzSmartWallet');
+  const boltzSmartWalletFactoryF = await ethers.getContractFactory(
+    'BoltzSmartWalletFactory'
+  );
+  const boltzDeployVerifierF = await ethers.getContractFactory(
+    'BoltzDeployVerifier'
+  );
+  const boltzRelayVerifierF = await ethers.getContractFactory(
+    'BoltzRelayVerifier'
   );
 
   const versionRegistryFactory = await ethers.getContractFactory(
@@ -117,11 +127,20 @@ export const deployContracts = async (
     nativeHolderSmartWalletFactoryAddress
   );
 
+  const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy();
+  const { address: boltzSmartWalletFactoryAddress } =
+    await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
+  const { address: boltzDeployVerifierAddress } =
+    await boltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
+  const { address: boltzRelayVerifierAddress } =
+    await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
   const { address: versionRegistryAddress } =
     await versionRegistryFactory.deploy();
 
   let utilTokenAddress;
   if (networkName != 'mainnet') {
+    const utilTokenF = await ethers.getContractFactory('UtilToken');
     const { address } = await utilTokenF.deploy();
     utilTokenAddress = address;
   }
@@ -141,6 +160,10 @@ export const deployContracts = async (
     NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
     NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
     NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
+    BoltzSmartWallet: boltzSmartWalletAddress,
+    BoltzSmartWalletFactory: boltzSmartWalletFactoryAddress,
+    BoltzDeployVerifier: boltzDeployVerifierAddress,
+    BoltzRelayVerifier: boltzRelayVerifierAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };

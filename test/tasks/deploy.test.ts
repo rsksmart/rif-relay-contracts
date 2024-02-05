@@ -41,6 +41,10 @@ describe('Deploy Script', function () {
         'NativeHolderSmartWalletFactory',
         'NativeHolderSmartWalletDeployVerifier',
         'NativeHolderSmartWalletRelayVerifier',
+        'BoltzSmartWallet',
+        'BoltzSmartWalletFactory',
+        'BoltzDeployVerifier',
+        'BoltzRelayVerifier',
         'VersionRegistry',
         'UtilToken'
       );
