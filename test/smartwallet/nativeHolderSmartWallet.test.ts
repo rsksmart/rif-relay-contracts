@@ -24,7 +24,7 @@ import {
 } from '../utils/EIP712Utils';
 import {
   buildDomainSeparator,
-  createRequest,
+  createRelayRequest,
   getSuffixData,
   HARDHAT_CHAIN_ID,
 } from './utils';
@@ -175,7 +175,7 @@ describe('NativeHolderSmartWallet contract', function () {
       data = '0x',
       value = TWO_ETHERS.toString(),
     }: PrepareRequestParams) {
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: relayHub.address,
           from: owner.address,

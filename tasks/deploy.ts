@@ -10,6 +10,7 @@ import {
   deployUtilToken,
   deployVersionRegistry,
   deployBoltzSmartWallet,
+  deployMinimalBoltzSmartWallet,
 } from './deployers';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
@@ -24,6 +25,7 @@ export type DeployArg = {
   utilToken?: boolean;
   versionRegistry?: boolean;
   boltzSmartWallet?: boolean;
+  minimalBoltzSmartWallet?: boolean;
 };
 
 // TODO: Use the async version of fs.writeFile
@@ -85,6 +87,7 @@ export const deployContracts = async (
     utilToken: deployUtilToken,
     versionRegistry: deployVersionRegistry,
     boltzSmartWallet: deployBoltzSmartWallet,
+    minimalBoltzSmartWallet: deployMinimalBoltzSmartWallet,
   };
 
   /*

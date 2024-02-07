@@ -156,6 +156,10 @@ task(
     'boltzSmartWallet',
     'If specified, it will deploy the boltz smart wallet with the factory and the verifiers (deploy, relay)'
   )
+  .addFlag(
+    'minimalBoltzSmartWallet',
+    'If specified, it will deploy the minimal boltz smart wallet with the factory and the verifiers (deploy, relay)'
+  )
   .setAction(async (taskArgs: DeployArg, hre) => {
     await deploy(taskArgs, hre);
   });
