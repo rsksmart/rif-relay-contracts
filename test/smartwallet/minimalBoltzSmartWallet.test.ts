@@ -698,6 +698,40 @@ describe('MinimalBoltzSmartWallet contract', function () {
         .called;
     });
 
+    it('Should fail if payment is not with native', async function () {
+      const amountToBePaid = hardhat.utils.parseEther('0.1');
+      const relayRequest = createRelayRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: recipient.address,
+          tokenAmount: amountToBePaid.toString(),
+          tokenGas: '4000',
+          tokenContract: fakeToken.address,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+
+      const suffixData = getSuffixData(typedRequestData);
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature)
+      ).to.be.rejectedWith('RBTC necessary for payment');
+    });
+
     it('Should increment nonce', async function () {
       const initialNonce = 0;
 
@@ -708,7 +742,7 @@ describe('MinimalBoltzSmartWallet contract', function () {
           to: recipient.address,
           tokenAmount: '10',
           tokenGas: '40000',
-          tokenContract: fakeToken.address,
+          tokenContract: ZERO_ADDRESS,
           data: recipientFunction,
           nonce: initialNonce.toString(),
         },

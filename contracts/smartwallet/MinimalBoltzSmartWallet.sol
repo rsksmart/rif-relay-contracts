@@ -153,6 +153,10 @@ contract MinimalBoltzSmartWallet is IForwarder {
         (success, ret) = req.to.call{gas: req.gas}(req.data);
 
         if (req.tokenAmount > 0) {
+            require(
+                req.tokenContract == address(0),
+                "RBTC necessary for payment"
+            );
             (bool successPayment, bytes memory retPayment) = payable(
                 feesReceiver
             ).call{value: req.tokenAmount, gas: req.tokenGas}("");
