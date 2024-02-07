@@ -135,6 +135,11 @@ export const deployContracts = async (
   const { address: boltzRelayVerifierAddress } =
     await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
 
+  const { address: minimalBoltzsmartWalletAddress } =
+    await smartWalletF.deploy();
+  const { address: minimalBoltzsmartWalletFactoryAddress } =
+    await smartWalletFactoryF.deploy(smartWalletAddress);
+
   const { address: versionRegistryAddress } =
     await versionRegistryFactory.deploy();
 
@@ -164,6 +169,8 @@ export const deployContracts = async (
     BoltzSmartWalletFactory: boltzSmartWalletFactoryAddress,
     BoltzDeployVerifier: boltzDeployVerifierAddress,
     BoltzRelayVerifier: boltzRelayVerifierAddress,
+    MinimalBoltzSmartWallet: minimalBoltzsmartWalletAddress,
+    MinimalBoltzSmartWalletFactory: minimalBoltzsmartWalletFactoryAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };
