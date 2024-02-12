@@ -265,7 +265,6 @@ contract BoltzSmartWallet is IForwarder {
      * @param tokenGas - Gas limit of payment
      * @param to - Destination contract to execute
      * @param value - Value to send to destination contract
-     * @param destinationCallGas - Gas limit of destination contract
      * @param data - Data to be execute by destination contract
      */
     function initialize(
@@ -276,16 +275,13 @@ contract BoltzSmartWallet is IForwarder {
         uint256 tokenGas,
         address to,
         uint256 value,
-        uint256 destinationCallGas,
         bytes calldata data
     ) external returns (bool success, bytes memory ret) {
         require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
         if (to != address(0)) {
-            (success, ret) = to.call{gas: destinationCallGas, value: value}(
-                data
-            );
+            (success, ret) = to.call{value: value}(data);
             if (!success) {
                 if (ret.length == 0) revert("Unable to execute");
                 assembly {

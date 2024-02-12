@@ -36,7 +36,6 @@ describe('BoltzSmartWallet template', function () {
           '0',
           ZERO_ADDRESS,
           '0',
-          '0',
           '0x00'
         )
       ).to.be.rejectedWith('Already initialized');

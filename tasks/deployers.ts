@@ -167,13 +167,13 @@ export const deployMinimalBoltzSmartWallet = async (
     await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
 
   const boltzDeployVerifierF = await ethers.getContractFactory(
-    'BoltzDeployVerifier'
+    'MinimalBoltzDeployVerifier'
   );
   const { address: boltzDeployVerifierAddress } =
     await boltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
 
   const boltzRelayVerifierF = await ethers.getContractFactory(
-    'BoltzRelayVerifier'
+    'MinimalBoltzRelayVerifier'
   );
   const { address: boltzRelayVerifierAddress } =
     await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);

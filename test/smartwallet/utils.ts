@@ -25,7 +25,6 @@ export function createDeployRequest(
       tokenContract: ZERO_ADDRESS,
       recoverer: ZERO_ADDRESS,
       value: '0',
-      gas: '0',
       nonce: '0',
       tokenAmount: '0',
       tokenGas: '50000',
