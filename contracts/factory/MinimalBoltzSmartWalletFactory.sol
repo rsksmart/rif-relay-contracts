@@ -114,13 +114,6 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
         return _nonces[from];
     }
 
-    function createUserSmartWallet(
-        address owner,
-        address recoverer,
-        uint256 index,
-        bytes calldata sig
-    ) external override {}
-
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,

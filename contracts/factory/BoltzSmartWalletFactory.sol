@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../interfaces/ISmartWalletFactory.sol";
+import "../interfaces/ISmartWalletCreator.sol";
 import "../utils/RSKAddrValidator.sol";
 
 /* solhint-disable no-inline-assembly */
@@ -71,7 +72,7 @@ PC | OPCODE|   Mnemonic     |   Stack [top, bottom]                       | Comm
 
 /** Factory of Proxies to the SmartWallet (Forwarder)
  */
-contract BoltzSmartWalletFactory is ISmartWalletFactory {
+contract BoltzSmartWalletFactory is ISmartWalletFactory, ISmartWalletCreator {
     using ECDSA for bytes32;
 
     bytes11 private constant _RUNTIME_START = hex"363D3D373D3D3D3D363D73";
