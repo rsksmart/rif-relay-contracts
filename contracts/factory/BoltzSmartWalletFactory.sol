@@ -132,16 +132,15 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
             "Invalid signature"
         );
 
-        //88903efe  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,uint256 destinationCallGas,bytes calldata data)
+        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,bytes calldata data)
         bytes memory initData = abi.encodeWithSelector(
-            hex"88903efe",
+            hex"c07adbdc",
             owner,
             address(0), // This "gas-funded" call does not pay with tokens
             address(0),
             0,
             0, //No token transfer,
             address(0),
-            0,
             0,
             ""
         );
@@ -170,7 +169,7 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
         );
         _nonces[req.from]++;
 
-        //88903efe  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,uint256 destinationCallGas,bytes calldata data)
+        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,bytes calldata data)
         //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
         /* solhint-disable avoid-tx-origin */
         _deploy(
@@ -179,7 +178,7 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
                 abi.encodePacked(req.from, req.recoverer, req.index) // salt
             ),
             abi.encodeWithSelector(
-                hex"88903efe",
+                hex"c07adbdc",
                 req.from,
                 req.tokenContract,
                 feesReceiver,
@@ -187,7 +186,6 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
                 req.tokenGas,
                 req.to,
                 req.value,
-                req.gas,
                 req.data
             )
         );
@@ -241,7 +239,6 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
         //required is done via the runtime code, to avoid the parameters impacting on the resulting address
         (bool success, bytes memory ret) = addr.call(initdata);
 
-        /* solhint-disable-next-line reason-string */
         if (!success) {
             assembly {
                 revert(add(ret, 32), mload(ret))
@@ -271,7 +268,7 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ),
                 abi.encode(
                     req.relayHub,
@@ -280,7 +277,6 @@ contract BoltzSmartWalletFactory is ISmartWalletFactory {
                     req.tokenContract,
                     req.recoverer,
                     req.value,
-                    req.gas,
                     req.nonce,
                     req.tokenAmount,
                     req.tokenGas,

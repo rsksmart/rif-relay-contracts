@@ -51,7 +51,6 @@ export const deployRequestDataType: MessageTypeProperty[] = [
   { name: 'tokenContract', type: 'address' },
   { name: 'recoverer', type: 'address' },
   { name: 'value', type: 'uint256' },
-  { name: 'gas', type: 'uint256' },
   { name: 'nonce', type: 'uint256' },
   { name: 'tokenAmount', type: 'uint256' },
   { name: 'tokenGas', type: 'uint256' },

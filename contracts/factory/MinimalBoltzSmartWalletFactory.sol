@@ -119,40 +119,7 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
         address recoverer,
         uint256 index,
         bytes calldata sig
-    ) external override {
-        bytes32 _hash = keccak256(
-            abi.encodePacked(address(this), owner, recoverer, index)
-        );
-        (sig);
-        bytes32 message = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-        );
-        require(
-            RSKAddrValidator.safeEquals(message.recover(sig), owner),
-            "Invalid signature"
-        );
-
-        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 destinationCallGas,bytes calldata data)
-        bytes memory initData = abi.encodeWithSelector(
-            hex"c07adbdc",
-            owner,
-            address(0),
-            address(0),
-            0,
-            0,
-            address(0),
-            0,
-            ""
-        );
-
-        _deploy(
-            getCreationBytecode(),
-            keccak256(
-                abi.encodePacked(owner, recoverer, index) // salt
-            ),
-            initData
-        );
-    }
+    ) external override {}
 
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
@@ -169,8 +136,7 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
         );
         _nonces[req.from]++;
 
-        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 destinationCallGas,bytes calldata data)
-        //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
+        // 3d326736  => initialize(address owner,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,bytes calldata data)
         /* solhint-disable avoid-tx-origin */
         _deploy(
             getCreationBytecode(),
@@ -178,14 +144,12 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
                 abi.encodePacked(req.from, req.recoverer, req.index) // salt
             ),
             abi.encodeWithSelector(
-                hex"c07adbdc",
+                hex"3d326736",
                 req.from,
-                req.tokenContract,
                 feesReceiver,
                 req.tokenAmount,
                 req.tokenGas,
                 req.to,
-                req.gas,
                 req.data
             )
         );
@@ -239,15 +203,11 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
         //required is done via the runtime code, to avoid the parameters impacting on the resulting address
         (bool success, bytes memory ret) = addr.call(initdata);
 
-        /* solhint-disable-next-line reason-string */
         if (!success) {
             assembly {
                 revert(add(ret, 32), mload(ret))
             }
         }
-
-        //No info is returned, an event is emitted to inform the new deployment
-        emit Deployed(addr, uint256(salt));
     }
 
     // Returns the proxy code to that is deployed on every Smart Wallet creation
@@ -269,7 +229,7 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
         return
             abi.encodePacked(
                 keccak256(
-                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 gas,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
+                    "RelayRequest(address relayHub,address from,address to,address tokenContract,address recoverer,uint256 value,uint256 nonce,uint256 tokenAmount,uint256 tokenGas,uint256 validUntilTime,uint256 index,bytes data,RelayData relayData)RelayData(uint256 gasPrice,address feesReceiver,address callForwarder,address callVerifier)"
                 ),
                 abi.encode(
                     req.relayHub,
@@ -278,7 +238,6 @@ contract MinimalBoltzSmartWalletFactory is ISmartWalletFactory {
                     req.tokenContract,
                     req.recoverer,
                     req.value,
-                    req.gas,
                     req.nonce,
                     req.tokenAmount,
                     req.tokenGas,

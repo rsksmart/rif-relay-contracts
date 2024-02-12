@@ -634,7 +634,6 @@ describe('BoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -682,7 +681,6 @@ describe('BoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -727,7 +725,6 @@ describe('BoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,

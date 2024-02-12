@@ -4,11 +4,11 @@ import {
   MinimalBoltzSmartWallet,
   MinimalBoltzSmartWalletFactory,
   MinimalBoltzSmartWalletFactory__factory,
+  SmartWallet,
 } from 'typechain-types';
 import { ethers } from 'hardhat';
 import { constants, utils, Wallet } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import { createDeployRequest, randomNumber, signDeployRequest } from './utils';
 import { deployContract } from '../../utils/deployment/deployment.utils';
 import { FakeContract, smock } from '@defi-wonderland/smock';
@@ -44,114 +44,6 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         constructorArgs: [template.address],
       }));
       owner = ethers.Wallet.createRandom();
-    });
-
-    describe('createUserSmartWallet', function () {
-      let recoverer: string;
-      let index: number;
-
-      beforeEach(function () {
-        recoverer = constants.AddressZero;
-        index = randomNumber();
-      });
-
-      it('should initiate the smart wallet in the expected address', async function () {
-        const smartWalletAddress =
-          await boltzSmartWalletFactory.getSmartWalletAddress(
-            owner.address,
-            recoverer,
-            index
-          );
-
-        const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [boltzSmartWalletFactory.address, owner.address, recoverer, index]
-        );
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-
-        const signature = createValidPersonalSignSignature(
-          privateKey,
-          dataToSign
-        );
-
-        await boltzSmartWalletFactory.createUserSmartWallet(
-          owner.address,
-          recoverer,
-          index,
-          signature
-        );
-
-        const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
-          smartWalletAddress
-        );
-
-        expect(smartWallet.address).to.be.equal(smartWalletAddress);
-        await expect(smartWallet.isInitialized()).to.eventually.be.true;
-      });
-
-      it('should fail with a ZERO owner address parameter', async function () {
-        const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [
-            boltzSmartWalletFactory.address,
-            constants.AddressZero,
-            recoverer,
-            index,
-          ]
-        );
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-
-        const signature = createValidPersonalSignSignature(
-          privateKey,
-          dataToSign
-        );
-
-        await expect(
-          boltzSmartWalletFactory.createUserSmartWallet(
-            constants.AddressZero,
-            recoverer,
-            index,
-            signature
-          )
-        ).to.be.rejectedWith('Invalid signature');
-      });
-
-      it('should fail when signature does not match', async function () {
-        const dataToSign = utils.solidityKeccak256(
-          ['address', 'address', 'address', 'uint256'],
-          [boltzSmartWalletFactory.address, owner.address, recoverer, index]
-        );
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-
-        const signature = createValidPersonalSignSignature(
-          privateKey,
-          dataToSign
-        );
-
-        const otherAccount = Wallet.createRandom();
-
-        await expect(
-          boltzSmartWalletFactory.createUserSmartWallet(
-            otherAccount.address,
-            recoverer,
-            index,
-            signature
-          )
-        ).to.be.rejectedWith('Invalid signature');
-      });
     });
 
     describe('relayedUserSmartWalletCreation', function () {
@@ -220,44 +112,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         const finalReceiverBalance = await feesReceiver.getBalance();
 
         expect(finalReceiverBalance).to.be.equal(initialReceiverBalance);
-        await expect(smartWallet.isInitialized()).to.eventually.be.true;
-      });
-
-      it('should fail to initialize the smart wallet in the expected address paying fee using token', async function () {
-        const amountToPay = utils.parseEther('2').toString();
-
-        const deployRequest = createDeployRequest(
-          {
-            from: owner.address,
-            tokenContract: fakeToken.address,
-            tokenAmount: amountToPay,
-            tokenGas,
-            recoverer: recoverer,
-            index: index,
-            relayHub: worker.address,
-          },
-          {
-            callForwarder: boltzSmartWalletFactory.address,
-          }
-        );
-
-        const { suffixData, signature } = signDeployRequest(
-          owner,
-          deployRequest,
-          boltzSmartWalletFactory.address,
-          chainId
-        );
-
-        await expect(
-          boltzSmartWalletFactory
-            .connect(worker)
-            .relayedUserSmartWalletCreation(
-              deployRequest.request,
-              suffixData,
-              feesReceiver.address,
-              signature
-            )
-        ).to.be.rejectedWith('RBTC necessary for payment');
+        expect(smartWallet.address).to.be.equal(smartWalletAddress);
       });
 
       it('should initialize the smart wallet in the expected address paying fee using native', async function () {
@@ -311,7 +166,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         expect(finalReceiverBalance).to.be.equal(
           initialReceiverBalance.add(amountToPay)
         );
-        await expect(smartWallet.isInitialized()).to.eventually.be.true;
+        expect(smartWallet.address).to.be.equal(smartWalletAddress);
       });
 
       it('should fail with tokenGas equals to zero while paying fee', async function () {
@@ -576,8 +431,9 @@ describe('MinimalBoltzSmartWalletFactory', function () {
       });
 
       it('should fail if contract execution fail', async function () {
-        const recipient: FakeContract<MinimalBoltzSmartWallet> =
-          await smock.fake('MinimalBoltzSmartWallet');
+        const recipient: FakeContract<SmartWallet> = await smock.fake(
+          'SmartWallet'
+        );
         const recipientFunction = recipient.interface.encodeFunctionData(
           'isInitialized',
           []
@@ -593,7 +449,6 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -620,11 +475,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
       });
 
       it('should pass the revert message from destination contract if fails', async function () {
-        const { contract: recipient } = await deployContract<
-          MinimalBoltzSmartWallet,
-          []
-        >({
-          contractName: 'MinimalBoltzSmartWallet',
+        const { contract: recipient } = await deployContract<SmartWallet, []>({
+          contractName: 'SmartWallet',
           constructorArgs: [],
         });
         const recipientFunction = recipient.interface.encodeFunctionData(
@@ -641,7 +493,6 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -668,8 +519,9 @@ describe('MinimalBoltzSmartWalletFactory', function () {
       });
 
       it('should initialize the smart wallet in the expected address and execute the destination contract', async function () {
-        const recipient: FakeContract<MinimalBoltzSmartWallet> =
-          await smock.fake('MinimalBoltzSmartWallet');
+        const recipient: FakeContract<SmartWallet> = await smock.fake(
+          'SmartWallet'
+        );
         const recipientFunction = recipient.interface.encodeFunctionData(
           'isInitialized',
           []
@@ -685,7 +537,6 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             relayHub: worker.address,
             data: recipientFunction,
             to: recipient.address,
-            gas: 11000,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -714,7 +565,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         );
 
         expect(recipient.isInitialized).to.be.called;
-        await expect(smartWallet.isInitialized()).to.eventually.be.true;
+        expect(smartWallet.address).to.be.equal(smartWalletAddress);
       });
     });
   });

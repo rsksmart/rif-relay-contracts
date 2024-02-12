@@ -241,7 +241,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -277,7 +276,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: constants.AddressZero,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -321,7 +319,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: constants.AddressZero,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -354,7 +351,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -397,7 +393,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -449,7 +444,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -491,7 +485,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -527,7 +520,6 @@ describe('BoltzDeployVerifier Contract', function () {
           tokenContract: constants.AddressZero,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 

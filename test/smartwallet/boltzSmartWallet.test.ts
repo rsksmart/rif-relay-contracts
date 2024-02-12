@@ -139,7 +139,6 @@ describe('BoltzSmartWallet contract', function () {
             400000,
             ZERO_ADDRESS,
             0,
-            0,
             '0x00'
           ),
           'Second initialization not rejected'
@@ -173,7 +172,6 @@ describe('BoltzSmartWallet contract', function () {
           tokenGas: '1',
           tokenAmount: '1',
           tokenContract: fakeToken.address,
-          gas: '4000',
           to: recipient.address,
           data: recipientFunction,
         });
@@ -220,7 +218,6 @@ describe('BoltzSmartWallet contract', function () {
           tokenGas: '5000',
           tokenAmount: amountToBePaid.toString(),
           tokenContract: ZERO_ADDRESS,
-          gas: '4000',
           to: recipient.address,
           data: recipientFunction,
         });
@@ -279,7 +276,6 @@ describe('BoltzSmartWallet contract', function () {
           tokenGas: '0',
           tokenAmount: '0',
           tokenContract: fakeToken.address,
-          gas: '4000',
           to: recipient.address,
           data: recipientFunction,
         });
@@ -328,7 +324,6 @@ describe('BoltzSmartWallet contract', function () {
           tokenGas: '0',
           tokenAmount: '0',
           tokenContract: fakeToken.address,
-          gas: '4000',
           to: recipient.address,
           data: recipientFunction,
         });
@@ -387,7 +382,6 @@ describe('BoltzSmartWallet contract', function () {
           tokenGas: '0',
           tokenAmount: '0',
           tokenContract: fakeToken.address,
-          gas: '4000',
           to: recipient.address,
           data: recipientFunction,
         });

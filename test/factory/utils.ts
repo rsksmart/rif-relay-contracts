@@ -30,7 +30,6 @@ function createDeployRequest(
       to: constants.AddressZero,
       tokenContract: constants.AddressZero,
       value: '0',
-      gas: 0,
       index: 0,
       nonce: '0',
       tokenAmount: '0',

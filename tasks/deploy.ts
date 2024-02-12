@@ -82,6 +82,13 @@ export const deployContracts = async (
     'BoltzRelayVerifier'
   );
 
+  const minimalBoltzDeployVerifierF = await ethers.getContractFactory(
+    'MinimalBoltzDeployVerifier'
+  );
+  const minimalBoltzRelayVerifierF = await ethers.getContractFactory(
+    'MinimalBoltzRelayVerifier'
+  );
+
   const versionRegistryFactory = await ethers.getContractFactory(
     'VersionRegistry'
   );
@@ -135,6 +142,11 @@ export const deployContracts = async (
   const { address: boltzRelayVerifierAddress } =
     await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
 
+  const { address: minimalBoltzDeployVerifierAddress } =
+    await minimalBoltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
+  const { address: minimalBoltzRelayVerifierAddress } =
+    await minimalBoltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
   const { address: minimalBoltzsmartWalletAddress } =
     await smartWalletF.deploy();
   const { address: minimalBoltzsmartWalletFactoryAddress } =
@@ -171,6 +183,8 @@ export const deployContracts = async (
     BoltzRelayVerifier: boltzRelayVerifierAddress,
     MinimalBoltzSmartWallet: minimalBoltzsmartWalletAddress,
     MinimalBoltzSmartWalletFactory: minimalBoltzsmartWalletFactoryAddress,
+    MinimalBoltzDeployVerifier: minimalBoltzDeployVerifierAddress,
+    MinimalBoltzRelayVerifier: minimalBoltzRelayVerifierAddress,
     UtilToken: utilTokenAddress,
     VersionRegistry: versionRegistryAddress,
   };
