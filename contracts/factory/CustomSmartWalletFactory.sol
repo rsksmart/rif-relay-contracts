@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../interfaces/ICustomSmartWalletFactory.sol";
+import "../interfaces/ICustomSmartWalletCreator.sol";
 import "../utils/RSKAddrValidator.sol";
 
 /* solhint-disable no-inline-assembly */
@@ -71,7 +72,10 @@ PC | OPCODE|   Mnemonic     |   Stack [top, bottom]                       | Comm
 
 /** Factory of Proxies to the CustomSmartWallet (Forwarder)
 The Forwarder itself is a Template with portions delegated to a custom logic (it is also a proxy) */
-contract CustomSmartWalletFactory is ICustomSmartWalletFactory {
+contract CustomSmartWalletFactory is
+    ICustomSmartWalletFactory,
+    ICustomSmartWalletCreator
+{
     using ECDSA for bytes32;
 
     bytes11 private constant _RUNTIME_START = hex"363D3D373D3D3D3D363D73";
