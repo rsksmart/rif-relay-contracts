@@ -212,49 +212,6 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         expect(finalReceiverBalance).to.be.equal(initialReceiverBalance);
       });
 
-      it('should fail when the smart wallet does not have funds to pay using token', async function () {
-        const amountToPay = utils.parseEther('6').toString();
-
-        const deployRequest = createDeployRequest(
-          {
-            from: owner.address,
-            tokenContract: ZERO_ADDRESS,
-            tokenAmount: amountToPay,
-            tokenGas,
-            recoverer: recoverer,
-            index: index,
-            relayHub: worker.address,
-          },
-          {
-            callForwarder: boltzSmartWalletFactory.address,
-          }
-        );
-
-        const { suffixData, signature } = signDeployRequest(
-          owner,
-          deployRequest,
-          boltzSmartWalletFactory.address,
-          chainId
-        );
-
-        const initialReceiverBalance = await feesReceiver.getBalance();
-
-        await expect(
-          boltzSmartWalletFactory
-            .connect(worker)
-            .relayedUserSmartWalletCreation(
-              deployRequest.request,
-              suffixData,
-              feesReceiver.address,
-              signature
-            )
-        ).to.be.rejectedWith('Unable to pay for deployment');
-
-        const finalReceiverBalance = await feesReceiver.getBalance();
-
-        expect(finalReceiverBalance).to.be.equal(initialReceiverBalance);
-      });
-
       it('should fail when the smart wallet does not have funds to pay using native', async function () {
         const amountToPay = utils.parseEther('6').toString();
 

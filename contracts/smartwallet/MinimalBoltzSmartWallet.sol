@@ -14,16 +14,16 @@ contract MinimalBoltzSmartWallet {
      * This function can only be called once, and it is called by the Factory during deployment
      * @param owner - The EOA that will own the smart wallet
      * @param feesReceiver - Recipient of payment
-     * @param tokenAmount - Amount to pay
-     * @param tokenGas - Gas limit of payment
+     * @param feesAmount - Amount to pay
+     * @param feesGas - Gas limit of payment
      * @param to - Destination contract to execute
      * @param data - Data to be execute by destination contract
      */
     function initialize(
         address owner,
         address feesReceiver,
-        uint256 tokenAmount,
-        uint256 tokenGas,
+        uint256 feesAmount,
+        uint256 feesGas,
         address to,
         bytes calldata data
     ) external returns (bool success, bytes memory ret) {
@@ -42,10 +42,10 @@ contract MinimalBoltzSmartWallet {
         }
 
         //we need to initialize the contract
-        if (tokenAmount > 0) {
+        if (feesAmount > 0) {
             (success, ret) = payable(feesReceiver).call{
-                value: tokenAmount,
-                gas: tokenGas
+                value: feesAmount,
+                gas: feesGas
             }("");
             require(
                 success && (ret.length == 0 || abi.decode(ret, (bool))),

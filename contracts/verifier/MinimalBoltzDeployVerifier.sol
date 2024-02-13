@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../factory/BoltzSmartWalletFactory.sol";
+import "../factory/MinimalBoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../interfaces/BoltzVerifier.sol";
@@ -40,7 +40,7 @@ contract MinimalBoltzDeployVerifier is IDeployVerifier {
             "Invalid factory"
         );
 
-        address contractAddr = BoltzSmartWalletFactory(
+        address contractAddr = MinimalBoltzSmartWalletFactory(
             relayRequest.relayData.callForwarder
         ).getSmartWalletAddress(
                 relayRequest.request.from,
