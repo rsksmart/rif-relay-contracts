@@ -24,50 +24,53 @@ describe('Deploy Script', function () {
       sinon.restore();
     });
 
-    it('should deploy all contracts', async function () {
-      const result = await deployContracts(ethers, hre.network.name);
-      expect(result).to.have.all.keys(
-        'Penalizer',
-        'RelayHub',
-        'SmartWallet',
-        'SmartWalletFactory',
-        'DeployVerifier',
-        'RelayVerifier',
-        'CustomSmartWallet',
-        'CustomSmartWalletFactory',
-        'CustomSmartWalletDeployVerifier',
-        'CustomSmartWalletRelayVerifier',
-        'NativeHolderSmartWallet',
-        'NativeHolderSmartWalletFactory',
-        'NativeHolderSmartWalletDeployVerifier',
-        'NativeHolderSmartWalletRelayVerifier',
-        'BoltzSmartWallet',
-        'BoltzSmartWalletFactory',
-        'BoltzDeployVerifier',
-        'BoltzRelayVerifier',
-        'MinimalBoltzSmartWallet',
-        'MinimalBoltzSmartWalletFactory',
-        'MinimalBoltzDeployVerifier',
-        'MinimalBoltzRelayVerifier',
-        'VersionRegistry',
-        'UtilToken'
-      );
-    });
-
-    it('should deploy contracts with valid addresses', async function () {
-      const result = await deployContracts(ethers, hre.network.name);
-      Object.values(result).forEach((value) => {
-        expect(value, value).to.eq(testAddress);
+    describe('if no flags are specified', async function () {
+      it('should deploy all contracts', async function () {
+        const result = await deployContracts({}, ethers, hre.network.name);
+        expect(result).to.have.all.keys(
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'BoltzSmartWallet',
+          'BoltzSmartWalletFactory',
+          'BoltzDeployVerifier',
+          'BoltzRelayVerifier',
+          'MinimalBoltzSmartWallet',
+          'MinimalBoltzSmartWalletFactory',
+          'MinimalBoltzDeployVerifier',
+          'MinimalBoltzRelayVerifier',
+          'VersionRegistry',
+          'UtilToken'
+        );
       });
-    });
-
-    it('should not deploy UtilToken in mainnet', async function () {
-      hre.hardhatArguments.network = 'mainnet';
-      const result = await deployContracts(
-        ethers,
-        hre.hardhatArguments.network
-      );
-      expect(result.UtilToken).to.be.undefined;
+  
+      it('should deploy contracts with valid addresses', async function () {
+        const result = await deployContracts({}, ethers, hre.network.name);
+        Object.values(result).forEach((value) => {
+          expect(value, value).to.eq(testAddress);
+        });
+      });
+  
+      it('should not deploy UtilToken in mainnet', async function () {
+        hre.hardhatArguments.network = 'mainnet';
+        const result = await deployContracts(
+          {}, 
+          ethers,
+          hre.hardhatArguments.network
+        );
+        expect(result.UtilToken).to.be.undefined;
+      });
     });
   });
 
