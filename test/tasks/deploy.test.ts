@@ -54,9 +54,156 @@ describe('Deploy Script', function () {
         });
       });
     });
+
+    describe('if flags are specified', function () {
+      it('should deploy the relayHub', async function () {
+        const result = await deployContracts(
+          { relayHub: true },
+          ethers,
+          hre.network.name
+        );
+        const expectedKeys = ['Penalizer', 'RelayHub'];
+        const unexpectedKeys = [
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'VersionRegistry',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the default smart wallet', async function () {
+        const result = await deployContracts(
+          { defaulSmartWallet: true },
+          ethers,
+          hre.network.name
+        );
+        const expectedKeys = [
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'VersionRegistry',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the custom smart wallet', async function () {
+        const result = await deployContracts(
+          { customSmartWallet: true },
+          ethers,
+          hre.network.name
+        );
+        const expectedKeys = [
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'VersionRegistry',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the native holder wallet', async function () {
+        const result = await deployContracts(
+          { nativeHolderSmartWallet: true },
+          ethers,
+          hre.network.name
+        );
+        const expectedKeys = [
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'VersionRegistry',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the util token', async function () {
+        const result = await deployContracts(
+          { utilToken: true },
+          ethers,
+          hre.network.name
+        );
+        const expectedKeys = ['UtilToken'];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'VersionRegistry',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+    });
   });
 
-  describe('generateJsonConfig', function () {
+  describe('updateConfig', function () {
     const contractAddresses: ContractAddresses = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       RelayHub: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
@@ -76,7 +223,7 @@ describe('Deploy Script', function () {
     };
 
     const chainContractAddresses = {
-      '33': contractAddresses,
+      'regtest.33': contractAddresses,
     };
 
     let spyWriteFileSync: sinon.SinonSpy;
@@ -94,6 +241,7 @@ describe('Deploy Script', function () {
     });
 
     it('should generate a json config file with existing config file', async function () {
+      // FIXME:
       sinon.stub(fs, 'existsSync').returns(true);
       sinon
         .stub(fs, 'readFileSync')
@@ -105,7 +253,27 @@ describe('Deploy Script', function () {
       );
     });
 
+    it('should update the contract address with only the deployed contracts', async function () {
+      sinon.stub(fs, 'existsSync').returns(true);
+      sinon
+        .stub(fs, 'readFileSync')
+        .returns(JSON.stringify(chainContractAddresses));
+      const deployedContracts = {
+        Penalizer: '0x123abc',
+        RelayHub: '0xabc123',
+      };
+      const config = await updateConfig(deployedContracts, hre);
+      const expectedConfig = {
+        'regtest.33': {
+          ...contractAddresses,
+          ...deployedContracts,
+        },
+      };
+      expect(config).to.be.deep.eq(expectedConfig);
+    });
+
     it('should generate a json config file when config file is not present', async function () {
+      // FIXME:
       sinon.stub(fs, 'existsSync').returns(false);
       await updateConfig(contractAddresses, hre);
       spyWriteFileSync.calledOnceWith(

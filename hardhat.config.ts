@@ -125,7 +125,26 @@ const config: HardhatUserConfig = {
 };
 
 task('deploy', 'Deploys rif-relay contracts to selected network')
-  .addFlag('relayHub')
+  .addFlag(
+    'relayHub',
+    'If specified it will deploy the relayHub and the penalizer'
+  )
+  .addFlag(
+    'defaultSmartWallet',
+    'If specified, it will deploy the default smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'customSmartWallet',
+    'If specified, it will deploy the custom smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'nativeHoldeSmartWallet',
+    'If specified, it will deploy the native holder smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'utilToken',
+    'If specified, it will deploy an ERC20 token to be used for testing purposes; it does not deploy the token on mainnet'
+  )
   .setAction(async (taskArgs: DeployArg, hre) => {
     await deploy(taskArgs, hre);
   });
