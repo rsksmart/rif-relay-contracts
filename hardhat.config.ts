@@ -12,7 +12,7 @@ import {
   changePartnerShares,
   ChangePartnerSharesArg,
 } from './tasks/changePartnerShares';
-import { deploy } from './tasks/deploy';
+import { DeployArg, deploy } from './tasks/deploy';
 import {
   deployCollector,
   DeployCollectorArg,
@@ -124,11 +124,13 @@ const config: HardhatUserConfig = {
   },
 };
 
-task('deploy', 'Deploys rif-relay contracts to selected network').setAction(
-  async (_, hre) => {
-    await deploy(hre);
-  }
-);
+task('deploy', 'Deploys rif-relay contracts to selected network')
+  .addFlag('relayHub')
+  .setAction(
+    async (taskArgs: DeployArg, hre) => {
+      await deploy(taskArgs, hre);
+    }
+  );
 
 task('collector:deploy', 'Deploys the collector')
   .addOptionalParam('configFileName', 'Path of the collector config file')

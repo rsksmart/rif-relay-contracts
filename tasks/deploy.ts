@@ -7,6 +7,17 @@ const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
 
+export type DeployArg = {
+  relayHub?: boolean;
+  /* penalizer?: boolean;
+  smartWallet?: boolean;
+  customSmartWallet?: boolean;
+  nativeHolderSmartWallet?: boolean;
+  boltzSmartWallet?: boolean;
+  minimalBoltzSmartWallet?: boolean;
+  utilToken?: boolean; */
+};
+
 // TODO: Use the async version of fs.writeFile
 export const writeConfigToDisk = (config: NetworkConfig) => {
   fs.writeFileSync(ADDRESS_FILE, JSON.stringify(config));
@@ -46,112 +57,120 @@ export const updateConfig = async (
 };
 
 export const deployContracts = async (
+  deployArg: DeployArg,
   ethers: HardhatEthersHelpers,
   networkName?: string
 ): Promise<ContractAddresses> => {
-  const relayHubF = await ethers.getContractFactory('RelayHub');
-  const penalizerF = await ethers.getContractFactory('Penalizer');
-  const smartWalletF = await ethers.getContractFactory('SmartWallet');
-  const smartWalletFactoryF = await ethers.getContractFactory(
-    'SmartWalletFactory'
-  );
-  const deployVerifierF = await ethers.getContractFactory('DeployVerifier');
-  const relayVerifierF = await ethers.getContractFactory('RelayVerifier');
-  const utilTokenF = await ethers.getContractFactory('UtilToken');
+  console.log({ deployArg });
+  if (Object.values(deployArg).every((v) => v === false)) {
+    // if no arguments are specified, we deploy everything
+    const relayHubF = await ethers.getContractFactory('RelayHub');
+    const penalizerF = await ethers.getContractFactory('Penalizer');
+    const smartWalletF = await ethers.getContractFactory('SmartWallet');
+    const smartWalletFactoryF = await ethers.getContractFactory(
+      'SmartWalletFactory'
+    );
+    const deployVerifierF = await ethers.getContractFactory('DeployVerifier');
+    const relayVerifierF = await ethers.getContractFactory('RelayVerifier');
 
-  const customSmartWalletF = await ethers.getContractFactory(
-    'CustomSmartWallet'
-  );
-  const customSmartWalletFactoryF = await ethers.getContractFactory(
-    'CustomSmartWalletFactory'
-  );
-  const customSmartWalletDeployVerifierF = await ethers.getContractFactory(
-    'CustomSmartWalletDeployVerifier'
-  );
-  const nativeHolderSmartWalletF = await ethers.getContractFactory(
-    'NativeHolderSmartWallet'
-  );
+    const customSmartWalletF = await ethers.getContractFactory(
+      'CustomSmartWallet'
+    );
+    const customSmartWalletFactoryF = await ethers.getContractFactory(
+      'CustomSmartWalletFactory'
+    );
+    const customSmartWalletDeployVerifierF = await ethers.getContractFactory(
+      'CustomSmartWalletDeployVerifier'
+    );
+    const nativeHolderSmartWalletF = await ethers.getContractFactory(
+      'NativeHolderSmartWallet'
+    );
 
-  const versionRegistryFactory = await ethers.getContractFactory(
-    'VersionRegistry'
-  );
+    const versionRegistryFactory = await ethers.getContractFactory(
+      'VersionRegistry'
+    );
 
-  const { address: penalizerAddress } = await penalizerF.deploy();
-  const { address: relayHubAddress } = await relayHubF.deploy(
-    penalizerAddress,
-    1,
-    1,
-    1,
-    1
-  );
-  const { address: smartWalletAddress } = await smartWalletF.deploy();
-  const { address: smartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(smartWalletAddress);
-  const { address: deployVerifierAddress } = await deployVerifierF.deploy(
-    smartWalletFactoryAddress
-  );
-  const { address: relayVerifierAddress } = await relayVerifierF.deploy(
-    smartWalletFactoryAddress
-  );
+    const { address: penalizerAddress } = await penalizerF.deploy();
+    const { address: relayHubAddress } = await relayHubF.deploy(
+      penalizerAddress,
+      1,
+      1,
+      1,
+      1
+    );
+    const { address: smartWalletAddress } = await smartWalletF.deploy();
+    const { address: smartWalletFactoryAddress } =
+      await smartWalletFactoryF.deploy(smartWalletAddress);
+    const { address: deployVerifierAddress } = await deployVerifierF.deploy(
+      smartWalletFactoryAddress
+    );
+    const { address: relayVerifierAddress } = await relayVerifierF.deploy(
+      smartWalletFactoryAddress
+    );
 
-  const { address: customSmartWalletAddress } =
-    await customSmartWalletF.deploy();
-  const { address: customSmartWalletFactoryAddress } =
-    await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
-  const { address: customDeployVerifierAddress } =
-    await customSmartWalletDeployVerifierF.deploy(
+    const { address: customSmartWalletAddress } =
+      await customSmartWalletF.deploy();
+    const { address: customSmartWalletFactoryAddress } =
+      await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
+    const { address: customDeployVerifierAddress } =
+      await customSmartWalletDeployVerifierF.deploy(
+        customSmartWalletFactoryAddress
+      );
+    const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
       customSmartWalletFactoryAddress
     );
-  const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
-    customSmartWalletFactoryAddress
-  );
 
-  const { address: nativeHolderSmartWalletAddress } =
-    await nativeHolderSmartWalletF.deploy();
-  const { address: nativeHolderSmartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
-  const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
-  );
-  const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
-  );
+    const { address: nativeHolderSmartWalletAddress } =
+      await nativeHolderSmartWalletF.deploy();
+    const { address: nativeHolderSmartWalletFactoryAddress } =
+      await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
+    const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
+      nativeHolderSmartWalletFactoryAddress
+    );
+    const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
+      nativeHolderSmartWalletFactoryAddress
+    );
 
-  const { address: versionRegistryAddress } =
-    await versionRegistryFactory.deploy();
+    const { address: versionRegistryAddress } =
+      await versionRegistryFactory.deploy();
 
-  let utilTokenAddress;
-  if (networkName != 'mainnet') {
-    const { address } = await utilTokenF.deploy();
-    utilTokenAddress = address;
+    let utilTokenAddress;
+    if (networkName != 'mainnet') {
+      const { address } = await utilTokenF.deploy();
+      utilTokenAddress = address;
+    }
+    // deploy only the contracts specified through the flags
+
+    return {
+      Penalizer: penalizerAddress,
+      RelayHub: relayHubAddress,
+      SmartWallet: smartWalletAddress,
+      SmartWalletFactory: smartWalletFactoryAddress,
+      DeployVerifier: deployVerifierAddress,
+      RelayVerifier: relayVerifierAddress,
+      CustomSmartWallet: customSmartWalletAddress,
+      CustomSmartWalletFactory: customSmartWalletFactoryAddress,
+      CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
+      CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
+      NativeHolderSmartWallet: nativeHolderSmartWalletAddress,
+      NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
+      NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
+      NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
+      UtilToken: utilTokenAddress,
+      VersionRegistry: versionRegistryAddress,
+    };
   }
+  // deploy only the contracts specified through the flags
 
-  return {
-    Penalizer: penalizerAddress,
-    RelayHub: relayHubAddress,
-    SmartWallet: smartWalletAddress,
-    SmartWalletFactory: smartWalletFactoryAddress,
-    DeployVerifier: deployVerifierAddress,
-    RelayVerifier: relayVerifierAddress,
-    CustomSmartWallet: customSmartWalletAddress,
-    CustomSmartWalletFactory: customSmartWalletFactoryAddress,
-    CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
-    CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
-    NativeHolderSmartWallet: nativeHolderSmartWalletAddress,
-    NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
-    NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
-    NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
-    UtilToken: utilTokenAddress,
-    VersionRegistry: versionRegistryAddress,
-  };
+  return { } as ContractAddresses;
 };
 
-export const deploy = async (hre: HardhatRuntimeEnvironment) => {
+export const deploy = async (deployArg: DeployArg, hre: HardhatRuntimeEnvironment) => {
   const {
     ethers,
     hardhatArguments: { network },
   } = hre;
-  const contractAddresses = await deployContracts(ethers, network);
+  const contractAddresses = await deployContracts(deployArg, ethers, network);
   console.table(contractAddresses);
   const newConfig = await updateConfig(contractAddresses, hre);
   writeConfigToDisk(newConfig);
