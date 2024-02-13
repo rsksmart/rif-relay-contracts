@@ -23,12 +23,14 @@ chai.use(chaiAsPromised);
 
 describe('BoltzRelayVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
+  let fakeContract: FakeContract<ERC20>;
   let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
   let relayVerifierFactoryMock: MockContractFactory<BoltzRelayVerifier__factory>;
   let relayVerifierMock: MockContract<BoltzRelayVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
+    fakeContract = await smock.fake<ERC20>('ERC20');
     fakeWalletFactory = await smock.fake<BoltzSmartWalletFactory>(
       'BoltzSmartWalletFactory'
     );
@@ -50,156 +52,318 @@ describe('BoltzRelayVerifier Contract', function () {
     });
   });
 
-  describe('acceptToken', function () {
-    it('should map a token address into the tokens mapping', async function () {
-      await relayVerifierMock.acceptToken(fakeToken.address);
-      const tokenMapValue = (await relayVerifierMock.getVariable('tokens', [
-        fakeToken.address,
-      ])) as boolean;
+  describe('TokenHandler', function () {
+    describe('acceptToken', function () {
+      it('should map a token address into the tokens mapping', async function () {
+        await relayVerifierMock.acceptToken(fakeToken.address);
+        const tokenMapValue = (await relayVerifierMock.getVariable('tokens', [
+          fakeToken.address,
+        ])) as boolean;
 
-      expect(tokenMapValue).to.be.true;
-    });
-
-    it('should push a token into the acceptedTokens array', async function () {
-      await relayVerifierMock.acceptToken(fakeToken.address);
-      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
-
-      expect(acceptedTokens).to.include(fakeToken.address);
-    });
-
-    it('should revert if token is already accepted', async function () {
-      await relayVerifierMock.setVariables({
-        tokens: {
-          [fakeToken.address]: true,
-        },
-        acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+        expect(tokenMapValue).to.be.true;
       });
-      const result = relayVerifierMock.acceptToken(fakeToken.address);
 
-      await expect(result).to.be.revertedWith('Token is already accepted');
+      it('should push a token into the acceptedTokens array', async function () {
+        await relayVerifierMock.acceptToken(fakeToken.address);
+        const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+
+        expect(acceptedTokens).to.include(fakeToken.address);
+      });
+
+      it('should revert if token is already accepted', async function () {
+        await relayVerifierMock.setVariables({
+          tokens: {
+            [fakeToken.address]: true,
+          },
+          acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+        });
+        const result = relayVerifierMock.acceptToken(fakeToken.address);
+
+        await expect(result).to.be.revertedWith('Token is already accepted');
+      });
+
+      it('should revert if token is ZERO ADDRESS', async function () {
+        const result = relayVerifierMock.acceptToken(constants.AddressZero);
+
+        await expect(result).to.be.revertedWith('Token cannot be zero address');
+      });
+
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
+
+        await expect(
+          relayVerifierMock.connect(other).acceptToken(fakeToken.address)
+        ).to.be.revertedWith('Caller is not the owner');
+      });
     });
 
-    it('should revert if token is ZERO ADDRESS', async function () {
-      const result = relayVerifierMock.acceptToken(constants.AddressZero);
+    describe('removeToken', function () {
+      it('should remove a token from tokens map', async function () {
+        await relayVerifierMock.setVariables({
+          tokens: {
+            [fakeToken.address]: true,
+          },
+          acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+        });
 
-      await expect(result).to.be.revertedWith('Token cannot be zero address');
+        await relayVerifierMock.removeToken(fakeToken.address, 0);
+
+        const tokenMapValue = (await relayVerifierMock.getVariable('tokens', [
+          fakeToken.address,
+        ])) as boolean;
+
+        expect(tokenMapValue).to.be.false;
+      });
+
+      it('should remove a token from acceptedTokens array', async function () {
+        await relayVerifierMock.setVariables({
+          tokens: {
+            [fakeToken.address]: true,
+          },
+          acceptedTokens: [fakeToken.address],
+        });
+
+        await relayVerifierMock.removeToken(fakeToken.address, 0);
+
+        const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+
+        expect(acceptedTokens).to.not.contain(fakeToken.address);
+      });
+
+      it('should revert if token is not currently previously accepted', async function () {
+        const result = relayVerifierMock.removeToken(fakeToken.address, 0);
+
+        await expect(result).to.be.revertedWith('Token is not accepted');
+      });
+
+      it('should revert if token removed is ZERO ADDRESS', async function () {
+        const result = relayVerifierMock.removeToken(constants.AddressZero, 0);
+
+        await expect(result).to.be.revertedWith('Token cannot be zero address');
+      });
+
+      it('should revert if token index does not correspond to token address to be removed', async function () {
+        const fakeToken1 = await smock.fake<ERC20>('ERC20');
+
+        await relayVerifierMock.setVariables({
+          tokens: {
+            [fakeToken.address]: true,
+            [fakeToken1.address]: true,
+          },
+          acceptedTokens: [fakeToken.address, fakeToken1.address],
+        });
+
+        const result = relayVerifierMock.removeToken(fakeToken.address, 1);
+        await expect(result).to.be.revertedWith('Wrong token index');
+      });
+
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
+
+        await expect(
+          relayVerifierMock.connect(other).acceptToken(fakeToken.address)
+        ).to.be.revertedWith('Caller is not the owner');
+      });
     });
 
-    it('should revert if caller is not the owner', async function () {
-      const [other] = (await ethers.getSigners()).slice(1) as [
-        SignerWithAddress
-      ];
+    describe('getAcceptedTokens()', function () {
+      it('should get all the accepted tokens', async function () {
+        const fakeTokenList = [fakeToken.address];
 
-      await expect(
-        relayVerifierMock.connect(other).acceptToken(fakeToken.address)
-      ).to.be.revertedWith('Caller is not the owner');
+        await relayVerifierMock.setVariable('acceptedTokens', fakeTokenList);
+
+        const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
+        expect(acceptedTokens).to.deep.equal(fakeTokenList);
+      });
+    });
+
+    describe('acceptsToken()', function () {
+      beforeEach(async function () {
+        const { address } = fakeToken;
+        await relayVerifierMock.setVariable('tokens', {
+          [address]: true,
+        });
+      });
+
+      it('should return true if token is accepted', async function () {
+        const acceptsToken = await relayVerifierMock.acceptsToken(
+          fakeToken.address
+        );
+        expect(acceptsToken).to.be.true;
+      });
+
+      it('should return false if token is not accepted', async function () {
+        const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
+
+        const acceptsToken = await relayVerifierMock.acceptsToken(
+          fakeTokenUnaccepted.address
+        );
+        expect(acceptsToken).to.be.false;
+      });
     });
   });
 
-  describe('removeToken', function () {
-    it('should remove a token from tokens map', async function () {
-      await relayVerifierMock.setVariables({
-        tokens: {
-          [fakeToken.address]: true,
-        },
-        acceptedTokens: [ethers.utils.getAddress(fakeToken.address)],
+  describe('Destination Contract Handler', function () {
+    describe('acceptContract', function () {
+      it('should set a contract address in the acceptedContracts list', async function () {
+        await relayVerifierMock.acceptContract(fakeContract.address);
+        const acceptsContract = await relayVerifierMock.acceptsContract(
+          fakeContract.address
+        );
+        expect(acceptsContract).to.be.true;
       });
 
-      await relayVerifierMock.removeToken(fakeToken.address, 0);
-
-      const tokenMapValue = (await relayVerifierMock.getVariable('tokens', [
-        fakeToken.address,
-      ])) as boolean;
-
-      expect(tokenMapValue).to.be.false;
-    });
-
-    it('should remove a token from acceptedTokens array', async function () {
-      await relayVerifierMock.setVariables({
-        tokens: {
-          [fakeToken.address]: true,
-        },
-        acceptedTokens: [fakeToken.address],
+      it('should revert if contract is already in the acceptedContracts list', async function () {
+        await relayVerifierMock.setVariable('contracts', {
+          [fakeContract.address]: true,
+        });
+        const result = relayVerifierMock.acceptContract(fakeContract.address);
+        await expect(result).to.be.revertedWith('Contract is already accepted');
       });
 
-      await relayVerifierMock.removeToken(fakeToken.address, 0);
+      it('should revert if accepting a contract with ZERO ADDRESS', async function () {
+        const result = relayVerifierMock.acceptContract(constants.AddressZero);
 
-      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
-
-      expect(acceptedTokens).to.not.contain(fakeToken.address);
-    });
-
-    it('should revert if token is not currently previously accepted', async function () {
-      const result = relayVerifierMock.removeToken(fakeToken.address, 0);
-
-      await expect(result).to.be.revertedWith('Token is not accepted');
-    });
-
-    it('should revert if token removed is ZERO ADDRESS', async function () {
-      const result = relayVerifierMock.removeToken(constants.AddressZero, 0);
-
-      await expect(result).to.be.revertedWith('Token cannot be zero address');
-    });
-
-    it('should revert if token index does not correspond to token address to be removed', async function () {
-      const fakeToken1 = await smock.fake<ERC20>('ERC20');
-
-      await relayVerifierMock.setVariables({
-        tokens: {
-          [fakeToken.address]: true,
-          [fakeToken1.address]: true,
-        },
-        acceptedTokens: [fakeToken.address, fakeToken1.address],
+        await expect(result).to.be.revertedWith(
+          'Contract cannot be zero address'
+        );
       });
 
-      const result = relayVerifierMock.removeToken(fakeToken.address, 1);
-      await expect(result).to.be.revertedWith('Wrong token index');
-    });
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
 
-    it('should revert if caller is not the owner', async function () {
-      const [other] = (await ethers.getSigners()).slice(1) as [
-        SignerWithAddress
-      ];
-
-      await expect(
-        relayVerifierMock.connect(other).acceptToken(fakeToken.address)
-      ).to.be.revertedWith('Caller is not the owner');
-    });
-  });
-
-  describe('getAcceptedTokens()', function () {
-    it('should get all the accepted tokens', async function () {
-      const fakeTokenList = [fakeToken.address];
-
-      await relayVerifierMock.setVariable('acceptedTokens', fakeTokenList);
-
-      const acceptedTokens = await relayVerifierMock.getAcceptedTokens();
-      expect(acceptedTokens).to.deep.equal(fakeTokenList);
-    });
-  });
-
-  describe('acceptsToken()', function () {
-    beforeEach(async function () {
-      const { address } = fakeToken;
-      await relayVerifierMock.setVariable('tokens', {
-        [address]: true,
+        await expect(
+          relayVerifierMock.connect(other).acceptContract(fakeContract.address)
+        ).to.be.revertedWith('Caller is not the owner');
       });
     });
 
-    it('should return true if token is accepted', async function () {
-      const acceptsToken = await relayVerifierMock.acceptsToken(
-        fakeToken.address
-      );
-      expect(acceptsToken).to.be.true;
+    describe('removeContract', function () {
+      it('should remove a contract from contracts map', async function () {
+        await relayVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+          },
+          acceptedContracts: [ethers.utils.getAddress(fakeContract.address)],
+        });
+
+        await relayVerifierMock.removeContract(fakeContract.address, 0);
+
+        const contractMapValue = (await relayVerifierMock.getVariable(
+          'contracts',
+          [fakeContract.address]
+        )) as boolean;
+
+        expect(contractMapValue).to.be.false;
+      });
+
+      it('should remove a contract from acceptedContracts array', async function () {
+        await relayVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+          },
+          acceptedContracts: [fakeContract.address],
+        });
+
+        await relayVerifierMock.removeContract(fakeContract.address, 0);
+
+        const acceptedContracts =
+          await relayVerifierMock.getAcceptedContracts();
+
+        expect(acceptedContracts).to.not.contain(fakeContract.address);
+      });
+
+      it('should revert if contract is not currently previously accepted', async function () {
+        const result = relayVerifierMock.removeContract(
+          fakeContract.address,
+          0
+        );
+
+        await expect(result).to.be.revertedWith('Contract is not accepted');
+      });
+
+      it('should revert if contract removed is ZERO ADDRESS', async function () {
+        const result = relayVerifierMock.removeContract(
+          constants.AddressZero,
+          0
+        );
+
+        await expect(result).to.be.revertedWith(
+          'Contract cannot be zero address'
+        );
+      });
+
+      it('should revert if contract index does not correspond to contract address to be removed', async function () {
+        const fakeContract1 = await smock.fake<ERC20>('ERC20');
+
+        await relayVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+            [fakeContract1.address]: true,
+          },
+          acceptedContracts: [fakeContract.address, fakeContract1.address],
+        });
+
+        const result = relayVerifierMock.removeContract(
+          fakeContract.address,
+          1
+        );
+        await expect(result).to.be.revertedWith('Wrong contract index');
+      });
+
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
+
+        await expect(
+          relayVerifierMock.connect(other).acceptContract(fakeContract.address)
+        ).to.be.revertedWith('Caller is not the owner');
+      });
     });
 
-    it('should return false if token is not accepted', async function () {
-      const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
+    describe('getAcceptedContracts()', function () {
+      it('should get all the accepted contracts', async function () {
+        const fakeContractList = [fakeContract.address];
+        await relayVerifierMock.setVariable(
+          'acceptedContracts',
+          fakeContractList
+        );
 
-      const acceptsToken = await relayVerifierMock.acceptsToken(
-        fakeTokenUnaccepted.address
-      );
-      expect(acceptsToken).to.be.false;
+        const acceptedContracts =
+          await relayVerifierMock.getAcceptedContracts();
+        expect(acceptedContracts).to.deep.equal(fakeContractList);
+      });
+    });
+
+    describe('acceptsContract()', function () {
+      beforeEach(async function () {
+        const { address } = fakeContract;
+        await relayVerifierMock.setVariable('contracts', {
+          [address]: true,
+        });
+      });
+
+      it('should return true if contract is accepted', async function () {
+        const acceptsContract = await relayVerifierMock.acceptsContract(
+          fakeContract.address
+        );
+        expect(acceptsContract).to.be.true;
+      });
+
+      it('should return false if contract is not accepted', async function () {
+        const fakeContractUnaccepted = await smock.fake<ERC20>('ERC20');
+        const acceptsContract = await relayVerifierMock.acceptsContract(
+          fakeContractUnaccepted.address
+        );
+        expect(acceptsContract).to.be.false;
+      });
     });
   });
 
@@ -225,15 +389,24 @@ describe('BoltzRelayVerifier Contract', function () {
       ];
       fakeSmartWallet = await smock.fake<BoltzSmartWallet>('BoltzSmartWallet');
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
-    });
-
-    it('should not revert if paying with ERC20 token', async function () {
+      await relayVerifierMock.setVariables({
+        acceptedTokens: [fakeToken.address],
+        tokens: {
+          [fakeToken.address]: true,
+        },
+        acceptedContracts: [recipient.address],
+        contracts: {
+          [recipient.address]: true,
+        },
+        _factory: fakeWalletFactory.address,
+      });
       fakeWalletFactory.runtimeCodeHash.returns(
         '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
       );
-      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+    });
 
-      await relayVerifierMock.acceptToken(fakeToken.address);
+    it('should not revert if paying with ERC20 token', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {
@@ -266,8 +439,6 @@ describe('BoltzRelayVerifier Contract', function () {
         '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
       );
 
-      await relayVerifierMock.acceptToken(fakeToken.address);
-
       await relayWorker.sendTransaction({
         to: fakeSmartWallet.address,
         value: ethers.utils.parseEther('1'),
@@ -283,7 +454,7 @@ describe('BoltzRelayVerifier Contract', function () {
         request: {
           data: '0x00',
           from: owner.address,
-          to: constants.AddressZero,
+          to: recipient.address,
           gas: '1000000',
           nonce: '0',
           tokenGas: '50000',
@@ -295,8 +466,8 @@ describe('BoltzRelayVerifier Contract', function () {
         },
       };
 
-      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
-      await expect(result).to.not.be.reverted;
+      await relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      // await expect(result).to.not.be.reverted;
     });
 
     it('should not revert if not paying', async function () {
@@ -331,6 +502,13 @@ describe('BoltzRelayVerifier Contract', function () {
     });
 
     it('should revert if token contract is not allowed', async function () {
+      await relayVerifierMock.setVariables({
+        acceptedTokens: [],
+        tokens: {
+          [fakeToken.address]: false,
+        },
+      });
+
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {
           callForwarder: fakeSmartWallet.address,
@@ -357,10 +535,44 @@ describe('BoltzRelayVerifier Contract', function () {
       await expect(result).to.be.revertedWith('Token contract not allowed');
     });
 
+    it('should revert if destination contract is not allowed', async function () {
+      await relayVerifierMock.setVariables({
+        acceptedContracts: [],
+        contracts: {
+          [recipient.address]: false,
+        },
+      });
+
+      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+        relayData: {
+          callForwarder: fakeSmartWallet.address,
+          callVerifier: relayVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          gas: '1000000',
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          validUntilTime: '0',
+          value: '0',
+        },
+      };
+
+      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
+      await expect(result).to.be.revertedWith(
+        'Destination contract not allowed'
+      );
+    });
+
     it('should revert if ERC20 token balance is too low', async function () {
       fakeToken.balanceOf.returns(BigNumber.from('10'));
-
-      await relayVerifierMock.acceptToken(fakeToken.address);
 
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {
@@ -389,8 +601,6 @@ describe('BoltzRelayVerifier Contract', function () {
     });
 
     it('should revert if native token balance is too low', async function () {
-      await relayVerifierMock.acceptToken(fakeToken.address);
-
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {
           callForwarder: fakeSmartWallet.address,
@@ -401,7 +611,7 @@ describe('BoltzRelayVerifier Contract', function () {
         request: {
           data: '0x00',
           from: owner.address,
-          to: constants.AddressZero,
+          to: recipient.address,
           gas: '1000000',
           nonce: '0',
           tokenGas: '50000',
@@ -418,9 +628,9 @@ describe('BoltzRelayVerifier Contract', function () {
     });
 
     it('should revert if smart wallet template is different than smart wallet factory', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-
-      await relayVerifierMock.acceptToken(fakeToken.address);
+      fakeWalletFactory.runtimeCodeHash.returns(
+        '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98b'
+      );
 
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {

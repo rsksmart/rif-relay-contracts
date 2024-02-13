@@ -373,7 +373,7 @@ describe('DeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Address already created!');
+      await expect(result).to.be.revertedWith('Address already created');
     });
 
     it('should revert if token balance is too low', async function () {

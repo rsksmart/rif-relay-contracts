@@ -5,11 +5,11 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "../TokenHandler.sol";
+import "../DestinationContractHandler.sol";
 import "../interfaces/IWalletFactory.sol";
 import "../interfaces/IRelayVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
-import "../interfaces/BoltzVerifier.sol";
-import "../TokenHandler.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -17,7 +17,11 @@ import "../TokenHandler.sol";
 /**
  * A verifier for relay transactions.
  */
-contract BoltzRelayVerifier is IRelayVerifier, TokenHandler {
+contract BoltzRelayVerifier is
+    IRelayVerifier,
+    TokenHandler,
+    DestinationContractHandler
+{
     using SafeMath for uint256;
 
     address private _factory;
@@ -42,6 +46,23 @@ contract BoltzRelayVerifier is IRelayVerifier, TokenHandler {
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
         address payer = relayRequest.relayData.callForwarder;
+
+        // Check for the codehash of the smart wallet sent
+        bytes32 smartWalletCodeHash;
+        assembly {
+            smartWalletCodeHash := extcodehash(payer)
+        }
+
+        require(
+            IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,
+            "SW different to template"
+        );
+
+        require(
+            contracts[relayRequest.request.to],
+            "Destination contract not allowed"
+        );
+
         if (relayRequest.request.tokenAmount > 0) {
             if (relayRequest.request.tokenContract != address(0)) {
                 require(
@@ -57,36 +78,12 @@ contract BoltzRelayVerifier is IRelayVerifier, TokenHandler {
                     "Token balance too low"
                 );
             } else {
-                if (relayRequest.request.to != address(0)) {
-                    BoltzTypes.ClaimInfo memory claim = abi.decode(
-                        relayRequest.request.data[4:],
-                        (BoltzTypes.ClaimInfo)
-                    );
-
-                    require(
-                        relayRequest.request.tokenAmount <= claim.amount,
-                        "Native balance too low"
-                    );
-                } else {
-                    require(
-                        relayRequest.request.tokenAmount <=
-                            address(payer).balance,
-                        "Native balance too low"
-                    );
-                }
+                require(
+                    relayRequest.request.tokenAmount <= address(payer).balance,
+                    "Native balance too low"
+                );
             }
         }
-
-        // Check for the codehash of the smart wallet sent
-        bytes32 smartWalletCodeHash;
-        assembly {
-            smartWalletCodeHash := extcodehash(payer)
-        }
-
-        require(
-            IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,
-            "SW different to template"
-        );
 
         return (
             abi.encode(

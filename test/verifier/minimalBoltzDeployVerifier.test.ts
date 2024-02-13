@@ -23,12 +23,14 @@ chai.use(chaiAsPromised);
 
 describe('MinimalBoltzDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
+  let fakeContract: FakeContract<ERC20>;
   let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<MinimalBoltzDeployVerifier__factory>;
   let deployVerifierMock: MockContract<MinimalBoltzDeployVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
+    fakeContract = await smock.fake<ERC20>('ERC20');
     fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
       'MinimalBoltzSmartWalletFactory'
     );
@@ -58,6 +60,166 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
     });
   });
 
+  describe('DestinationContractHandler', function () {
+    describe('acceptContract', function () {
+      it('should set a contract address in the acceptedContracts list', async function () {
+        await deployVerifierMock.acceptContract(fakeContract.address);
+        const acceptsContract = await deployVerifierMock.acceptsContract(
+          fakeContract.address
+        );
+        expect(acceptsContract).to.be.true;
+      });
+
+      it('should revert if contract is already in the acceptedContracts list', async function () {
+        await deployVerifierMock.setVariable('contracts', {
+          [fakeContract.address]: true,
+        });
+        const result = deployVerifierMock.acceptContract(fakeContract.address);
+        await expect(result).to.be.revertedWith('Contract is already accepted');
+      });
+
+      it('should revert if accepting a contract with ZERO ADDRESS', async function () {
+        const result = deployVerifierMock.acceptContract(constants.AddressZero);
+
+        await expect(result).to.be.revertedWith(
+          'Contract cannot be zero address'
+        );
+      });
+
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
+
+        await expect(
+          deployVerifierMock.connect(other).acceptContract(fakeContract.address)
+        ).to.be.revertedWith('Caller is not the owner');
+      });
+    });
+
+    describe('removeContract', function () {
+      it('should remove a contract from contracts map', async function () {
+        await deployVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+          },
+          acceptedContracts: [ethers.utils.getAddress(fakeContract.address)],
+        });
+
+        await deployVerifierMock.removeContract(fakeContract.address, 0);
+
+        const contractMapValue = (await deployVerifierMock.getVariable(
+          'contracts',
+          [fakeContract.address]
+        )) as boolean;
+
+        expect(contractMapValue).to.be.false;
+      });
+
+      it('should remove a contract from acceptedContracts array', async function () {
+        await deployVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+          },
+          acceptedContracts: [fakeContract.address],
+        });
+
+        await deployVerifierMock.removeContract(fakeContract.address, 0);
+
+        const acceptedContracts =
+          await deployVerifierMock.getAcceptedContracts();
+
+        expect(acceptedContracts).to.not.contain(fakeContract.address);
+      });
+
+      it('should revert if contract is not currently previously accepted', async function () {
+        const result = deployVerifierMock.removeContract(
+          fakeContract.address,
+          0
+        );
+
+        await expect(result).to.be.revertedWith('Contract is not accepted');
+      });
+
+      it('should revert if contract removed is ZERO ADDRESS', async function () {
+        const result = deployVerifierMock.removeContract(
+          constants.AddressZero,
+          0
+        );
+
+        await expect(result).to.be.revertedWith(
+          'Contract cannot be zero address'
+        );
+      });
+
+      it('should revert if contract index does not correspond to contract address to be removed', async function () {
+        const fakeContract1 = await smock.fake<ERC20>('ERC20');
+
+        await deployVerifierMock.setVariables({
+          contracts: {
+            [fakeContract.address]: true,
+            [fakeContract1.address]: true,
+          },
+          acceptedContracts: [fakeContract.address, fakeContract1.address],
+        });
+
+        const result = deployVerifierMock.removeContract(
+          fakeContract.address,
+          1
+        );
+        await expect(result).to.be.revertedWith('Wrong contract index');
+      });
+
+      it('should revert if caller is not the owner', async function () {
+        const [other] = (await ethers.getSigners()).slice(1) as [
+          SignerWithAddress
+        ];
+
+        await expect(
+          deployVerifierMock.connect(other).acceptContract(fakeContract.address)
+        ).to.be.revertedWith('Caller is not the owner');
+      });
+    });
+
+    describe('getAcceptedContracts()', function () {
+      it('should get all the accepted contracts', async function () {
+        const fakeContractList = [fakeContract.address];
+        await deployVerifierMock.setVariable(
+          'acceptedContracts',
+          fakeContractList
+        );
+
+        const acceptedContracts =
+          await deployVerifierMock.getAcceptedContracts();
+        expect(acceptedContracts).to.deep.equal(fakeContractList);
+      });
+    });
+
+    describe('acceptsContract()', function () {
+      beforeEach(async function () {
+        const { address } = fakeContract;
+        await deployVerifierMock.setVariable('contracts', {
+          [address]: true,
+        });
+      });
+
+      it('should return true if contract is accepted', async function () {
+        const acceptsContract = await deployVerifierMock.acceptsContract(
+          fakeContract.address
+        );
+        expect(acceptsContract).to.be.true;
+      });
+
+      it('should return false if contract is not accepted', async function () {
+        const fakeContractUnaccepted = await smock.fake<ERC20>('ERC20');
+        const acceptsContract = await deployVerifierMock.acceptsContract(
+          fakeContractUnaccepted.address
+        );
+        expect(acceptsContract).to.be.false;
+      });
+    });
+  });
+
   describe('verifyRelayedCall()', function () {
     let owner: SignerWithAddress;
     let recipient: SignerWithAddress;
@@ -71,13 +233,16 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
         SignerWithAddress
       ];
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
+      await deployVerifierMock.setVariables({
+        _factory: fakeWalletFactory.address,
+        acceptedContracts: [recipient.address],
+        contracts: {
+          [recipient.address]: true,
+        },
+      });
     });
 
     it('should not revert if destination contract provide enough balance', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
-
       const ABI = [
         'function claim(bytes32 preimage, uint amount,address refundAddress, uint timelock)',
       ];
@@ -121,10 +286,6 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
     });
 
     it('should not revert if not paying', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
-
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
           callForwarder: fakeWalletFactory.address,
@@ -156,11 +317,44 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
       await expect(result).to.not.be.reverted;
     });
 
-    it('should revert if paying with ERC20 token', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
+    it('should revert if destination contract is not allowed', async function () {
+      await deployVerifierMock.setVariable('contracts', {
+        [recipient.address]: false,
       });
 
+      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: fakeWalletFactory.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          validUntilTime: '0',
+          value: '0',
+        },
+      };
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.rejectedWith(
+        'Destination contract not allowed'
+      );
+    });
+
+    it('should revert if paying with ERC20 token', async function () {
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
           callForwarder: fakeWalletFactory.address,
@@ -192,9 +386,6 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
     });
 
     it('should revert if factory address in request is different than factory address in contract', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
       const differentFactoryFake = await smock.fake(
         'MinimalBoltzSmartWalletFactory'
       );
@@ -230,10 +421,6 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
     });
 
     it('should revert if Smart Wallet is already created', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
-
       const fakeSmartWalletFactory =
         await smock.mock<MinimalBoltzSmartWallet__factory>(
           'MinimalBoltzSmartWallet'
@@ -269,14 +456,10 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Address already created!');
+      await expect(result).to.be.revertedWith('Address already created');
     });
 
-    it('should revert if native token balance is too low', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
-
+    it('should revert if claiming value is too low', async function () {
       const ABI = [
         'function claim(bytes32 preimage, uint amount,address refundAddress, uint timelock)',
       ];
@@ -315,7 +498,7 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Native balance too low');
+      await expect(result).to.be.revertedWith('Claiming value lower than fees');
     });
   });
 });

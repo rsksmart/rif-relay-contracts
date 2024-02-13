@@ -250,7 +250,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -282,7 +281,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -325,7 +323,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -377,7 +374,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 
@@ -385,7 +381,7 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Address already created!');
+      await expect(result).to.be.revertedWith('Address already created');
     });
 
     it('should revert if token balance is too low', async function () {
@@ -419,7 +415,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
           tokenContract: fakeToken.address,
           validUntilTime: '0',
           value: '0',
-          gas: '0',
         },
       };
 

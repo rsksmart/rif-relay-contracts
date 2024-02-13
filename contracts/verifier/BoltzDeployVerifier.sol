@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../TokenHandler.sol";
+import "../DestinationContractHandler.sol";
 import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
@@ -14,7 +15,11 @@ import "../interfaces/BoltzVerifier.sol";
 /**
  * A Verifier to be used on deploys.
  */
-contract BoltzDeployVerifier is IDeployVerifier, TokenHandler {
+contract BoltzDeployVerifier is
+    IDeployVerifier,
+    TokenHandler,
+    DestinationContractHandler
+{
     address private _factory;
 
     constructor(address walletFactory) public {
@@ -49,7 +54,13 @@ contract BoltzDeployVerifier is IDeployVerifier, TokenHandler {
                 relayRequest.request.index
             );
 
-        require(!_isContract(contractAddr), "Address already created!");
+        require(!_isContract(contractAddr), "Address already created");
+
+        require(
+            relayRequest.request.to == address(0) ||
+                contracts[relayRequest.request.to],
+            "Destination contract not allowed"
+        );
 
         if (relayRequest.request.tokenAmount > 0) {
             if (relayRequest.request.tokenContract != address(0)) {
@@ -74,7 +85,7 @@ contract BoltzDeployVerifier is IDeployVerifier, TokenHandler {
 
                     require(
                         relayRequest.request.tokenAmount <= claim.amount,
-                        "Native balance too low"
+                        "Claiming value lower than fees"
                     );
                 } else {
                     require(

@@ -52,7 +52,7 @@ contract DeployVerifier is IDeployVerifier, TokenHandler {
                 relayRequest.request.index
             );
 
-        require(!_isContract(contractAddr), "Address already created!");
+        require(!_isContract(contractAddr), "Address already created");
 
         if (relayRequest.request.tokenContract != address(0)) {
             require(
