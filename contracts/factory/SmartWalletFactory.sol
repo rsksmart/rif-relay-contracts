@@ -168,7 +168,6 @@ contract SmartWalletFactory is ISmartWalletFactory, ISmartWalletCreator {
         _nonces[req.from]++;
 
         //a6b63eb8  =>  initialize(address owner,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas)
-        //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
         /* solhint-disable avoid-tx-origin */
         _deploy(
             getCreationBytecode(),
