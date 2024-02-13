@@ -6,9 +6,6 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../interfaces/ISmartWalletFactory.sol";
 import "../utils/RSKAddrValidator.sol";
 
-/* solhint-disable no-inline-assembly */
-/* solhint-disable avoid-low-level-calls */
-
 /**
 ====================================================================================================================================================
                                            Documentation of the Proxy Code being deployed 
