@@ -24,7 +24,7 @@ describe('Deploy Script', function () {
       sinon.restore();
     });
 
-    describe('if no flags are specified', async function () {
+    describe('if no flags are specified', function () {
       it('should deploy all contracts', async function () {
         const result = await deployContracts({}, ethers, hre.network.name);
         expect(result).to.have.all.keys(
@@ -46,7 +46,7 @@ describe('Deploy Script', function () {
           'UtilToken'
         );
       });
-  
+
       it('should deploy contracts with valid addresses', async function () {
         const result = await deployContracts({}, ethers, hre.network.name);
         Object.values(result).forEach((value) => {

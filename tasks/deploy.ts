@@ -124,9 +124,8 @@ export const deployContracts = async (
       await nativeHolderSmartWalletF.deploy();
     const { address: nativeHolderSmartWalletFactoryAddress } =
       await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
-    const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
-      nativeHolderSmartWalletFactoryAddress
-    );
+    const { address: nativeDeployVerifierAddress } =
+      await deployVerifierF.deploy(nativeHolderSmartWalletFactoryAddress);
     const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
       nativeHolderSmartWalletFactoryAddress
     );
@@ -136,10 +135,10 @@ export const deployContracts = async (
 
     let utilTokenAddress;
     if (networkName != 'mainnet') {
+      const utilTokenF = await ethers.getContractFactory('UtilToken');
       const { address } = await utilTokenF.deploy();
       utilTokenAddress = address;
     }
-    // deploy only the contracts specified through the flags
 
     return {
       Penalizer: penalizerAddress,
@@ -162,10 +161,13 @@ export const deployContracts = async (
   }
   // deploy only the contracts specified through the flags
 
-  return { } as ContractAddresses;
+  return {} as ContractAddresses;
 };
 
-export const deploy = async (deployArg: DeployArg, hre: HardhatRuntimeEnvironment) => {
+export const deploy = async (
+  deployArg: DeployArg,
+  hre: HardhatRuntimeEnvironment
+) => {
   const {
     ethers,
     hardhatArguments: { network },

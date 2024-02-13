@@ -126,11 +126,9 @@ const config: HardhatUserConfig = {
 
 task('deploy', 'Deploys rif-relay contracts to selected network')
   .addFlag('relayHub')
-  .setAction(
-    async (taskArgs: DeployArg, hre) => {
-      await deploy(taskArgs, hre);
-    }
-  );
+  .setAction(async (taskArgs: DeployArg, hre) => {
+    await deploy(taskArgs, hre);
+  });
 
 task('collector:deploy', 'Deploys the collector')
   .addOptionalParam('configFileName', 'Path of the collector config file')
