@@ -120,41 +120,6 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
       await expect(result).to.not.be.reverted;
     });
 
-    it('should revert if paying with ERC20 token', async function () {
-      await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
-      });
-
-      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-        relayData: {
-          callForwarder: fakeWalletFactory.address,
-          callVerifier: deployVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          recoverer: constants.AddressZero,
-          index: '0',
-          data: '0x00',
-          from: owner.address,
-          to: recipient.address,
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = deployVerifierMock.verifyRelayedCall(
-        deployRequest,
-        '0x00'
-      );
-      await expect(result).to.be.rejectedWith('RBTC necessary for payment');
-    });
-
     it('should not revert if not paying', async function () {
       await deployVerifierMock.setVariables({
         _factory: fakeWalletFactory.address,
@@ -189,6 +154,41 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
       );
 
       await expect(result).to.not.be.reverted;
+    });
+
+    it('should revert if paying with ERC20 token', async function () {
+      await deployVerifierMock.setVariables({
+        _factory: fakeWalletFactory.address,
+      });
+
+      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: fakeWalletFactory.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x00',
+          from: owner.address,
+          to: recipient.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          validUntilTime: '0',
+          value: '0',
+        },
+      };
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.rejectedWith('RBTC necessary for payment');
     });
 
     it('should revert if factory address in request is different than factory address in contract', async function () {
