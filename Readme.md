@@ -50,6 +50,8 @@ The contracts can be deployed in the following way:
   * `--default-smart-wallet`: to deploy the default `SmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--custom-smart-wallet`: to deploy the `CustomSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--native-holder-smart-wallet`: to deploy the `NativeHolderSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--boltz-smart-wallet`: to deploy the `BoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--minimal-boltz-smart-wallet`: to deploy the `MinimalBoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--util-token`: to deploy an ERC20 Token `UtilToken` (for Testnet/Regtest only);
   * `--version-registry`: : to deploy the `VersionRegistry` contract.
 
