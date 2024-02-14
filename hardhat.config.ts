@@ -141,7 +141,7 @@ task(
     'If specified, it will deploy the custom smart wallet with the factory and the verifiers (deploy, relay)'
   )
   .addFlag(
-    'nativeHoldeSmartWallet',
+    'nativeHolderSmartWallet',
     'If specified, it will deploy the native holder smart wallet with the factory and the verifiers (deploy, relay)'
   )
   .addFlag(

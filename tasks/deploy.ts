@@ -17,7 +17,7 @@ export type AddressesConfig = { [key: string]: ContractAddresses };
 
 export type DeployArg = {
   relayHub?: boolean;
-  defaulSmartWallet?: boolean;
+  defaultSmartWallet?: boolean;
   customSmartWallet?: boolean;
   nativeHolderSmartWallet?: boolean;
   utilToken?: boolean;
@@ -77,7 +77,7 @@ export const deployContracts = async (
     (ethers: HardhatEthersHelpers) => Promise<Partial<ContractAddresses>>
   > = {
     relayHub: deployRelayHub,
-    defaulSmartWallet: deployDefaultSmartWallet,
+    defaultSmartWallet: deployDefaultSmartWallet,
     customSmartWallet: deployCustomSmartWallet,
     nativeHolderSmartWallet: deployNativeHolderSmartWallet,
     utilToken: deployUtilToken,
