@@ -204,7 +204,7 @@ describe('Deploy Script', function () {
   });
 
   describe('updateConfig', function () {
-    const contractAddresses: ContractAddresses = {
+    const previouslyDeployedContracts: Partial<ContractAddresses> = {
       Penalizer: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       RelayHub: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       SmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
@@ -223,13 +223,10 @@ describe('Deploy Script', function () {
     };
 
     const chainContractAddresses = {
-      'regtest.33': contractAddresses,
+      'regtest.33': previouslyDeployedContracts,
     };
 
-    let spyWriteFileSync: sinon.SinonSpy;
-
     beforeEach(function () {
-      spyWriteFileSync = sinon.spy(fs, 'writeFileSync');
       hre.hardhatArguments.network = 'regtest';
       if (hre.config.networks['regtest']) {
         hre.config.networks['regtest'].chainId = 33;
@@ -240,20 +237,7 @@ describe('Deploy Script', function () {
       sinon.restore();
     });
 
-    it('should generate a json config file with existing config file', async function () {
-      // FIXME:
-      sinon.stub(fs, 'existsSync').returns(true);
-      sinon
-        .stub(fs, 'readFileSync')
-        .returns(JSON.stringify(chainContractAddresses));
-      await updateConfig(contractAddresses, hre);
-      spyWriteFileSync.calledOnceWith(
-        'contract-addresses.json',
-        JSON.stringify(chainContractAddresses)
-      );
-    });
-
-    it('should update the contract address with only the deployed contracts', async function () {
+    it('should update the contract addresses with only the deployed contracts', async function () {
       sinon.stub(fs, 'existsSync').returns(true);
       sinon
         .stub(fs, 'readFileSync')
@@ -265,21 +249,22 @@ describe('Deploy Script', function () {
       const config = await updateConfig(deployedContracts, hre);
       const expectedConfig = {
         'regtest.33': {
-          ...contractAddresses,
+          ...previouslyDeployedContracts,
           ...deployedContracts,
         },
       };
       expect(config).to.be.deep.eq(expectedConfig);
     });
 
-    it('should generate a json config file when config file is not present', async function () {
-      // FIXME:
+    it('should generate a new config when no previously deployed contracts are available', async function () {
       sinon.stub(fs, 'existsSync').returns(false);
-      await updateConfig(contractAddresses, hre);
-      spyWriteFileSync.calledOnceWith(
-        'contract-addresses.json',
-        JSON.stringify(chainContractAddresses)
-      );
+      const config = await updateConfig(previouslyDeployedContracts, hre);
+      const expectedConfig = {
+        'regtest.33': {
+          ...previouslyDeployedContracts,
+        },
+      };
+      expect(config).to.be.deep.eq(expectedConfig);
     });
 
     it('should throw if network is undefined', async function () {
@@ -291,9 +276,9 @@ describe('Deploy Script', function () {
       if (hre.config.networks['regtest']) {
         hre.config.networks['regtest'].chainId = 33;
       }
-      await expect(updateConfig(contractAddresses, hre)).to.be.rejectedWith(
-        'Unknown Network'
-      );
+      await expect(
+        updateConfig(previouslyDeployedContracts, hre)
+      ).to.be.rejectedWith('Unknown Network');
     });
 
     it('should throw if chainId is undefined', async function () {
@@ -305,9 +290,9 @@ describe('Deploy Script', function () {
       if (hre.config.networks['regtest']) {
         hre.config.networks['regtest'].chainId = undefined;
       }
-      await expect(updateConfig(contractAddresses, hre)).to.to.be.rejectedWith(
-        'Unknown Chain Id'
-      );
+      await expect(
+        updateConfig(previouslyDeployedContracts, hre)
+      ).to.to.be.rejectedWith('Unknown Chain Id');
     });
   });
 });
