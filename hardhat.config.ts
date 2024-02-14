@@ -124,7 +124,10 @@ const config: HardhatUserConfig = {
   },
 };
 
-task('deploy', 'Deploys rif-relay contracts to selected network')
+task(
+  'deploy',
+  'Deploys rif-relay contracts to selected network. If no flags are specified, all contracts will be deployed'
+)
   .addFlag(
     'relayHub',
     'If specified it will deploy the relayHub and the penalizer'
