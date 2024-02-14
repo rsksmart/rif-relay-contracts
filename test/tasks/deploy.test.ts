@@ -183,6 +183,119 @@ describe('Deploy Script', function () {
         expect(result).to.have.all.keys(...expectedKeys);
         expect(result).not.to.have.any.keys(...unexpectedKeys);
       });
+
+      it('should deploy the version registry', async function () {
+        const result = await deployContracts({ versionRegistry: true }, ethers);
+        const expectedKeys = ['VersionRegistry'];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the relay hub and the default smart wallet', async function () {
+        const result = await deployContracts(
+          { relayHub: true, defaulSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+        ];
+        const unexpectedKeys = [
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'UtilToken',
+          'VersionRegistry',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the custom smart wallet and the native holder smart wallet', async function () {
+        const result = await deployContracts(
+          { customSmartWallet: true, nativeHolderSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'UtilToken',
+          'VersionRegistry',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the relay hub, the default smart wallet, the custom smart wallet and the native holder smart wallet', async function () {
+        const result = await deployContracts(
+          {
+            relayHub: true,
+            defaulSmartWallet: true,
+            customSmartWallet: true,
+            nativeHolderSmartWallet: true,
+          },
+          ethers
+        );
+        const expectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+        ];
+        const unexpectedKeys = ['UtilToken', 'VersionRegistry'];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
     });
   });
 

@@ -1,6 +1,17 @@
 import { HardhatEthersHelpers } from 'hardhat/types';
 import { ContractAddresses } from '../utils/scripts/types';
 
+export const deployVersionRegistry = async (
+  ethers: HardhatEthersHelpers
+): Promise<Pick<ContractAddresses, 'VersionRegistry'>> => {
+  const versionRegistryFactory = await ethers.getContractFactory(
+    'VersionRegistry'
+  );
+  const { address } = await versionRegistryFactory.deploy();
+
+  return { VersionRegistry: address };
+};
+
 export const deployUtilToken = async (
   ethers: HardhatEthersHelpers
 ): Promise<Partial<Pick<ContractAddresses, 'UtilToken'>>> => {

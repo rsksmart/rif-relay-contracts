@@ -8,6 +8,7 @@ import {
   deployCustomSmartWallet,
   deployNativeHolderSmartWallet,
   deployUtilToken,
+  deployVersionRegistry,
 } from './deployers';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
@@ -20,6 +21,7 @@ export type DeployArg = {
   customSmartWallet?: boolean;
   nativeHolderSmartWallet?: boolean;
   utilToken?: boolean;
+  versionRegistry?: boolean;
 };
 
 // TODO: Use the async version of fs.writeFile
@@ -79,6 +81,7 @@ export const deployContracts = async (
     customSmartWallet: deployCustomSmartWallet,
     nativeHolderSmartWallet: deployNativeHolderSmartWallet,
     utilToken: deployUtilToken,
+    versionRegistry: deployVersionRegistry,
   };
 
   /*

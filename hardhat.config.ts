@@ -148,6 +148,10 @@ task(
     'utilToken',
     'If specified, it will deploy an ERC20 token to be used for testing purposes; it does not deploy the token on mainnet'
   )
+  .addFlag(
+    'versionRegistry',
+    'If specified, it will deploy the version registry'
+  )
   .setAction(async (taskArgs: DeployArg, hre) => {
     await deploy(taskArgs, hre);
   });
