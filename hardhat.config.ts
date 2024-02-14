@@ -130,7 +130,7 @@ task(
 )
   .addFlag(
     'relayHub',
-    'If specified it will deploy the relayHub and the penalizer'
+    'If specified, it will deploy the relayHub and the penalizer'
   )
   .addFlag(
     'defaultSmartWallet',
