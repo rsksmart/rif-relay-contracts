@@ -42,7 +42,8 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
-          'UtilToken'
+          'UtilToken',
+          'VersionRegistry'
         );
       });
 
@@ -79,7 +80,7 @@ describe('Deploy Script', function () {
 
       it('should deploy the default smart wallet', async function () {
         const result = await deployContracts(
-          { defaulSmartWallet: true },
+          { defaultSmartWallet: true },
           ethers
         );
         const expectedKeys = [
@@ -210,7 +211,7 @@ describe('Deploy Script', function () {
 
       it('should deploy the relay hub and the default smart wallet', async function () {
         const result = await deployContracts(
-          { relayHub: true, defaulSmartWallet: true },
+          { relayHub: true, defaultSmartWallet: true },
           ethers
         );
         const expectedKeys = [
@@ -270,7 +271,7 @@ describe('Deploy Script', function () {
         const result = await deployContracts(
           {
             relayHub: true,
-            defaulSmartWallet: true,
+            defaultSmartWallet: true,
             customSmartWallet: true,
             nativeHolderSmartWallet: true,
           },
