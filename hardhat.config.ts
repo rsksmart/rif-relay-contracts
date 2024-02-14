@@ -12,7 +12,7 @@ import {
   changePartnerShares,
   ChangePartnerSharesArg,
 } from './tasks/changePartnerShares';
-import { deploy } from './tasks/deploy';
+import { DeployArg, deploy } from './tasks/deploy';
 import {
   deployCollector,
   DeployCollectorArg,
@@ -124,11 +124,37 @@ const config: HardhatUserConfig = {
   },
 };
 
-task('deploy', 'Deploys rif-relay contracts to selected network').setAction(
-  async (_, hre) => {
-    await deploy(hre);
-  }
-);
+task(
+  'deploy',
+  'Deploys rif-relay contracts to selected network. If no flags are specified, all contracts will be deployed'
+)
+  .addFlag(
+    'relayHub',
+    'If specified, it will deploy the relayHub and the penalizer'
+  )
+  .addFlag(
+    'defaultSmartWallet',
+    'If specified, it will deploy the default smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'customSmartWallet',
+    'If specified, it will deploy the custom smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'nativeHolderSmartWallet',
+    'If specified, it will deploy the native holder smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'utilToken',
+    'If specified, it will deploy an ERC20 token to be used for testing purposes; it does not deploy the token on mainnet'
+  )
+  .addFlag(
+    'versionRegistry',
+    'If specified, it will deploy the version registry'
+  )
+  .setAction(async (taskArgs: DeployArg, hre) => {
+    await deploy(taskArgs, hre);
+  });
 
 task('collector:deploy', 'Deploys the collector')
   .addOptionalParam('configFileName', 'Path of the collector config file')

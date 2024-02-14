@@ -2,10 +2,27 @@ import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
 import { parseJsonFile } from './utils';
+import {
+  deployRelayHub,
+  deployDefaultSmartWallet,
+  deployCustomSmartWallet,
+  deployNativeHolderSmartWallet,
+  deployUtilToken,
+  deployVersionRegistry,
+} from './deployers';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
 export type AddressesConfig = { [key: string]: ContractAddresses };
+
+export type DeployArg = {
+  relayHub?: boolean;
+  defaultSmartWallet?: boolean;
+  customSmartWallet?: boolean;
+  nativeHolderSmartWallet?: boolean;
+  utilToken?: boolean;
+  versionRegistry?: boolean;
+};
 
 // TODO: Use the async version of fs.writeFile
 export const writeConfigToDisk = (config: NetworkConfig) => {
@@ -14,7 +31,7 @@ export const writeConfigToDisk = (config: NetworkConfig) => {
 };
 
 export const updateConfig = async (
-  contractAddresses: ContractAddresses,
+  contractAddresses: Partial<ContractAddresses>,
   { hardhatArguments, config: { networks } }: HardhatRuntimeEnvironment
 ): Promise<NetworkConfig> => {
   console.log('Generating network config...');
@@ -39,119 +56,62 @@ export const updateConfig = async (
     console.log(`Previous configuration not found at: "${ADDRESS_FILE}"`)
   )) as AddressesConfig;
 
+  const networkChainId = `${network}.${chainId}`;
+  const existingNetworkConfig = (existingConfig || {})[networkChainId] || {};
+
   return {
     ...existingConfig,
-    [`${network}.${chainId}`]: contractAddresses,
+    [networkChainId]: {
+      ...existingNetworkConfig,
+      ...contractAddresses,
+    },
   };
 };
 
 export const deployContracts = async (
-  ethers: HardhatEthersHelpers,
-  networkName?: string
-): Promise<ContractAddresses> => {
-  const relayHubF = await ethers.getContractFactory('RelayHub');
-  const penalizerF = await ethers.getContractFactory('Penalizer');
-  const smartWalletF = await ethers.getContractFactory('SmartWallet');
-  const smartWalletFactoryF = await ethers.getContractFactory(
-    'SmartWalletFactory'
-  );
-  const deployVerifierF = await ethers.getContractFactory('DeployVerifier');
-  const relayVerifierF = await ethers.getContractFactory('RelayVerifier');
-  const utilTokenF = await ethers.getContractFactory('UtilToken');
+  deployArg: DeployArg,
+  ethers: HardhatEthersHelpers
+): Promise<Partial<ContractAddresses>> => {
+  const deployers: Record<
+    keyof DeployArg,
+    (ethers: HardhatEthersHelpers) => Promise<Partial<ContractAddresses>>
+  > = {
+    relayHub: deployRelayHub,
+    defaultSmartWallet: deployDefaultSmartWallet,
+    customSmartWallet: deployCustomSmartWallet,
+    nativeHolderSmartWallet: deployNativeHolderSmartWallet,
+    utilToken: deployUtilToken,
+    versionRegistry: deployVersionRegistry,
+  };
 
-  const customSmartWalletF = await ethers.getContractFactory(
-    'CustomSmartWallet'
-  );
-  const customSmartWalletFactoryF = await ethers.getContractFactory(
-    'CustomSmartWalletFactory'
-  );
-  const customSmartWalletDeployVerifierF = await ethers.getContractFactory(
-    'CustomSmartWalletDeployVerifier'
-  );
-  const nativeHolderSmartWalletF = await ethers.getContractFactory(
-    'NativeHolderSmartWallet'
-  );
+  /*
+   * If no arguments are specified, we deploy everything
+   * otherwise, we get the active deployers only
+   */
+  const activeDeployers = Object.values(deployArg).every((v) => v === false)
+    ? Object.values(deployers)
+    : Object.entries(deployArg)
+        .filter(([_, deployFlag]) => deployFlag)
+        .map(([flagKey, _]) => deployers[flagKey as keyof DeployArg]);
 
-  const versionRegistryFactory = await ethers.getContractFactory(
-    'VersionRegistry'
-  );
-
-  const { address: penalizerAddress } = await penalizerF.deploy();
-  const { address: relayHubAddress } = await relayHubF.deploy(
-    penalizerAddress,
-    1,
-    1,
-    1,
-    1
-  );
-  const { address: smartWalletAddress } = await smartWalletF.deploy();
-  const { address: smartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(smartWalletAddress);
-  const { address: deployVerifierAddress } = await deployVerifierF.deploy(
-    smartWalletFactoryAddress
-  );
-  const { address: relayVerifierAddress } = await relayVerifierF.deploy(
-    smartWalletFactoryAddress
-  );
-
-  const { address: customSmartWalletAddress } =
-    await customSmartWalletF.deploy();
-  const { address: customSmartWalletFactoryAddress } =
-    await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
-  const { address: customDeployVerifierAddress } =
-    await customSmartWalletDeployVerifierF.deploy(
-      customSmartWalletFactoryAddress
-    );
-  const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
-    customSmartWalletFactoryAddress
-  );
-
-  const { address: nativeHolderSmartWalletAddress } =
-    await nativeHolderSmartWalletF.deploy();
-  const { address: nativeHolderSmartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
-  const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
-  );
-  const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
-  );
-
-  const { address: versionRegistryAddress } =
-    await versionRegistryFactory.deploy();
-
-  let utilTokenAddress;
-  if (networkName != 'mainnet') {
-    const { address } = await utilTokenF.deploy();
-    utilTokenAddress = address;
+  let contractAddresses: Partial<ContractAddresses> = {};
+  for (const deployer of activeDeployers) {
+    const deployedContracts = await deployer(ethers);
+    contractAddresses = {
+      ...contractAddresses,
+      ...deployedContracts,
+    };
   }
 
-  return {
-    Penalizer: penalizerAddress,
-    RelayHub: relayHubAddress,
-    SmartWallet: smartWalletAddress,
-    SmartWalletFactory: smartWalletFactoryAddress,
-    DeployVerifier: deployVerifierAddress,
-    RelayVerifier: relayVerifierAddress,
-    CustomSmartWallet: customSmartWalletAddress,
-    CustomSmartWalletFactory: customSmartWalletFactoryAddress,
-    CustomSmartWalletDeployVerifier: customDeployVerifierAddress,
-    CustomSmartWalletRelayVerifier: customRelayVerifierAddress,
-    NativeHolderSmartWallet: nativeHolderSmartWalletAddress,
-    NativeHolderSmartWalletFactory: nativeHolderSmartWalletFactoryAddress,
-    NativeHolderSmartWalletDeployVerifier: nativeDeployVerifierAddress,
-    NativeHolderSmartWalletRelayVerifier: nativeRelayVerifierAddress,
-    UtilToken: utilTokenAddress,
-    VersionRegistry: versionRegistryAddress,
-  };
+  return contractAddresses as ContractAddresses;
 };
 
-export const deploy = async (hre: HardhatRuntimeEnvironment) => {
-  const {
-    ethers,
-    hardhatArguments: { network },
-  } = hre;
-  const contractAddresses = await deployContracts(ethers, network);
+export const deploy = async (
+  deployArg: DeployArg,
+  hre: HardhatRuntimeEnvironment
+) => {
+  const { ethers } = hre;
+  const contractAddresses = await deployContracts(deployArg, ethers);
   console.table(contractAddresses);
   const newConfig = await updateConfig(contractAddresses, hre);
   writeConfigToDisk(newConfig);

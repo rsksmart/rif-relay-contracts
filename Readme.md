@@ -44,7 +44,23 @@ The project is ready to be used at this point.
 The contracts can be deployed in the following way:
 
 1. Configure the `hardhat.config.ts` file on the root of the project to set your network 
-2. Run `npx hardhat deploy --network <NETWORK_NAME>` 
+2. Run `npx hardhat deploy --network <NETWORK_NAME>`; this is suggested for testing purposes only, since it deploys all the contracts. If you want to have more control please use the following flags:
+  * `--relay-hub`: to deploy the `RelayHub` and the related contracts;
+  * `--default-smart-wallet`: to deploy the default `SmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--custom-smart-wallet`: to deploy the `CustomSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--native-holder-smart-wallet`: to deploy the `NativeHolderSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--util-token`: to deploy an ERC20 Token `UtilToken` (for Testnet/Regtest only);
+  * `--version-registry`: : to deploy the `VersionRegistry` contract.
+
+e.g.:
+```bash
+// to deploy RelayHub and SmartWallet
+npx hardhat deploy --network regtest --relay-hub --default-smart-wallet
+
+// to deploy RelayHub and SmartWallet and UtilToken
+npx hardhat deploy --network regtest --relay-hub --default-smart-wallet --util-token
+```
+For further information, please check the help included in the command: `npx hardhat deploy --help`.
 
 This will start the migration on `<NETWORK_NAME>`; at the end of it you should see a summary with all the contract addresses.
 
