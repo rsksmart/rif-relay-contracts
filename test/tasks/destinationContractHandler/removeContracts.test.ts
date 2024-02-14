@@ -21,8 +21,11 @@ describe('Remove Contracts Script', function () {
     taskArgs: AllowedContractsArgs,
     expectedAcceptedContracts: string[] = []
   ) => {
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
+
     const stubContract = sinon.createStubInstance(Contract);
-    stubContract['removeContract'] = () => undefined;
+    stubContract['removeContract'] = () => fakeHash;
     stubContract['getAcceptedContracts'] = () => {
       return expectedAcceptedContracts;
     };

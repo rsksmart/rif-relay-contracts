@@ -18,6 +18,8 @@ describe('Allow Tokens Script', function () {
     const taskArgs: AllowedTokensArgs = {
       tokenList: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
 
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
@@ -31,7 +33,7 @@ describe('Allow Tokens Script', function () {
 
     it('should allow a list of tokens', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['acceptToken'] = () => undefined;
+      stubContract['acceptToken'] = () => fakeHash;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       await expect(allowTokens(taskArgs, hre)).to.not.be.rejected;
     });

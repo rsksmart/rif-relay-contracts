@@ -12,6 +12,9 @@ use(chaiAsPromised);
 
 describe('Get Allowed Tokens Script', function () {
   describe('getAllowedTokens', function () {
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
+
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
       stubReadFileSync();
@@ -24,7 +27,7 @@ describe('Get Allowed Tokens Script', function () {
 
     it('should get several lists of allowed tokens successfully', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['getAcceptedTokens'] = () => undefined;
+      stubContract['getAcceptedTokens'] = () => fakeHash;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       await expect(getAllowedTokens({}, hre)).to.not.be.rejected;
     });

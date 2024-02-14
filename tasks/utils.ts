@@ -179,8 +179,8 @@ export const getVerifiersFromFile = async <T>(
     minimalBoltzDeployVerifier,
   } = await getVerifiers(hre);
 
-  if (type === 'Token') {
-    return [
+  const verifiers: Record<Handler, T[]> = {
+    Token: [
       deployVerifier,
       relayVerifier,
       customDeployVerifier,
@@ -189,14 +189,15 @@ export const getVerifiersFromFile = async <T>(
       nativeHolderRelayVerifier,
       boltzDeployVerifier,
       boltzRelayVerifier,
-    ] as T[];
-  }
+    ] as T[],
+    Contract: [
+      boltzDeployVerifier,
+      boltzRelayVerifier,
+      minimalBoltzDeployVerifier,
+    ] as T[],
+  };
 
-  return [
-    boltzDeployVerifier,
-    boltzRelayVerifier,
-    minimalBoltzDeployVerifier,
-  ] as T[];
+  return verifiers[type];
 };
 
 export const getTokenHandlerFromAddress = async (
@@ -214,13 +215,18 @@ export const getVerifiersFromArgs = async <T>(
   verifierList: string,
   hre: HardhatRuntimeEnvironment,
   type: Handler
-) =>
-  Promise.all(
-    verifierList
-      .split(',')
-      .map((address) =>
-        type === 'Token'
-          ? getTokenHandlerFromAddress(address, hre)
-          : getDestinationContractHandlerFromAddress(address, hre)
-      )
-  ) as Promise<T[]>;
+) => {
+  const verifierGetters: Record<
+    Handler,
+    (address: string) => Promise<TokenHandler | DestinationContractHandler>
+  > = {
+    Token: (address) => getTokenHandlerFromAddress(address, hre),
+    Contract: (address) =>
+      getDestinationContractHandlerFromAddress(address, hre),
+  };
+  const verifierGetter = verifierGetters[type];
+
+  return Promise.all(verifierList.split(',').map(verifierGetter)) as Promise<
+    T[]
+  >;
+};

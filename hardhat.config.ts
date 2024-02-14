@@ -184,7 +184,10 @@ task('collector:deploy', 'Deploys the collector')
   });
 
 task('allow-tokens', 'Allows a list of tokens')
-  .addParam('tokenList', 'list of tokens')
+  .addParam(
+    'tokenList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of tokens in a comma-separated format (e.g.: "address1,address2")'
@@ -203,7 +206,10 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
   });
 
 task('remove-tokens', 'Removes a list of tokens')
-  .addParam('tokenList', 'list of tokens')
+  .addParam(
+    'tokenList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of tokens in a comma-separated format (e.g.: "address1,address2")'
@@ -213,7 +219,10 @@ task('remove-tokens', 'Removes a list of tokens')
   });
 
 task('allow-contracts', 'Allows a list of contracts')
-  .addParam('contractList', 'list of contracts')
+  .addParam(
+    'contractList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of contracts in a comma-separated format (e.g.: "address1,address2")'
@@ -232,7 +241,10 @@ task('allowed-contracts', 'Retrieves a list of allowed contracts')
   });
 
 task('remove-contracts', 'Removes a list of contracts')
-  .addParam('contractList', 'list of contracts')
+  .addParam(
+    'contractList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of contracts in a comma-separated format (e.g.: "address1,address2")'

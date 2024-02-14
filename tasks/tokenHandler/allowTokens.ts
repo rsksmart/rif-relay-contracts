@@ -20,7 +20,8 @@ export const allowTokens = async (
   for (const tokenAddress of tokenAddresses) {
     for (const verifier of verifiers) {
       try {
-        await verifier.acceptToken(tokenAddress);
+        const tx = await verifier.acceptToken(tokenAddress);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error adding token with address ${tokenAddress} to allowed tokens on Verifier at ${verifier.address}`
@@ -29,5 +30,4 @@ export const allowTokens = async (
       }
     }
   }
-  console.log('Tokens allowed successfully!');
 };

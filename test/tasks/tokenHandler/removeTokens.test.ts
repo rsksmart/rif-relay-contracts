@@ -21,8 +21,11 @@ describe('Remove Tokens Script', function () {
     taskArgs: AllowedTokensArgs,
     expectedAcceptedTokens: string[] = []
   ) => {
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
+
     const stubContract = sinon.createStubInstance(Contract);
-    stubContract['removeToken'] = () => undefined;
+    stubContract['removeToken'] = () => fakeHash;
     stubContract['getAcceptedTokens'] = () => {
       return expectedAcceptedTokens;
     };

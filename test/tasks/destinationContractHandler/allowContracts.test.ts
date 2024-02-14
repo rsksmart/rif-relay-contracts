@@ -19,6 +19,9 @@ describe('Allow Contracts Script', function () {
       contractList: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
 
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
+
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
       stubReadFileSync();
@@ -31,7 +34,7 @@ describe('Allow Contracts Script', function () {
 
     it('should allow a list of contracts', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['acceptContract'] = () => undefined;
+      stubContract['acceptContract'] = () => fakeHash;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
       await expect(allowContracts(taskArgs, hre)).to.not.be.rejected;
     });

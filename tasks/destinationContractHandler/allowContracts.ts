@@ -20,7 +20,8 @@ export const allowContracts = async (
   for (const contractAddress of contractAddresses) {
     for (const verifier of verifiers) {
       try {
-        await verifier.acceptContract(contractAddress);
+        const tx = await verifier.acceptContract(contractAddress);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error adding contract with address ${contractAddress} to allowed contracts on Verifier at ${verifier.address}`
@@ -29,5 +30,4 @@ export const allowContracts = async (
       }
     }
   }
-  console.log('Contracts allowed successfully!');
 };

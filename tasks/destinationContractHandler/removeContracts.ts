@@ -25,7 +25,8 @@ export const removeContracts = async (
           );
           continue;
         }
-        await verifier.removeContract(contractAddress, index);
+        const tx = await verifier.removeContract(contractAddress, index);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error removing contract with address ${contractAddress} from allowed contracts on Verifier at ${verifier.address}`
@@ -34,5 +35,4 @@ export const removeContracts = async (
       }
     }
   }
-  console.log('Contracts removed successfully!');
 };

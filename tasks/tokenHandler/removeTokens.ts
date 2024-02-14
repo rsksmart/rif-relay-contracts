@@ -25,7 +25,8 @@ export const removeTokens = async (
           );
           continue;
         }
-        await verifier.removeToken(tokenAddress, index);
+        const tx = await verifier.removeToken(tokenAddress, index);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error removing token with address ${tokenAddress} from allowed tokens on Verifier at ${verifier.address}`
@@ -34,5 +35,4 @@ export const removeTokens = async (
       }
     }
   }
-  console.log('Tokens removed successfully!');
 };
