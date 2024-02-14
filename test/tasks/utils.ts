@@ -24,6 +24,8 @@ const defaultContractAddresses = {
   BoltzRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
   MinimalBoltzSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
   MinimalBoltzSmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+  MinimalBoltzDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+  MinimalBoltzRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
   VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
   UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
 };

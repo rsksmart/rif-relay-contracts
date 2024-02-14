@@ -5,9 +5,9 @@ import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import { removeTokens } from '../../tasks/removeTokens';
-import { stubReadFileSync } from './utils';
-import { AllowedTokensArgs } from 'tasks/allowTokens';
+import { removeTokens } from '../../../tasks/tokenHandler/removeTokens';
+import { stubReadFileSync } from '../utils';
+import { AllowedTokensArgs } from 'tasks/tokenHandler/allowTokens';
 
 use(chaiAsPromised);
 

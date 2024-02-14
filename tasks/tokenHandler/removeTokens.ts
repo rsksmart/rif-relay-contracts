@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { AllowedTokensArgs } from './allowTokens';
-import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
+import { getVerifiersFromArgs, getVerifiersFromFile } from '../utils';
+import { TokenHandler } from 'typechain-types';
 
 export const removeTokens = async (
   { tokenList, verifierList }: AllowedTokensArgs,
@@ -8,9 +9,9 @@ export const removeTokens = async (
 ) => {
   const tokenAddresses = tokenList.split(',');
 
-  const verifiers = verifierList
-    ? await getVerifiersFromArgs(verifierList, hre)
-    : await getVerifiersFromFile(hre);
+  const verifiers: TokenHandler[] = verifierList
+    ? await getVerifiersFromArgs(verifierList, hre, 'Token')
+    : await getVerifiersFromFile(hre, 'Token');
 
   for (const tokenAddress of tokenAddresses) {
     for (const verifier of verifiers) {
