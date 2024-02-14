@@ -26,7 +26,7 @@ describe('Deploy Script', function () {
 
     describe('if no flags are specified', function () {
       it('should deploy all contracts', async function () {
-        const result = await deployContracts({}, ethers, hre.network.name);
+        const result = await deployContracts({}, ethers);
         expect(result).to.have.all.keys(
           'Penalizer',
           'RelayHub',
@@ -42,13 +42,12 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
-          'VersionRegistry',
           'UtilToken'
         );
       });
 
       it('should deploy contracts with valid addresses', async function () {
-        const result = await deployContracts({}, ethers, hre.network.name);
+        const result = await deployContracts({}, ethers);
         Object.values(result).forEach((value) => {
           expect(value, value).to.eq(testAddress);
         });
@@ -57,11 +56,7 @@ describe('Deploy Script', function () {
 
     describe('if flags are specified', function () {
       it('should deploy the relayHub', async function () {
-        const result = await deployContracts(
-          { relayHub: true },
-          ethers,
-          hre.network.name
-        );
+        const result = await deployContracts({ relayHub: true }, ethers);
         const expectedKeys = ['Penalizer', 'RelayHub'];
         const unexpectedKeys = [
           'SmartWallet',
@@ -76,7 +71,6 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
-          'VersionRegistry',
           'UtilToken',
         ];
         expect(result).to.have.all.keys(...expectedKeys);
@@ -86,8 +80,7 @@ describe('Deploy Script', function () {
       it('should deploy the default smart wallet', async function () {
         const result = await deployContracts(
           { defaulSmartWallet: true },
-          ethers,
-          hre.network.name
+          ethers
         );
         const expectedKeys = [
           'SmartWallet',
@@ -106,7 +99,6 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
-          'VersionRegistry',
           'UtilToken',
         ];
         expect(result).to.have.all.keys(...expectedKeys);
@@ -116,8 +108,7 @@ describe('Deploy Script', function () {
       it('should deploy the custom smart wallet', async function () {
         const result = await deployContracts(
           { customSmartWallet: true },
-          ethers,
-          hre.network.name
+          ethers
         );
         const expectedKeys = [
           'CustomSmartWallet',
@@ -136,7 +127,6 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
-          'VersionRegistry',
           'UtilToken',
         ];
         expect(result).to.have.all.keys(...expectedKeys);
@@ -146,8 +136,7 @@ describe('Deploy Script', function () {
       it('should deploy the native holder wallet', async function () {
         const result = await deployContracts(
           { nativeHolderSmartWallet: true },
-          ethers,
-          hre.network.name
+          ethers
         );
         const expectedKeys = [
           'NativeHolderSmartWallet',
@@ -166,7 +155,6 @@ describe('Deploy Script', function () {
           'CustomSmartWalletFactory',
           'CustomSmartWalletDeployVerifier',
           'CustomSmartWalletRelayVerifier',
-          'VersionRegistry',
           'UtilToken',
         ];
         expect(result).to.have.all.keys(...expectedKeys);
@@ -174,11 +162,7 @@ describe('Deploy Script', function () {
       });
 
       it('should deploy the util token', async function () {
-        const result = await deployContracts(
-          { utilToken: true },
-          ethers,
-          hre.network.name
-        );
+        const result = await deployContracts({ utilToken: true }, ethers);
         const expectedKeys = ['UtilToken'];
         const unexpectedKeys = [
           'Penalizer',
@@ -191,7 +175,6 @@ describe('Deploy Script', function () {
           'CustomSmartWalletFactory',
           'CustomSmartWalletDeployVerifier',
           'CustomSmartWalletRelayVerifier',
-          'VersionRegistry',
           'NativeHolderSmartWallet',
           'NativeHolderSmartWalletFactory',
           'NativeHolderSmartWalletDeployVerifier',
@@ -217,7 +200,6 @@ describe('Deploy Script', function () {
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletRelayVerifier:
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
-      VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       NativeHolderSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
