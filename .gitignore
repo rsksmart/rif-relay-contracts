@@ -18,3 +18,4 @@ artifacts
 .vscode
 revenue-sharing-addresses.json
 deploy-collector.input.json
+contract-addresses.json
