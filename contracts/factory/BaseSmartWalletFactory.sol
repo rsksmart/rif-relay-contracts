@@ -3,9 +3,8 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "../interfaces/ICustomSmartWalletFactory.sol";
-import "../interfaces/ICustomSmartWalletCreator.sol";
-import "../interfaces/ISmartWalletRelayer.sol";
+import "../interfaces/IWalletFactory.sol";
+import "../interfaces/ISmartWalletFactory.sol";
 import "../utils/RSKAddrValidator.sol";
 
 /* solhint-disable no-inline-assembly */
@@ -20,7 +19,7 @@ This ProxyA is the one instantiated per smart wallet, and it will receive the Fo
 made to this proxy will end up in MC.
 MC is controlled by the same developer who created the factory, and .
 For the transaction execution (execute() call), MC will do the signature verification and payment. Then it will 
-execute the request, and, if a logic was defined, it will forward the flow to it before returning.
+execute the request
 
 
 
@@ -71,12 +70,11 @@ PC | OPCODE|   Mnemonic     |   Stack [top, bottom]                       | Comm
 44 | F3    | RETURN         | []                                          | return(Mem[0, rds-1])
  */
 
-/** Factory of Proxies to the CustomSmartWallet (Forwarder)
-The Forwarder itself is a Template with portions delegated to a custom logic (it is also a proxy) */
-contract CustomSmartWalletFactory is
-    ICustomSmartWalletFactory,
-    ICustomSmartWalletCreator,
-    ISmartWalletRelayer
+/** Factory of Proxies to the SmartWallet (Forwarder)
+ */
+abstract contract BaseSmartWalletFactory is
+    IWalletFactory,
+    ISmartWalletFactory
 {
     using ECDSA for bytes32;
 
@@ -98,13 +96,12 @@ contract CustomSmartWalletFactory is
         );
 
     // Nonces of senders, used to prevent replay attacks
-    mapping(address => uint256) private _nonces;
+    mapping(address => uint256) internal _nonces;
 
     /**
      * @param forwarderTemplate It implements all the payment and execution needs,
      * it pays for the deployment during initialization, and it pays for the transaction
      * execution on each execute() call.
-     * It also acts a a proxy to a logic contract. Any unrecognized function will be forwarded to this custom logic (if it exists)
      */
     constructor(address forwarderTemplate) public {
         masterCopy = forwarderTemplate;
@@ -121,117 +118,15 @@ contract CustomSmartWalletFactory is
         return _nonces[from];
     }
 
-    function createUserSmartWallet(
-        address owner,
-        address recoverer,
-        address logic,
-        uint256 index,
-        bytes calldata initParams,
-        bytes calldata sig
-    ) external override {
-        bytes32 _hash = keccak256(
-            abi.encodePacked(
-                address(this),
-                owner,
-                recoverer,
-                logic,
-                index,
-                initParams
-            )
-        );
-        (sig);
-        bytes32 message = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-        );
-        require(
-            RSKAddrValidator.safeEquals(message.recover(sig), owner),
-            "Invalid signature"
-        );
-
-        //e6ddc71a  =>  initialize(address owner,address logic,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,bytes initParams)
-        bytes memory initData = abi.encodeWithSelector(
-            hex"e6ddc71a",
-            owner,
-            logic,
-            address(0), // This "gas-funded" call does not pay with tokens
-            address(0),
-            0,
-            0, //No token transfer
-            initParams
-        );
-
-        _deploy(
-            getCreationBytecode(),
-            keccak256(
-                abi.encodePacked(
-                    owner,
-                    recoverer,
-                    logic,
-                    keccak256(initParams),
-                    index
-                )
-            ),
-            initData
-        );
-    }
-
-    function relayedUserSmartWalletCreation(
-        IForwarder.DeployRequest memory req,
-        bytes32 suffixData,
-        address feesReceiver,
-        bytes calldata sig
-    ) external override {
-        (sig);
-        require(msg.sender == req.relayHub, "Invalid caller");
-        _verifySig(req, suffixData, sig);
-        // solhint-disable-next-line not-rely-on-time
-        require(
-            req.validUntilTime == 0 || req.validUntilTime > block.timestamp,
-            "SW: request expired"
-        );
-        _nonces[req.from]++;
-
-        //e6ddc71a  =>  initialize(address owner,address logic,address tokenAddr,address tokenRecipient,uint256 tokenAmount,uint256 tokenGas,bytes initParams)
-        //a9059cbb = transfer(address _to, uint256 _value) public returns (bool success)
-        //initParams (req.data) must not contain the function selector for the logic initialization function
-        /* solhint-disable avoid-tx-origin */
-        _deploy(
-            getCreationBytecode(),
-            keccak256(
-                abi.encodePacked(
-                    req.from,
-                    req.recoverer,
-                    req.to,
-                    keccak256(req.data),
-                    req.index
-                )
-            ),
-            abi.encodeWithSelector(
-                hex"e6ddc71a",
-                req.from,
-                req.to,
-                req.tokenContract,
-                feesReceiver,
-                req.tokenAmount,
-                req.tokenGas,
-                req.data
-            )
-        );
-    }
-
     /**
-     * Calculates the Smart Wallet address for an owner EOA, wallet logic, and specific initialization params
+     * Calculates the Smart Wallet address for an owner EOA
      * @param owner - EOA of the owner of the smart wallet
      * @param recoverer - Address of that can be used by some contracts to give specific roles to the caller (e.g, a recoverer)
-     * @param logic - Custom logic to use in the smart wallet (address(0) if no extra logic needed)
-     * @param initParamsHash - If there's a custom logic, these are the params to call initialize(bytes) (function sig must not be included). Only the hash value is passed
-     * @param index - Allows to create many addresses for the same owner|recoverer|logic|initParams
+     * @param index - Allows to create many addresses for the same owner|recoverer
      */
     function getSmartWalletAddress(
         address owner,
         address recoverer,
-        address logic,
-        bytes32 initParamsHash,
         uint256 index
     ) external view override returns (address) {
         return
@@ -243,46 +138,14 @@ contract CustomSmartWalletFactory is
                                 bytes1(0xff),
                                 address(this),
                                 keccak256(
-                                    abi.encodePacked(
-                                        owner,
-                                        recoverer,
-                                        logic,
-                                        initParamsHash,
-                                        index
-                                    )
-                                ),
+                                    abi.encodePacked(owner, recoverer, index)
+                                ), // salt
                                 keccak256(getCreationBytecode())
                             )
                         )
                     )
                 )
             );
-    }
-
-    function _deploy(
-        bytes memory code,
-        bytes32 salt,
-        bytes memory initdata
-    ) internal returns (address addr) {
-        //Deployment of the Smart Wallet
-        /* solhint-disable-next-line no-inline-assembly */
-        assembly {
-            addr := create2(0, add(code, 0x20), mload(code), salt)
-            if iszero(extcodesize(addr)) {
-                revert(0, 0)
-            }
-        }
-
-        //Since the init code determines the address of the smart wallet, any initialization
-        //required is done via the runtime code, to avoid the parameters impacting on the resulting address
-
-        /* solhint-disable-next-line avoid-low-level-calls */
-        (bool success, ) = addr.call(initdata);
-
-        require(success, "Unable to initialize SW");
-
-        //No info is returned, an event is emitted to inform the new deployment
-        emit Deployed(addr, uint256(salt));
     }
 
     // Returns the proxy code to that is deployed on every Smart Wallet creation
