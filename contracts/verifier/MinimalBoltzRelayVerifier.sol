@@ -39,19 +39,6 @@ contract MinimalBoltzRelayVerifier is IRelayVerifier {
         EnvelopingTypes.RelayRequest calldata relayRequest,
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
-        address payer = relayRequest.relayData.callForwarder;
-
-        // Check for the codehash of the smart wallet sent
-        bytes32 smartWalletCodeHash;
-        assembly {
-            smartWalletCodeHash := extcodehash(payer)
-        }
-
-        require(
-            IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,
-            "SW different to template"
-        );
-
         revert("Deploy request accepted only");
     }
 }
