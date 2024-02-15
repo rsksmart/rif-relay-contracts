@@ -56,7 +56,7 @@ contract MinimalBoltzDeployVerifier is
 
         require(
             relayRequest.request.to != address(0),
-            "Transient SW needs a contract execution"
+            "SW needs a contract execution"
         );
 
         require(

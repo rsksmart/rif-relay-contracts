@@ -276,10 +276,13 @@ contract BoltzSmartWallet is IForwarder {
         address to,
         uint256 value,
         bytes calldata data
-    ) external returns (bool success, bytes memory ret) {
+    ) external {
         require(getOwner() == bytes32(0), "Already initialized");
 
         _setOwner(owner);
+
+        bool success;
+        bytes memory ret;
         if (to != address(0)) {
             (success, ret) = to.call{value: value}(data);
             if (!success) {
