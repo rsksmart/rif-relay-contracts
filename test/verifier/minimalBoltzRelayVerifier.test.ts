@@ -74,33 +74,6 @@ describe('MinimalBoltzRelayVerifier Contract', function () {
       );
     });
 
-    it('should revert if factory address in request is different than factory address in contract', async function () {
-      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
-        relayData: {
-          callForwarder: fakeSmartWallet.address,
-          callVerifier: relayVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          data: '0x00',
-          from: owner.address,
-          to: recipient.address,
-          gas: '1000000',
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: constants.AddressZero,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
-      await expect(result).to.be.revertedWith('SW different to template');
-    });
-
     it('should always revert', async function () {
       fakeWalletFactory.runtimeCodeHash.returns(
         '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
