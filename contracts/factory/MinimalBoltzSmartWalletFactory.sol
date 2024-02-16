@@ -12,6 +12,7 @@ contract MinimalBoltzSmartWalletFactory is
     BaseSmartWalletFactory,
     ISmartWalletRelayer
 {
+    /* solhint-disable no-empty-blocks */
     /**
      * @param forwarderTemplate It implements all the payment and execution needs,
      * it pays for the deployment during initialization, and it pays for the transaction
