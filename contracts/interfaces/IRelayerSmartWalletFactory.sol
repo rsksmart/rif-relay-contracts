@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./IWalletFactory.sol";
 
-interface ISmartWalletRelayer is IWalletFactory {
+interface IRelayerSmartWalletFactory is IWalletFactory {
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,

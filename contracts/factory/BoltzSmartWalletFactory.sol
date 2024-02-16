@@ -2,8 +2,8 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ISmartWalletCreator.sol";
-import "../interfaces/ISmartWalletRelayer.sol";
+import "../interfaces/ICreateSmartWalletFactory.sol";
+import "../interfaces/IRelayerSmartWalletFactory.sol";
 import "./BaseSmartWalletFactory.sol";
 
 /* solhint-disable no-inline-assembly */
@@ -11,8 +11,8 @@ import "./BaseSmartWalletFactory.sol";
 
 contract BoltzSmartWalletFactory is
     BaseSmartWalletFactory,
-    ISmartWalletCreator,
-    ISmartWalletRelayer
+    ICreateSmartWalletFactory,
+    IRelayerSmartWalletFactory
 {
     /* solhint-disable no-empty-blocks */
     /**
