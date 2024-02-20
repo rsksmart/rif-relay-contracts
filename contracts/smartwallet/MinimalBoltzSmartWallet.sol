@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 /* solhint-disable avoid-low-level-calls */
 
 contract MinimalBoltzSmartWallet {
-    bool _isInitialized = false;
+    bool private _isInitialized = false;
 
     /**
      * This Proxy will first charge for the deployment and then it will pass the
@@ -26,11 +26,13 @@ contract MinimalBoltzSmartWallet {
         uint256 feesGas,
         address to,
         bytes calldata data
-    ) external returns (bool success, bytes memory ret) {
+    ) external {
         require(!_isInitialized, "Already initialized");
 
         _isInitialized = true;
 
+        bool success;
+        bytes memory ret;
         if (to != address(0)) {
             (success, ret) = to.call(data);
             if (!success) {

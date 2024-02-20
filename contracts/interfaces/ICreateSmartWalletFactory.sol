@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./IWalletFactory.sol";
 
-interface ISmartWalletCreator is IWalletFactory {
+interface ICreateSmartWalletFactory is IWalletFactory {
     function createUserSmartWallet(
         address owner,
         address recoverer,

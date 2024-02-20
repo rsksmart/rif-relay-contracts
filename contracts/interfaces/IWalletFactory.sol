@@ -9,13 +9,6 @@ interface IWalletFactory {
 
     function runtimeCodeHash() external view returns (bytes32);
 
-    function relayedUserSmartWalletCreation(
-        IForwarder.DeployRequest memory req,
-        bytes32 suffixData,
-        address feesReceiver,
-        bytes calldata sig
-    ) external;
-
     function getCreationBytecode() external view returns (bytes memory);
 
     event Deployed(address indexed addr, uint256 salt); //Event triggered when a deploy is successful

@@ -14,7 +14,7 @@ abstract contract DestinationContractHandler is Ownable {
             "Contract cannot be zero address"
         );
         require(
-            contracts[destinationContract] == false,
+            !contracts[destinationContract],
             "Contract is already accepted"
         );
         contracts[destinationContract] = true;
@@ -29,10 +29,7 @@ abstract contract DestinationContractHandler is Ownable {
             destinationContract != address(0),
             "Contract cannot be zero address"
         );
-        require(
-            contracts[destinationContract] == true,
-            "Contract is not accepted"
-        );
+        require(contracts[destinationContract], "Contract is not accepted");
         require(
             destinationContract == acceptedContracts[index],
             "Wrong contract index"
