@@ -6,6 +6,10 @@ import "./Ownable.sol";
 
 abstract contract DestinationContractHandler is Ownable {
     mapping(address => bool) public contracts;
+
+    // Property was included to simplify the process of returning all the accepted contracts,
+    // even there are different strategies to reduce the gas cost,
+    // it was considered that the accepted contracts are not going to be large.
     address[] public acceptedContracts;
 
     function acceptContract(address destinationContract) external onlyOwner {
