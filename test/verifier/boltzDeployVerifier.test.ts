@@ -382,7 +382,6 @@ describe('BoltzDeployVerifier Contract', function () {
         contracts: {
           [recipient.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
     });
 
@@ -576,7 +575,6 @@ describe('BoltzDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       const differentFactoryFake = await smock.fake('BoltzSmartWalletFactory');
 

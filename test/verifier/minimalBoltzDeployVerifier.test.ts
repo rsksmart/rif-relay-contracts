@@ -234,7 +234,6 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
       ];
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
       await deployVerifierMock.setVariables({
-        _factory: fakeWalletFactory.address,
         acceptedContracts: [recipient.address],
         contracts: {
           [recipient.address]: true,

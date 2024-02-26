@@ -20,10 +20,10 @@ contract BoltzDeployVerifier is
     TokenHandler,
     DestinationContractHandler
 {
-    address private _factory;
+    address private immutable _FACTORY;
 
     constructor(address walletFactory) public {
-        _factory = walletFactory;
+        _FACTORY = walletFactory;
     }
 
     function versionVerifier()
@@ -42,7 +42,7 @@ contract BoltzDeployVerifier is
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
         require(
-            relayRequest.relayData.callForwarder == _factory,
+            relayRequest.relayData.callForwarder == _FACTORY,
             "Invalid factory"
         );
 

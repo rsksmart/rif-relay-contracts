@@ -398,7 +398,6 @@ describe('BoltzRelayVerifier Contract', function () {
         contracts: {
           [recipient.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       fakeWalletFactory.runtimeCodeHash.returns(
         '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'

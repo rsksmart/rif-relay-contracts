@@ -226,7 +226,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
@@ -299,7 +298,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       const differentFactoryFake = await smock.fake('SmartWalletFactory');
 
@@ -340,7 +338,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
 
       const fakeSmartWalletFactory =
@@ -392,7 +389,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {

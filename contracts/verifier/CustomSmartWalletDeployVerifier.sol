@@ -14,10 +14,10 @@ import "../interfaces/EnvelopingTypes.sol";
  * A Verifier to be used on deploys.
  */
 contract CustomSmartWalletDeployVerifier is IDeployVerifier, TokenHandler {
-    address private _factory;
+    address private immutable _FACTORY;
 
     constructor(address walletFactory) public {
-        _factory = walletFactory;
+        _FACTORY = walletFactory;
     }
 
     function versionVerifier()
@@ -40,7 +40,7 @@ contract CustomSmartWalletDeployVerifier is IDeployVerifier, TokenHandler {
             "Token contract not allowed"
         );
         require(
-            relayRequest.relayData.callForwarder == _factory,
+            relayRequest.relayData.callForwarder == _FACTORY,
             "Invalid factory"
         );
 

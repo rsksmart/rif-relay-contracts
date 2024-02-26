@@ -82,9 +82,9 @@ contract CustomSmartWalletFactory is
 
     bytes11 private constant _RUNTIME_START = hex"363D3D373D3D3D3D363D73";
     bytes14 private constant _RUNTIME_END = hex"5AF43D923D90803E602B57FD5BF3";
-    address public masterCopy; // this is the ForwarderProxy contract that will be proxied
+    address public immutable MASTER_COPY; // this is the ForwarderProxy contract that will be proxied
     bytes32 public constant DATA_VERSION_HASH = keccak256("2");
-    bytes32 public domainSeparator =
+    bytes32 public immutable DOMAIN_SEPARATOR =
         keccak256(
             abi.encode(
                 keccak256(
@@ -107,13 +107,13 @@ contract CustomSmartWalletFactory is
      * It also acts a a proxy to a logic contract. Any unrecognized function will be forwarded to this custom logic (if it exists)
      */
     constructor(address forwarderTemplate) public {
-        masterCopy = forwarderTemplate;
+        MASTER_COPY = forwarderTemplate;
     }
 
     function runtimeCodeHash() external view override returns (bytes32) {
         return
             keccak256(
-                abi.encodePacked(_RUNTIME_START, masterCopy, _RUNTIME_END)
+                abi.encodePacked(_RUNTIME_START, MASTER_COPY, _RUNTIME_END)
             );
     }
 
@@ -292,7 +292,7 @@ contract CustomSmartWalletFactory is
             abi.encodePacked(
                 hex"602D3D8160093D39F3",
                 _RUNTIME_START,
-                masterCopy,
+                MASTER_COPY,
                 _RUNTIME_END
             );
     }
@@ -344,7 +344,7 @@ contract CustomSmartWalletFactory is
                 keccak256(
                     abi.encodePacked(
                         "\x19\x01",
-                        domainSeparator,
+                        DOMAIN_SEPARATOR,
                         keccak256(_getEncoded(req, suffixData))
                     )
                 ).recover(sig),

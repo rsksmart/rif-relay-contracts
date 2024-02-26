@@ -19,10 +19,10 @@ import "../TokenHandler.sol";
 contract RelayVerifier is IRelayVerifier, TokenHandler {
     using SafeMath for uint256;
 
-    address private _factory;
+    address private immutable _FACTORY;
 
     constructor(address walletFactory) public {
-        _factory = walletFactory;
+        _FACTORY = walletFactory;
     }
 
     function versionVerifier()
@@ -61,7 +61,7 @@ contract RelayVerifier is IRelayVerifier, TokenHandler {
         }
 
         require(
-            IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,
+            IWalletFactory(_FACTORY).runtimeCodeHash() == smartWalletCodeHash,
             "SW different to template"
         );
 
