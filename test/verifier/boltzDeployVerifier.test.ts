@@ -62,6 +62,12 @@ describe('BoltzDeployVerifier Contract', function () {
         expect(acceptsToken).to.be.true;
       });
 
+      it('should revert if address is not a contract', async function () {
+        const eoa = ethers.Wallet.createRandom().address;
+        const result = deployVerifierMock.acceptToken(eoa);
+        await expect(result).to.be.revertedWith('Address is not a contract');
+      });
+
       it('should revert if token is already in the acceptedTokens list', async function () {
         await deployVerifierMock.setVariable('tokens', {
           [fakeToken.address]: true,
@@ -201,6 +207,12 @@ describe('BoltzDeployVerifier Contract', function () {
           fakeContract.address
         );
         expect(acceptsContract).to.be.true;
+      });
+
+      it('should revert if address is not a contract', async function () {
+        const eoa = ethers.Wallet.createRandom().address;
+        const result = deployVerifierMock.acceptContract(eoa);
+        await expect(result).to.be.revertedWith('Address is not a contract');
       });
 
       it('should revert if contract is already in the acceptedContracts list', async function () {

@@ -70,6 +70,12 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
         expect(acceptsContract).to.be.true;
       });
 
+      it('should revert if address is not a contract', async function () {
+        const eoa = ethers.Wallet.createRandom().address;
+        const result = deployVerifierMock.acceptContract(eoa);
+        await expect(result).to.be.revertedWith('Address is not a contract');
+      });
+
       it('should revert if contract is already in the acceptedContracts list', async function () {
         await deployVerifierMock.setVariable('contracts', {
           [fakeContract.address]: true,

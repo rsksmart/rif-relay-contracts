@@ -3,6 +3,7 @@
 pragma solidity ^0.6.12;
 
 import "./Ownable.sol";
+import "./utils/ContractValidator.sol";
 
 abstract contract DestinationContractHandler is Ownable {
     mapping(address => bool) public contracts;
@@ -16,6 +17,10 @@ abstract contract DestinationContractHandler is Ownable {
         require(
             destinationContract != address(0),
             "Contract cannot be zero address"
+        );
+        require(
+            ContractValidator.isContract(destinationContract),
+            "Address is not a contract"
         );
         require(
             !contracts[destinationContract],

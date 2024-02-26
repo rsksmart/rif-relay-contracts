@@ -181,6 +181,12 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
       expect(acceptsToken).to.be.true;
     });
 
+    it('should revert if address is not a contract', async function () {
+      const eoa = ethers.Wallet.createRandom().address;
+      const result = deployVerifierMock.acceptToken(eoa);
+      await expect(result).to.be.revertedWith('Address is not a contract');
+    });
+
     it('should return false if token is not accepted', async function () {
       const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
       const acceptsToken = await deployVerifierMock.acceptsToken(

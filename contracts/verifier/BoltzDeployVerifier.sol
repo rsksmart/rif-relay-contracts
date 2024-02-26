@@ -11,6 +11,7 @@ import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../interfaces/BoltzVerifier.sol";
+import "../utils/ContractValidator.sol";
 
 /**
  * A Verifier to be used on deploys.
@@ -54,7 +55,10 @@ contract BoltzDeployVerifier is
                 relayRequest.request.index
             );
 
-        require(!_isContract(contractAddr), "Address already created");
+        require(
+            !ContractValidator.isContract(contractAddr),
+            "Address already created"
+        );
 
         require(
             relayRequest.request.to == address(0) ||
@@ -104,18 +108,5 @@ contract BoltzDeployVerifier is
                 relayRequest.request.tokenContract
             )
         );
-    }
-
-    /**
-     * Check if a contract has code in it
-     * Should NOT be used in a contructor, it fails
-     * See: https://stackoverflow.com/a/54056854
-     */
-    function _isContract(address _addr) internal view returns (bool) {
-        uint32 size;
-        assembly {
-            size := extcodesize(_addr)
-        }
-        return (size > 0);
     }
 }
