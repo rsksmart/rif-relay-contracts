@@ -10,6 +10,7 @@ import "../DestinationContractHandler.sol";
 import "../interfaces/IWalletFactory.sol";
 import "../interfaces/IRelayVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
+import "../utils/ContractValidator.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -48,10 +49,7 @@ contract BoltzRelayVerifier is
         address payer = relayRequest.relayData.callForwarder;
 
         // Check for the codehash of the smart wallet sent
-        bytes32 smartWalletCodeHash;
-        assembly {
-            smartWalletCodeHash := extcodehash(payer)
-        }
+        bytes32 smartWalletCodeHash = ContractValidator.getCodeHash(payer);
 
         require(
             IWalletFactory(_FACTORY).runtimeCodeHash() == smartWalletCodeHash,

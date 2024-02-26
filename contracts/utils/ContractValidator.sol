@@ -14,4 +14,12 @@ library ContractValidator {
         }
         return (size > 0);
     }
+
+    function getCodeHash(
+        address _addr
+    ) internal view returns (bytes32 codeHash) {
+        assembly {
+            codeHash := extcodehash(_addr)
+        }
+    }
 }
