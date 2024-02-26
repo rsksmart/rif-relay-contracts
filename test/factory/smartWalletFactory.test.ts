@@ -39,7 +39,7 @@ describe('SmartWalletFactory', function () {
     });
 
     it('should update master copy', async function () {
-      await expect(smartWalletFactory.MASTER_COPY()).to.eventually.be.equal(
+      await expect(smartWalletFactory.masterCopy()).to.eventually.be.equal(
         template.address
       );
     });

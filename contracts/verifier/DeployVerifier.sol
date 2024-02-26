@@ -15,10 +15,10 @@ import "../utils/ContractValidator.sol";
  * A Verifier to be used on deploys.
  */
 contract DeployVerifier is IDeployVerifier, TokenHandler {
-    address private immutable _FACTORY;
+    address private immutable _factory;
 
     constructor(address walletFactory) public {
-        _FACTORY = walletFactory;
+        _factory = walletFactory;
     }
 
     function versionVerifier()
@@ -41,7 +41,7 @@ contract DeployVerifier is IDeployVerifier, TokenHandler {
             "Token contract not allowed"
         );
         require(
-            relayRequest.relayData.callForwarder == _FACTORY,
+            relayRequest.relayData.callForwarder == _factory,
             "Invalid factory"
         );
 

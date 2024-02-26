@@ -18,10 +18,10 @@ import "../interfaces/EnvelopingTypes.sol";
 contract MinimalBoltzRelayVerifier is IRelayVerifier {
     using SafeMath for uint256;
 
-    address private immutable _FACTORY;
+    address private immutable _factory;
 
     constructor(address walletFactory) public {
-        _FACTORY = walletFactory;
+        _factory = walletFactory;
     }
 
     function versionVerifier()

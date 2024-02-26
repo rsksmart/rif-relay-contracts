@@ -40,9 +40,9 @@ describe('BoltzSmartWalletFactory', function () {
     });
 
     it('should update master copy', async function () {
-      await expect(
-        boltzSmartWalletFactory.MASTER_COPY()
-      ).to.eventually.be.equal(template.address);
+      await expect(boltzSmartWalletFactory.masterCopy()).to.eventually.be.equal(
+        template.address
+      );
     });
   });
 

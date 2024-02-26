@@ -19,10 +19,10 @@ contract MinimalBoltzDeployVerifier is
     IDeployVerifier,
     DestinationContractHandler
 {
-    address private immutable _FACTORY;
+    address private immutable _factory;
 
     constructor(address walletFactory) public {
-        _FACTORY = walletFactory;
+        _factory = walletFactory;
     }
 
     function versionVerifier()
@@ -41,7 +41,7 @@ contract MinimalBoltzDeployVerifier is
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
         require(
-            relayRequest.relayData.callForwarder == _FACTORY,
+            relayRequest.relayData.callForwarder == _factory,
             "Invalid factory"
         );
 

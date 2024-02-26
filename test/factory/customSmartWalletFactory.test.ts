@@ -36,7 +36,7 @@ describe('CustomSmartWalletFactory', function () {
 
     it('should update master copy', async function () {
       await expect(
-        customSmartWalletFactory.MASTER_COPY()
+        customSmartWalletFactory.masterCopy()
       ).to.eventually.be.equal(template.address);
     });
   });
