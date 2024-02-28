@@ -11,10 +11,6 @@ import {
   SmartWalletFactory,
   SmartWallet__factory,
 } from 'typechain-types';
-import {
-  EnvelopingTypes,
-  IForwarder,
-} from 'typechain-types/contracts/RelayHub';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import {
   getLocalEip712DeploySignature,
@@ -24,10 +20,10 @@ import {
 } from '../utils/EIP712Utils';
 import {
   buildDomainSeparator,
-  createRequest,
+  createDeployRequest,
+  createRelayRequest,
   getSuffixData,
   HARDHAT_CHAIN_ID,
-  RelayData,
 } from './utils';
 
 chai.use(smock.matchers);
@@ -35,54 +31,12 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-type DeployRequest = EnvelopingTypes.DeployRequestStruct;
-type DeployRequestInternal = IForwarder.DeployRequestStruct;
-
 describe('SmartWallet contract', function () {
   let smartWalletFactory: SmartWalletFactory;
   let provider: BaseProvider;
   let owner: Wallet;
   let relayHub: SignerWithAddress;
   let fakeToken: FakeContract<ERC20>;
-
-  function createDeployRequest(
-    request: Partial<DeployRequestInternal>,
-    relayData?: Partial<RelayData>
-  ): DeployRequest {
-    const baseRequest = {
-      request: {
-        relayHub: ZERO_ADDRESS,
-        from: ZERO_ADDRESS,
-        to: ZERO_ADDRESS,
-        tokenContract: ZERO_ADDRESS,
-        recoverer: ZERO_ADDRESS,
-        value: '0',
-        nonce: '0',
-        tokenAmount: '0',
-        tokenGas: '50000',
-        index: '0',
-        validUntilTime: '0',
-        data: '0x',
-      },
-      relayData: {
-        gasPrice: '1',
-        feesReceiver: ZERO_ADDRESS,
-        callForwarder: ZERO_ADDRESS,
-        callVerifier: ZERO_ADDRESS,
-      },
-    };
-
-    return {
-      request: {
-        ...baseRequest.request,
-        ...request,
-      },
-      relayData: {
-        ...baseRequest.relayData,
-        ...relayData,
-      },
-    };
-  }
 
   async function createSmartWalletFactory(owner: Wallet) {
     const smartWalletTemplateFactory = await hardhat.getContractFactory(
@@ -178,7 +132,7 @@ describe('SmartWallet contract', function () {
             400000
           ),
           'Second initialization not rejected'
-        ).to.be.revertedWith('already initialized');
+        ).to.be.revertedWith('Already initialized');
       });
 
       it('Should create the domainSeparator', async function () {
@@ -330,7 +284,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should verify a transaction', async function () {
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         from: owner.address,
         nonce: '0',
       });
@@ -355,7 +309,7 @@ describe('SmartWallet contract', function () {
       const notTheOwner = hardhat.Wallet.createRandom();
       notTheOwner.connect(provider);
 
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         from: notTheOwner.address,
       });
 
@@ -379,7 +333,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should fail when the nonce is wrong', async function () {
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         from: owner.address,
         nonce: '2',
       });
@@ -404,7 +358,7 @@ describe('SmartWallet contract', function () {
       const notTheOwner = hardhat.Wallet.createRandom();
       notTheOwner.connect(provider);
 
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         from: owner.address,
       });
 
@@ -476,7 +430,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should execute a sponsored transaction', async function () {
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: relayHub.address,
           from: owner.address,
@@ -515,7 +469,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should execute a not sponsored transaction', async function () {
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: relayHub.address,
           from: owner.address,
@@ -555,7 +509,7 @@ describe('SmartWallet contract', function () {
     it('Should increment nonce', async function () {
       const initialNonce = 0;
 
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: relayHub.address,
           from: owner.address,
@@ -598,7 +552,7 @@ describe('SmartWallet contract', function () {
       const notTheRelayHub = hardhat.Wallet.createRandom();
       notTheRelayHub.connect(provider);
 
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: notTheRelayHub.address,
           from: owner.address,
@@ -632,7 +586,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should fail when gas is not enough', async function () {
-      const relayRequest = createRequest(
+      const relayRequest = createRelayRequest(
         {
           relayHub: relayHub.address,
           from: owner.address,
@@ -666,7 +620,7 @@ describe('SmartWallet contract', function () {
     });
 
     it('Should fail when request is expired', async function () {
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         relayHub: relayHub.address,
         from: owner.address,
         validUntilTime: 1669903306, //Thursday, December 1, 2022 2:01:46 PM
@@ -694,7 +648,7 @@ describe('SmartWallet contract', function () {
       const date = new Date();
       const expirationInSeconds = Math.floor(date.getTime() / 1000) + 86400;
 
-      const relayRequest = createRequest({
+      const relayRequest = createRelayRequest({
         relayHub: relayHub.address,
         from: owner.address,
         validUntilTime: expirationInSeconds, //Always 1 day (86400 sec) ahead

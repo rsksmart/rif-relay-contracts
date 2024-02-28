@@ -7,7 +7,14 @@ import 'hardhat-watcher';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import { HttpNetworkUserConfig } from 'hardhat/types';
 import { mint, MintArgs } from './tasks/mint';
-import { AllowedTokensArgs, allowTokens } from './tasks/allowTokens';
+import {
+  AllowedTokensArgs,
+  allowTokens,
+} from './tasks/tokenHandler/allowTokens';
+import {
+  AllowedContractsArgs,
+  allowContracts,
+} from './tasks/destinationContractHandler/allowContracts';
 import {
   changePartnerShares,
   ChangePartnerSharesArg,
@@ -20,8 +27,8 @@ import {
 import {
   GetAllowedTokensArgs,
   getAllowedTokens,
-} from './tasks/getAllowedTokens';
-import { removeTokens } from './tasks/removeTokens';
+} from './tasks/tokenHandler/getAllowedTokens';
+import { removeTokens } from './tasks/tokenHandler/removeTokens';
 import { withdraw, WithdrawSharesArg } from './tasks/withdraw';
 import {
   addTokenToCollector,
@@ -32,6 +39,11 @@ import {
   GetCollectorTokensArgs,
 } from './tasks/collector/getTokens';
 import { removeTokenFromCollector } from './tasks/collector/removeToken';
+import {
+  GetAllowedContractsArgs,
+  getAllowedContracts,
+} from './tasks/destinationContractHandler/getAllowedContracts';
+import { removeContracts } from './tasks/destinationContractHandler/removeContracts';
 dotenv.config();
 
 const DEFAULT_MNEMONIC =
@@ -152,6 +164,14 @@ task(
     'versionRegistry',
     'If specified, it will deploy the version registry'
   )
+  .addFlag(
+    'boltzSmartWallet',
+    'If specified, it will deploy the boltz smart wallet with the factory and the verifiers (deploy, relay)'
+  )
+  .addFlag(
+    'minimalBoltzSmartWallet',
+    'If specified, it will deploy the minimal boltz smart wallet with the factory and the verifiers (deploy, relay)'
+  )
   .setAction(async (taskArgs: DeployArg, hre) => {
     await deploy(taskArgs, hre);
   });
@@ -164,7 +184,10 @@ task('collector:deploy', 'Deploys the collector')
   });
 
 task('allow-tokens', 'Allows a list of tokens')
-  .addParam('tokenList', 'list of tokens')
+  .addParam(
+    'tokenList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of tokens in a comma-separated format (e.g.: "address1,address2")'
@@ -183,13 +206,51 @@ task('allowed-tokens', 'Retrieves a list of allowed tokens')
   });
 
 task('remove-tokens', 'Removes a list of tokens')
-  .addParam('tokenList', 'list of tokens')
+  .addParam(
+    'tokenList',
+    'list of tokens in a comma-separated format (e.g.: "address1,address2")'
+  )
   .addOptionalParam(
     'verifierList',
     'list of tokens in a comma-separated format (e.g.: "address1,address2")'
   )
   .setAction(async (taskArgs: AllowedTokensArgs, hre) => {
     await removeTokens(taskArgs, hre);
+  });
+
+task('allow-contracts', 'Allows a list of contracts')
+  .addParam(
+    'contractList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .addOptionalParam(
+    'verifierList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: AllowedContractsArgs, hre) => {
+    await allowContracts(taskArgs, hre);
+  });
+
+task('allowed-contracts', 'Retrieves a list of allowed contracts')
+  .addOptionalParam(
+    'verifierList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: GetAllowedContractsArgs, hre) => {
+    await getAllowedContracts(taskArgs, hre);
+  });
+
+task('remove-contracts', 'Removes a list of contracts')
+  .addParam(
+    'contractList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .addOptionalParam(
+    'verifierList',
+    'list of contracts in a comma-separated format (e.g.: "address1,address2")'
+  )
+  .setAction(async (taskArgs: AllowedContractsArgs, hre) => {
+    await removeContracts(taskArgs, hre);
   });
 
 task('collector:withdraw', 'Withdraws funds from a collector contract')

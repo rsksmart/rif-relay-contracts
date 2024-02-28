@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { GetAllowedTokensArgs } from './getAllowedTokens';
-import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
+import { getVerifiersFromArgs, getVerifiersFromFile } from '../utils';
+import { TokenHandler } from 'typechain-types';
 
 export type AllowedTokensArgs = GetAllowedTokensArgs & {
   tokenList: string;
@@ -12,14 +13,15 @@ export const allowTokens = async (
 ) => {
   const tokenAddresses = tokenList.split(',');
 
-  const verifiers = verifierList
-    ? await getVerifiersFromArgs(verifierList, hre)
-    : await getVerifiersFromFile(hre);
+  const verifiers: TokenHandler[] = verifierList
+    ? await getVerifiersFromArgs(verifierList, hre, 'Token')
+    : await getVerifiersFromFile(hre, 'Token');
 
   for (const tokenAddress of tokenAddresses) {
     for (const verifier of verifiers) {
       try {
-        await verifier.acceptToken(tokenAddress);
+        const tx = await verifier.acceptToken(tokenAddress);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error adding token with address ${tokenAddress} to allowed tokens on Verifier at ${verifier.address}`
@@ -28,5 +30,4 @@ export const allowTokens = async (
       }
     }
   }
-  console.log('Tokens allowed successfully!');
 };

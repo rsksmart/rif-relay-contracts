@@ -12,6 +12,7 @@ This project is part of the RIF Relay ecosystem. It contains all the smart contr
   - [**Addresses**](#addresses)
 - [**System usage**](#system-usage)
   - [**Managing tokens**](#managing-tokens)
+  - [**Managing destination contracts**](#managing-destination-contracts)
   - [**UtilToken Minting**](#UtilToken-minting)
 - [**Library usage**](#library-usage)
   - [**As a dependency**](#as-a-dependency)
@@ -49,6 +50,8 @@ The contracts can be deployed in the following way:
   * `--default-smart-wallet`: to deploy the default `SmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--custom-smart-wallet`: to deploy the `CustomSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--native-holder-smart-wallet`: to deploy the `NativeHolderSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--boltz-smart-wallet`: to deploy the `BoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--minimal-boltz-smart-wallet`: to deploy the `MinimalBoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--util-token`: to deploy an ERC20 Token `UtilToken` (for Testnet/Regtest only);
   * `--version-registry`: : to deploy the `VersionRegistry` contract.
 
@@ -181,6 +184,20 @@ If you want to modify just one or few verifiers, please specify it with the argu
     - `<TOKEN_ADDRESSES>` is a comma-separated list of the token addresses to be removed on the available verifiers.
     - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
 If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat remove-tokens --network <NETWORK_NAME> --token-list <TOKEN_ADDRESSES> --verifier-list <address1,address2>`
+
+### Managing destination contracts
+
+Once the smart contracts are deployed, contracts must be individually allowed to be able to work with the RIF Relay system. In the same way, contracts can be removed from the list of previously allowed contracts. There are some helpful commands for this:
+
+1. To allow a specific contract, run `npx hardhat allow-contracts --network <NETWORK_NAME> --contract-list <CONTRACT_ADDRESSES>` where:
+    - `<CONTRACT_ADDRESSES>` is a comma-separated list of the contract addresses to be allowed on the available verifiers
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts** 
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allow-contracts --network <NETWORK_NAME> --contract-list <CONTRACT_ADDRESSES> --verifier-list <address1,address2>`
+2. To query allowed contracts run `npx hardhat allowed-contracts --network <NETWORK_NAME>`. This will display them on the console. If you want to query just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat allowed-contracts --network <NETWORK_NAME> --verifier-list <address1,address2>`
+3. To remove a specific contract, run `npx hardhat remove-contracts --network <NETWORK_NAME> --contract-list <CONTRACT_ADDRESSES>` where:
+    - `<CONTRACT_ADDRESSES>` is a comma-separated list of the contract addresses to be removed on the available verifiers.
+    - `<NETWORK_NAME>` is an optional parameter for the network name, taken from the `hardhat.config.ts` file (default value is `hardhat`) **important! This should be the same network name as the one used to deploy the contracts**.
+If you want to modify just one or few verifiers, please specify it with the argument `--verifier-list` in a comma-separated format: `npx hardhat remove-contracts --network <NETWORK_NAME> --contract-list <CONTRACT_ADDRESSES> --verifier-list <address1,address2>`
 
 ### UtilToken Minting
 

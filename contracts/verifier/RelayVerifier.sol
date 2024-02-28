@@ -9,6 +9,7 @@ import "../interfaces/IWalletFactory.sol";
 import "../interfaces/IRelayVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../TokenHandler.sol";
+import "../utils/ContractValidator.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -19,7 +20,7 @@ import "../TokenHandler.sol";
 contract RelayVerifier is IRelayVerifier, TokenHandler {
     using SafeMath for uint256;
 
-    address private _factory;
+    address private immutable _factory;
 
     constructor(address walletFactory) public {
         _factory = walletFactory;
@@ -55,10 +56,7 @@ contract RelayVerifier is IRelayVerifier, TokenHandler {
         }
 
         // Check for the codehash of the smart wallet sent
-        bytes32 smartWalletCodeHash;
-        assembly {
-            smartWalletCodeHash := extcodehash(payer)
-        }
+        bytes32 smartWalletCodeHash = ContractValidator.getCodeHash(payer);
 
         require(
             IWalletFactory(_factory).runtimeCodeHash() == smartWalletCodeHash,

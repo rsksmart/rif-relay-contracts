@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { AddressesConfig } from './deploy';
-import { TokenHandler } from 'typechain-types';
+import { TokenHandler, DestinationContractHandler } from 'typechain-types';
 
 // TODO: we may convert this function to return a promise
 export const parseJsonFile = <T>(filePath: string) => {
@@ -60,6 +60,12 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     contractAddressesDeployed.NativeHolderSmartWalletDeployVerifier;
   const nativeRelayVerifierAddress =
     contractAddressesDeployed.NativeHolderSmartWalletRelayVerifier;
+  const boltzDeployVerifierAddress =
+    contractAddressesDeployed.BoltzDeployVerifier;
+  const boltzRelayVerifierAddress =
+    contractAddressesDeployed.BoltzRelayVerifier;
+  const minimalBoltzDeployVerifierAddress =
+    contractAddressesDeployed.MinimalBoltzDeployVerifier;
 
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');
@@ -89,6 +95,18 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     );
   }
 
+  if (!boltzDeployVerifierAddress) {
+    throw new Error('Could not obtain boltz deploy verifier address');
+  }
+
+  if (!boltzRelayVerifierAddress) {
+    throw new Error('Could not obtain boltz relay verifier address');
+  }
+
+  if (!minimalBoltzDeployVerifierAddress) {
+    throw new Error('Could not obtain minimal boltz deploy verifier address');
+  }
+
   const deployVerifier = await ethers.getContractAt(
     'DeployVerifier',
     deployVerifierAddress
@@ -116,6 +134,20 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     nativeRelayVerifierAddress
   );
 
+  const boltzDeployVerifier = await ethers.getContractAt(
+    'BoltzDeployVerifier',
+    boltzDeployVerifierAddress
+  );
+  const boltzRelayVerifier = await ethers.getContractAt(
+    'BoltzRelayVerifier',
+    boltzRelayVerifierAddress
+  );
+
+  const minimalBoltzDeployVerifier = await ethers.getContractAt(
+    'MinimalBoltzDeployVerifier',
+    minimalBoltzDeployVerifierAddress
+  );
+
   return {
     deployVerifier,
     relayVerifier,
@@ -123,10 +155,18 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     customRelayVerifier,
     nativeHolderDeployVerifier,
     nativeHolderRelayVerifier,
+    boltzDeployVerifier,
+    boltzRelayVerifier,
+    minimalBoltzDeployVerifier,
   };
 }
 
-export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
+type Handler = 'Token' | 'Contract';
+
+export const getVerifiersFromFile = async <T>(
+  hre: HardhatRuntimeEnvironment,
+  type: Handler
+) => {
   const {
     deployVerifier,
     relayVerifier,
@@ -134,16 +174,30 @@ export const getVerifiersFromFile = async (hre: HardhatRuntimeEnvironment) => {
     customRelayVerifier,
     nativeHolderDeployVerifier,
     nativeHolderRelayVerifier,
+    boltzDeployVerifier,
+    boltzRelayVerifier,
+    minimalBoltzDeployVerifier,
   } = await getVerifiers(hre);
 
-  return [
-    deployVerifier,
-    relayVerifier,
-    customDeployVerifier,
-    customRelayVerifier,
-    nativeHolderDeployVerifier,
-    nativeHolderRelayVerifier,
-  ] as TokenHandler[];
+  const verifiers: Record<Handler, T[]> = {
+    Token: [
+      deployVerifier,
+      relayVerifier,
+      customDeployVerifier,
+      customRelayVerifier,
+      nativeHolderDeployVerifier,
+      nativeHolderRelayVerifier,
+      boltzDeployVerifier,
+      boltzRelayVerifier,
+    ] as T[],
+    Contract: [
+      boltzDeployVerifier,
+      boltzRelayVerifier,
+      minimalBoltzDeployVerifier,
+    ] as T[],
+  };
+
+  return verifiers[type];
 };
 
 export const getTokenHandlerFromAddress = async (
@@ -151,12 +205,28 @@ export const getTokenHandlerFromAddress = async (
   { ethers }: HardhatRuntimeEnvironment
 ): Promise<TokenHandler> => await ethers.getContractAt('TokenHandler', address);
 
-export const getVerifiersFromArgs = async (
+export const getDestinationContractHandlerFromAddress = async (
+  address: string,
+  { ethers }: HardhatRuntimeEnvironment
+): Promise<DestinationContractHandler> =>
+  await ethers.getContractAt('DestinationContractHandler', address);
+
+export const getVerifiersFromArgs = async <T>(
   verifierList: string,
-  hre: HardhatRuntimeEnvironment
-) =>
-  Promise.all(
-    verifierList
-      .split(',')
-      .map((address) => getTokenHandlerFromAddress(address, hre))
-  );
+  hre: HardhatRuntimeEnvironment,
+  type: Handler
+) => {
+  const verifierGetters: Record<
+    Handler,
+    (address: string) => Promise<TokenHandler | DestinationContractHandler>
+  > = {
+    Token: (address) => getTokenHandlerFromAddress(address, hre),
+    Contract: (address) =>
+      getDestinationContractHandlerFromAddress(address, hre),
+  };
+  const verifierGetter = verifierGetters[type];
+
+  return Promise.all(verifierList.split(',').map(verifierGetter)) as Promise<
+    T[]
+  >;
+};

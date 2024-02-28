@@ -43,7 +43,15 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
           'UtilToken',
-          'VersionRegistry'
+          'VersionRegistry',
+          'BoltzDeployVerifier',
+          'BoltzRelayVerifier',
+          'BoltzSmartWallet',
+          'BoltzSmartWalletFactory',
+          'MinimalBoltzDeployVerifier',
+          'MinimalBoltzRelayVerifier',
+          'MinimalBoltzSmartWallet',
+          'MinimalBoltzSmartWalletFactory'
         );
       });
 
@@ -209,6 +217,38 @@ describe('Deploy Script', function () {
         expect(result).not.to.have.any.keys(...unexpectedKeys);
       });
 
+      it('should deploy the boltz wallet', async function () {
+        const result = await deployContracts(
+          { boltzSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'BoltzSmartWallet',
+          'BoltzSmartWalletFactory',
+          'BoltzRelayVerifier',
+          'BoltzDeployVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'CustomSmartWallet',
+          'CustomSmartWalletFactory',
+          'CustomSmartWalletDeployVerifier',
+          'CustomSmartWalletRelayVerifier',
+          'NativeHolderSmartWallet',
+          'NativeHolderSmartWalletFactory',
+          'NativeHolderSmartWalletDeployVerifier',
+          'NativeHolderSmartWalletRelayVerifier',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
       it('should deploy the relay hub and the default smart wallet', async function () {
         const result = await deployContracts(
           { relayHub: true, defaultSmartWallet: true },
@@ -314,8 +354,24 @@ describe('Deploy Script', function () {
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       CustomSmartWalletRelayVerifier:
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
-      UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       NativeHolderSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      NativeHolderSmartWalletFactory:
+        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      NativeHolderSmartWalletDeployVerifier:
+        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      NativeHolderSmartWalletRelayVerifier:
+        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      BoltzSmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      BoltzSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      BoltzDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      BoltzRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      MinimalBoltzSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      MinimalBoltzSmartWalletFactory:
+        '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      MinimalBoltzDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      MinimalBoltzRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
 
     const chainContractAddresses = {

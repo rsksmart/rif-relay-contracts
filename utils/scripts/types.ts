@@ -9,7 +9,7 @@ const factoryList = {
   } as const;
   
   export type FactoryName = Exclude<Extract<keyof typeof factoryList, `${string}__factory`>,
-    'Migrations__factory' | 'Collector__factory' | 'Ownable__factory' | 'TokenHandler__factory' >;
+    'Migrations__factory' | 'Collector__factory' | 'Ownable__factory' | 'TokenHandler__factory' | 'DestinationContractHandler__factory'>;
   
   export type ContractName = FactoryName extends `${infer Prefix}__factory`
     ? Prefix

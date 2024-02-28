@@ -104,6 +104,88 @@ export const deployCustomSmartWallet = async (
   };
 };
 
+export const deployBoltzSmartWallet = async (
+  ethers: HardhatEthersHelpers
+): Promise<
+  Pick<
+    ContractAddresses,
+    | 'BoltzSmartWallet'
+    | 'BoltzSmartWalletFactory'
+    | 'BoltzRelayVerifier'
+    | 'BoltzDeployVerifier'
+  >
+> => {
+  const boltzSmartWalletF = await ethers.getContractFactory('BoltzSmartWallet');
+  const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy();
+
+  const boltzSmartWalletFactoryF = await ethers.getContractFactory(
+    'BoltzSmartWalletFactory'
+  );
+  const { address: boltzSmartWalletFactoryAddress } =
+    await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
+
+  const boltzDeployVerifierF = await ethers.getContractFactory(
+    'BoltzDeployVerifier'
+  );
+  const { address: boltzDeployVerifierAddress } =
+    await boltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
+  const boltzRelayVerifierF = await ethers.getContractFactory(
+    'BoltzRelayVerifier'
+  );
+  const { address: boltzRelayVerifierAddress } =
+    await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
+  return {
+    BoltzSmartWallet: boltzSmartWalletAddress,
+    BoltzSmartWalletFactory: boltzSmartWalletFactoryAddress,
+    BoltzDeployVerifier: boltzDeployVerifierAddress,
+    BoltzRelayVerifier: boltzRelayVerifierAddress,
+  };
+};
+
+export const deployMinimalBoltzSmartWallet = async (
+  ethers: HardhatEthersHelpers
+): Promise<
+  Pick<
+    ContractAddresses,
+    | 'MinimalBoltzSmartWallet'
+    | 'MinimalBoltzSmartWalletFactory'
+    | 'MinimalBoltzRelayVerifier'
+    | 'MinimalBoltzDeployVerifier'
+  >
+> => {
+  const boltzSmartWalletF = await ethers.getContractFactory(
+    'MinimalBoltzSmartWallet'
+  );
+  const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy();
+
+  const boltzSmartWalletFactoryF = await ethers.getContractFactory(
+    'MinimalBoltzSmartWalletFactory'
+  );
+  const { address: boltzSmartWalletFactoryAddress } =
+    await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
+
+  const boltzDeployVerifierF = await ethers.getContractFactory(
+    'MinimalBoltzDeployVerifier'
+  );
+  const { address: boltzDeployVerifierAddress } =
+    await boltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
+  const boltzRelayVerifierF = await ethers.getContractFactory(
+    'MinimalBoltzRelayVerifier'
+  );
+  const { address: boltzRelayVerifierAddress } =
+    await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
+
+  return {
+    MinimalBoltzSmartWallet: boltzSmartWalletAddress,
+    MinimalBoltzSmartWalletFactory: boltzSmartWalletFactoryAddress,
+    MinimalBoltzDeployVerifier: boltzDeployVerifierAddress,
+    MinimalBoltzRelayVerifier: boltzRelayVerifierAddress,
+  };
+};
+
 export const deployDefaultSmartWallet = async (
   ethers: HardhatEthersHelpers
 ): Promise<
@@ -138,6 +220,7 @@ export const deployDefaultSmartWallet = async (
     RelayVerifier: relayVerifierAddress,
   };
 };
+
 export const deployRelayHub = async (
   ethers: HardhatEthersHelpers
 ): Promise<Pick<ContractAddresses, 'RelayHub' | 'Penalizer'>> => {

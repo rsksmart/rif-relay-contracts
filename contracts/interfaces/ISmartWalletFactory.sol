@@ -5,13 +5,6 @@ pragma experimental ABIEncoderV2;
 import "./IWalletFactory.sol";
 
 interface ISmartWalletFactory is IWalletFactory {
-    function createUserSmartWallet(
-        address owner,
-        address recoverer,
-        uint256 index,
-        bytes calldata sig
-    ) external;
-
     function getSmartWalletAddress(
         address owner,
         address recoverer,

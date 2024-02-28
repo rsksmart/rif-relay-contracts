@@ -181,6 +181,12 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
       expect(acceptsToken).to.be.true;
     });
 
+    it('should revert if address is not a contract', async function () {
+      const eoa = ethers.Wallet.createRandom().address;
+      const result = deployVerifierMock.acceptToken(eoa);
+      await expect(result).to.be.revertedWith('Address is not a contract');
+    });
+
     it('should return false if token is not accepted', async function () {
       const fakeTokenUnaccepted = await smock.fake<ERC20>('ERC20');
       const acceptsToken = await deployVerifierMock.acceptsToken(
@@ -226,7 +232,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
@@ -299,7 +304,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
       const differentFactoryFake = await smock.fake('SmartWalletFactory');
 
@@ -340,7 +344,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
 
       const fakeSmartWalletFactory =
@@ -381,7 +384,7 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Address already created!');
+      await expect(result).to.be.revertedWith('Address already created');
     });
 
     it('should revert if token balance is too low', async function () {
@@ -392,7 +395,6 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
         tokens: {
           [fakeToken.address]: true,
         },
-        _factory: fakeWalletFactory.address,
       });
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {

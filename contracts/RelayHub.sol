@@ -164,9 +164,10 @@ contract RelayHub is IRelayHub {
             "Invalid gas price"
         );
 
-        bool deploySuccess;
-        bytes memory ret;
-        (deploySuccess, ret) = Eip712Library.deploy(deployRequest, signature);
+        (bool deploySuccess, bytes memory ret) = Eip712Library.deploy(
+            deployRequest,
+            signature
+        );
 
         if (!deploySuccess) {
             assembly {

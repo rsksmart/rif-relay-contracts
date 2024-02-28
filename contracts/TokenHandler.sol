@@ -3,6 +3,7 @@
 pragma solidity ^0.6.12;
 
 import "./Ownable.sol";
+import "./utils/ContractValidator.sol";
 
 abstract contract TokenHandler is Ownable {
     mapping(address => bool) public tokens;
@@ -10,14 +11,18 @@ abstract contract TokenHandler is Ownable {
 
     function acceptToken(address token) external onlyOwner {
         require(token != address(0), "Token cannot be zero address");
-        require(tokens[token] == false, "Token is already accepted");
+        require(
+            ContractValidator.isContract(token),
+            "Address is not a contract"
+        );
+        require(!tokens[token], "Token is already accepted");
         tokens[token] = true;
         acceptedTokens.push(token);
     }
 
     function removeToken(address token, uint256 index) external onlyOwner {
         require(token != address(0), "Token cannot be zero address");
-        require(tokens[token] == true, "Token is not accepted");
+        require(tokens[token], "Token is not accepted");
         require(token == acceptedTokens[index], "Wrong token index");
         delete tokens[token];
         acceptedTokens[index] = acceptedTokens[acceptedTokens.length - 1];

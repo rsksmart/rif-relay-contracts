@@ -37,7 +37,7 @@ describe('CustomSmartWallet template', function () {
           '50000',
           '0x'
         )
-      ).to.be.rejectedWith('already initialized');
+      ).to.be.rejectedWith('Already initialized');
     });
   });
 });

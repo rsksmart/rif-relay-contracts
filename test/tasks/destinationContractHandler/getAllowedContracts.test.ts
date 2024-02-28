@@ -5,13 +5,16 @@ import fs from 'fs';
 import * as hre from 'hardhat';
 import { ethers } from 'hardhat';
 import sinon from 'sinon';
-import { getAllowedTokens } from '../../tasks/getAllowedTokens';
-import { stubReadFileSync } from './utils';
+import { getAllowedContracts } from '../../../tasks/destinationContractHandler/getAllowedContracts';
+import { stubReadFileSync } from '../utils';
 
 use(chaiAsPromised);
 
-describe('Get Allowed Tokens Script', function () {
-  describe('getAllowedTokens', function () {
+describe('Get Allowed Contracts Script', function () {
+  describe('getAllowedContracts', function () {
+    const fakeHash =
+      '0xb444a8a7b80f6811f253a995df6e8ef094347ee27e9eeb726a735a931dc660ff';
+
     beforeEach(function () {
       sinon.stub(fs, 'existsSync').returns(true);
       stubReadFileSync();
@@ -22,20 +25,20 @@ describe('Get Allowed Tokens Script', function () {
       sinon.restore();
     });
 
-    it('should get several lists of allowed tokens successfully', async function () {
+    it('should get several lists of allowed contracts successfully', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['getAcceptedTokens'] = () => undefined;
+      stubContract['getAcceptedContracts'] = () => fakeHash;
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(getAllowedTokens({}, hre)).to.not.be.rejected;
+      await expect(getAllowedContracts({}, hre)).to.not.be.rejected;
     });
 
-    it('should throw error and print it if error while getting allowed tokens', async function () {
+    it('should throw error and print it if error while getting allowed contracts', async function () {
       const stubContract = sinon.createStubInstance(Contract);
-      stubContract['acceptToken'] = () => {
+      stubContract['acceptContract'] = () => {
         throw new Error();
       };
       sinon.stub(ethers, 'getContractAt').resolves(stubContract);
-      await expect(getAllowedTokens({}, hre)).to.be.rejected;
+      await expect(getAllowedContracts({}, hre)).to.be.rejected;
     });
   });
 });

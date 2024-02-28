@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { AllowedTokensArgs } from './allowTokens';
-import { getVerifiersFromArgs, getVerifiersFromFile } from './utils';
+import { getVerifiersFromArgs, getVerifiersFromFile } from '../utils';
+import { TokenHandler } from 'typechain-types';
 
 export const removeTokens = async (
   { tokenList, verifierList }: AllowedTokensArgs,
@@ -8,9 +9,9 @@ export const removeTokens = async (
 ) => {
   const tokenAddresses = tokenList.split(',');
 
-  const verifiers = verifierList
-    ? await getVerifiersFromArgs(verifierList, hre)
-    : await getVerifiersFromFile(hre);
+  const verifiers: TokenHandler[] = verifierList
+    ? await getVerifiersFromArgs(verifierList, hre, 'Token')
+    : await getVerifiersFromFile(hre, 'Token');
 
   for (const tokenAddress of tokenAddresses) {
     for (const verifier of verifiers) {
@@ -24,7 +25,8 @@ export const removeTokens = async (
           );
           continue;
         }
-        await verifier.removeToken(tokenAddress, index);
+        const tx = await verifier.removeToken(tokenAddress, index);
+        console.log(`Sent transaction ${tx.hash}`);
       } catch (error) {
         console.error(
           `Error removing token with address ${tokenAddress} from allowed tokens on Verifier at ${verifier.address}`
@@ -33,5 +35,4 @@ export const removeTokens = async (
       }
     }
   }
-  console.log('Tokens removed successfully!');
 };

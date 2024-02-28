@@ -27,6 +27,7 @@
             {
                 "ignoreConstructors": true
             }
-        ]
+        ],
+        "no-global-import": "off"
     }
 }
