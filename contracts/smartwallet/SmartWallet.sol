@@ -86,11 +86,10 @@ contract SmartWallet is BaseSmartWallet {
 
         _setOwner(owner);
 
-        //we need to initialize the contract
         if (tokenAmount > 0) {
             (bool success, bytes memory ret) = tokenAddr.call{gas: tokenGas}(
                 abi.encodeWithSelector(
-                    hex"a9059cbb", //transfer(address,uint256)
+                    hex"a9059cbb", // transfer(address,uint256)
                     tokenRecipient,
                     tokenAmount
                 )

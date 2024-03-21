@@ -316,7 +316,6 @@ contract CustomSmartWallet is IForwarder {
 
         _setOwner(owner);
 
-        //we need to initialize the contract
         if (tokenAmount > 0) {
             (bool success, bytes memory ret) = tokenAddr.call{gas: tokenGas}(
                 abi.encodeWithSelector(
