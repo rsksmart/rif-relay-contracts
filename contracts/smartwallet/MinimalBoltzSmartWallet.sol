@@ -43,7 +43,6 @@ contract MinimalBoltzSmartWallet {
             }
         }
 
-        //we need to initialize the contract
         if (feesAmount > 0) {
             (success, ret) = payable(feesReceiver).call{
                 value: feesAmount,

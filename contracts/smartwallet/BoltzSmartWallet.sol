@@ -104,7 +104,6 @@ contract BoltzSmartWallet is BaseSmartWallet {
             }
         }
 
-        //we need to initialize the contract
         if (tokenAmount > 0) {
             if (tokenContract == address(0)) {
                 (success, ret) = payable(feesReceiver).call{
@@ -114,7 +113,7 @@ contract BoltzSmartWallet is BaseSmartWallet {
             } else {
                 (success, ret) = tokenContract.call{gas: tokenGas}(
                     abi.encodeWithSelector(
-                        hex"a9059cbb", //transfer(address,uint256)
+                        hex"a9059cbb", // transfer(address,uint256)
                         feesReceiver,
                         tokenAmount
                     )
