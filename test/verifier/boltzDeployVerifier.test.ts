@@ -15,6 +15,7 @@ import {
   ERC20,
   BoltzSmartWalletFactory,
   BoltzSmartWallet__factory,
+  NativeSwap,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 
@@ -374,25 +375,26 @@ describe('BoltzDeployVerifier Contract', function () {
 
   describe('verifyRelayedCall()', function () {
     let owner: SignerWithAddress;
-    let recipient: SignerWithAddress;
+    let fakeSwap: FakeContract<NativeSwap>;
     let relayWorker: SignerWithAddress;
     let fakeRelayHub: FakeContract<RelayHub>;
 
     beforeEach(async function () {
-      [owner, recipient, relayWorker] = (await ethers.getSigners()) as [
-        SignerWithAddress,
+      [owner, relayWorker] = (await ethers.getSigners()) as [
         SignerWithAddress,
         SignerWithAddress
       ];
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
+      fakeSwap = await smock.fake<NativeSwap>('NativeSwap');
+
       await deployVerifierMock.setVariables({
         acceptedTokens: [fakeToken.address],
         tokens: {
           [fakeToken.address]: true,
         },
-        acceptedContracts: [recipient.address],
+        acceptedContracts: [fakeSwap.address],
         contracts: {
-          [recipient.address]: true,
+          [fakeSwap.address]: true,
         },
       });
     });
@@ -412,7 +414,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -521,7 +523,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -543,7 +545,7 @@ describe('BoltzDeployVerifier Contract', function () {
       await deployVerifierMock.setVariables({
         acceptedContracts: [],
         contracts: {
-          [recipient.address]: false,
+          [fakeSwap.address]: false,
         },
       });
 
@@ -559,7 +561,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -602,7 +604,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -646,7 +648,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -679,7 +681,7 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data: '0x00',
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
@@ -728,16 +730,18 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.be.revertedWith('Native balance too low');
     });
 
-    it('should revert if claiming value is too low', async function () {
+    it('should revert if method is not allowed', async function () {
+      const smartWalletAddress = ethers.Wallet.createRandom().address;
+      fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+
       const ABI = [
-        'function claim(bytes32 preimage, uint amount,address refundAddress, uint timelock)',
+        'function claim(bytes32 preimage, uint amount, address claimAddress)',
       ];
       const abiInterface = new ethers.utils.Interface(ABI);
       const data = abiInterface.encodeFunctionData('claim', [
         constants.HashZero,
         ethers.utils.parseEther('0.5'),
         constants.AddressZero,
-        500,
       ]);
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
@@ -752,11 +756,11 @@ describe('BoltzDeployVerifier Contract', function () {
           index: '0',
           data,
           from: owner.address,
-          to: recipient.address,
+          to: fakeSwap.address,
           nonce: '0',
           tokenGas: '50000',
           relayHub: fakeRelayHub.address,
-          tokenAmount: ethers.utils.parseEther('1'),
+          tokenAmount: '100000',
           tokenContract: constants.AddressZero,
           validUntilTime: '0',
           value: '0',
@@ -767,7 +771,248 @@ describe('BoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Claiming value lower than fees');
+      await expect(result).to.be.revertedWith('Method not allowed');
+    });
+
+    describe('public method', function () {
+      let data: string;
+      let smartWalletAddress: string;
+
+      before(function () {
+        const ABI = [
+          'function claim(bytes32 preimage, uint amount, address claimAddress, address refundAddress, uint timelock)',
+        ];
+        const abiInterface = new ethers.utils.Interface(ABI);
+        smartWalletAddress = ethers.Wallet.createRandom().address;
+        data = abiInterface.encodeFunctionData('claim', [
+          constants.HashZero,
+          ethers.utils.parseEther('0.5'),
+          smartWalletAddress,
+          constants.AddressZero,
+          500,
+        ]);
+      });
+
+      it('should revert if claiming value is too low', async function () {
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('1'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.be.revertedWith(
+          'Claiming value lower than fees'
+        );
+      });
+
+      it('should revert if swap contract cannot pay for the native fee', async function () {
+        fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+        fakeSwap.swaps.returns(false);
+
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('0.5'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.be.revertedWith('Verifier: swap has no RBTC');
+      });
+
+      it('should not revert if swap contract can pay for the native fee', async function () {
+        fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+        fakeSwap.swaps.returns(true);
+
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('0.5'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.not.be.reverted;
+      });
+    });
+
+    describe('external method', function () {
+      let data: string;
+
+      before(function () {
+        const ABI = [
+          'function claim(bytes32 preimage, uint amount, address refundAddress, uint timelock)',
+        ];
+        const abiInterface = new ethers.utils.Interface(ABI);
+        data = abiInterface.encodeFunctionData('claim', [
+          constants.HashZero,
+          ethers.utils.parseEther('0.5'),
+          constants.AddressZero,
+          500,
+        ]);
+      });
+
+      it('should revert if claiming value is too low', async function () {
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('1'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.be.revertedWith(
+          'Claiming value lower than fees'
+        );
+      });
+
+      it('should revert if swap contract cannot pay for the native fee', async function () {
+        const smartWalletAddress = ethers.Wallet.createRandom().address;
+        fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+        fakeSwap.swaps.returns(false);
+
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('0.5'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.be.revertedWith('Verifier: swap has no RBTC');
+      });
+
+      it('should not revert if swap contract can pay for the native fee', async function () {
+        const smartWalletAddress = ethers.Wallet.createRandom().address;
+        fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+        fakeSwap.swaps.returns(true);
+
+        const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+          relayData: {
+            callForwarder: fakeWalletFactory.address,
+            callVerifier: deployVerifierMock.address,
+            gasPrice: '10',
+            feesReceiver: relayWorker.address,
+          },
+          request: {
+            recoverer: constants.AddressZero,
+            index: '0',
+            data,
+            from: owner.address,
+            to: fakeSwap.address,
+            nonce: '0',
+            tokenGas: '50000',
+            relayHub: fakeRelayHub.address,
+            tokenAmount: ethers.utils.parseEther('0.5'),
+            tokenContract: constants.AddressZero,
+            validUntilTime: '0',
+            value: '0',
+          },
+        };
+
+        const result = deployVerifierMock.verifyRelayedCall(
+          deployRequest,
+          '0x00'
+        );
+        await expect(result).to.not.be.reverted;
+      });
     });
   });
 });

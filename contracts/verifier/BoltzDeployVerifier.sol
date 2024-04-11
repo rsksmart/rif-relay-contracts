@@ -12,6 +12,7 @@ import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../interfaces/BoltzVerifier.sol";
 import "../utils/ContractValidator.sol";
+import "../utils/BoltzValidator.sol";
 
 /**
  * A Verifier to be used on deploys.
@@ -82,15 +83,7 @@ contract BoltzDeployVerifier is
                 );
             } else {
                 if (relayRequest.request.to != address(0)) {
-                    BoltzTypes.ClaimInfo memory claim = abi.decode(
-                        relayRequest.request.data[4:],
-                        (BoltzTypes.ClaimInfo)
-                    );
-
-                    require(
-                        relayRequest.request.tokenAmount <= claim.amount,
-                        "Claiming value lower than fees"
-                    );
+                    BoltzValidator.validate(relayRequest, contractAddr);
                 } else {
                     require(
                         relayRequest.request.tokenAmount <=
