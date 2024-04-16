@@ -225,14 +225,6 @@ describe('BoltzRelayVerifier Contract', function () {
         await expect(result).to.be.revertedWith('Contract is already accepted');
       });
 
-      it('should revert if accepting a contract with ZERO ADDRESS', async function () {
-        const result = relayVerifierMock.acceptContract(constants.AddressZero);
-
-        await expect(result).to.be.revertedWith(
-          'Contract cannot be zero address'
-        );
-      });
-
       it('should revert if caller is not the owner', async function () {
         const [other] = (await ethers.getSigners()).slice(1) as [
           SignerWithAddress
@@ -286,17 +278,6 @@ describe('BoltzRelayVerifier Contract', function () {
         );
 
         await expect(result).to.be.revertedWith('Contract is not accepted');
-      });
-
-      it('should revert if contract removed is ZERO ADDRESS', async function () {
-        const result = relayVerifierMock.removeContract(
-          constants.AddressZero,
-          0
-        );
-
-        await expect(result).to.be.revertedWith(
-          'Contract cannot be zero address'
-        );
       });
 
       it('should revert if contract index does not correspond to contract address to be removed', async function () {

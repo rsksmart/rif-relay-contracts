@@ -41,22 +41,9 @@ contract MinimalBoltzDeployVerifier is
         EnvelopingTypes.DeployRequest calldata relayRequest,
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
-        require(
-            relayRequest.relayData.callForwarder == _factory,
-            "Invalid factory"
-        );
-
-        address contractAddr = MinimalBoltzSmartWalletFactory(
-            relayRequest.relayData.callForwarder
-        ).getSmartWalletAddress(
-                relayRequest.request.from,
-                relayRequest.request.recoverer,
-                relayRequest.request.index
-            );
-
-        require(
-            !ContractValidator.isContract(contractAddr),
-            "Address already created"
+        address contractAddr = ContractValidator.deployValidation(
+            relayRequest,
+            _factory
         );
 
         require(
@@ -64,19 +51,23 @@ contract MinimalBoltzDeployVerifier is
             "SW needs a contract execution"
         );
 
-        require(
-            contracts[relayRequest.request.to],
-            "Destination contract not allowed"
+        destinationContractValidation(relayRequest.request.to);
+
+        NativeSwap.PublicClaimInfo memory claim = BoltzValidator.validate(
+            relayRequest,
+            contractAddr
         );
 
-        if (relayRequest.request.tokenAmount > 0) {
-            require(
-                relayRequest.request.tokenContract == address(0),
-                "RBTC necessary for payment"
-            );
+        require(
+            relayRequest.request.tokenContract == address(0),
+            "RBTC necessary for payment"
+        );
 
-            BoltzValidator.validate(relayRequest, contractAddr);
-        }
+        require(
+            relayRequest.request.tokenAmount <=
+                address(contractAddr).balance + claim.amount,
+            "Native balance too low"
+        );
 
         return (
             abi.encode(

@@ -30,11 +30,11 @@ describe('CustomSmartWalletDeployVerifier Contract', function () {
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeWalletFactory = await smock.fake<CustomSmartWalletFactory>(
-      'SmartWalletFactory'
+      'CustomSmartWalletFactory'
     );
     deployVerifierFactoryMock =
       await smock.mock<CustomSmartWalletDeployVerifier__factory>(
-        'DeployVerifier'
+        'CustomSmartWalletDeployVerifier'
       );
     deployVerifierMock = await deployVerifierFactoryMock.deploy(
       fakeWalletFactory.address

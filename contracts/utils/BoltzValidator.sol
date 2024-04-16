@@ -15,7 +15,7 @@ library BoltzValidator {
     function validate(
         EnvelopingTypes.DeployRequest calldata relayRequest,
         address contractAddr
-    ) internal {
+    ) internal returns (NativeSwap.PublicClaimInfo memory) {
         bytes4 method = bytes4(keccak256(bytes(relayRequest.request.data[:4])));
         NativeSwap.PublicClaimInfo memory claim;
 
@@ -40,11 +40,6 @@ library BoltzValidator {
             revert("Method not allowed");
         }
 
-        require(
-            relayRequest.request.tokenAmount <= claim.amount,
-            "Claiming value lower than fees"
-        );
-
         NativeSwap swap = NativeSwap(relayRequest.request.to);
 
         bytes32 preimageHash = sha256(abi.encodePacked(claim.preimage));
@@ -58,5 +53,7 @@ library BoltzValidator {
         );
 
         require(swap.swaps(hashValue), "Verifier: swap has no RBTC");
+
+        return claim;
     }
 }
