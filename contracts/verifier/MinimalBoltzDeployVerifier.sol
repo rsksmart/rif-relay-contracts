@@ -58,16 +58,18 @@ contract MinimalBoltzDeployVerifier is
             contractAddr
         );
 
-        require(
-            relayRequest.request.tokenContract == address(0),
-            "RBTC necessary for payment"
-        );
+        if (relayRequest.request.tokenAmount > 0) {
+            require(
+                relayRequest.request.tokenContract == address(0),
+                "RBTC necessary for payment"
+            );
 
-        require(
-            relayRequest.request.tokenAmount <=
-                address(contractAddr).balance + claim.amount,
-            "Native balance too low"
-        );
+            require(
+                relayRequest.request.tokenAmount <=
+                    address(contractAddr).balance + claim.amount,
+                "Native balance too low"
+            );
+        }
 
         return (
             abi.encode(

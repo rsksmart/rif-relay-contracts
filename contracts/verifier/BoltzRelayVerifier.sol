@@ -61,22 +61,26 @@ contract BoltzRelayVerifier is
             "Destination contract not allowed"
         );
 
-        if (relayRequest.request.tokenContract != address(0)) {
-            require(
-                tokens[relayRequest.request.tokenContract],
-                "Token contract not allowed"
-            );
+        if (relayRequest.request.tokenAmount > 0) {
+            if (relayRequest.request.tokenContract != address(0)) {
+                require(
+                    tokens[relayRequest.request.tokenContract],
+                    "Token contract not allowed"
+                );
 
-            require(
-                relayRequest.request.tokenAmount <=
-                    IERC20(relayRequest.request.tokenContract).balanceOf(payer),
-                "Token balance too low"
-            );
-        } else {
-            require(
-                relayRequest.request.tokenAmount <= address(payer).balance,
-                "Native balance too low"
-            );
+                require(
+                    relayRequest.request.tokenAmount <=
+                        IERC20(relayRequest.request.tokenContract).balanceOf(
+                            payer
+                        ),
+                    "Token balance too low"
+                );
+            } else {
+                require(
+                    relayRequest.request.tokenAmount <= address(payer).balance,
+                    "Native balance too low"
+                );
+            }
         }
 
         return (
