@@ -51,7 +51,6 @@ module.exports = {
     "mocha/no-skipped-tests": "warn",
     "mocha/no-empty-description": "off",
     "mocha/no-exclusive-tests": "error",
-    "mocha/no-setup-in-describe": "off",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "eol-last": ["error", "always"]
   },
