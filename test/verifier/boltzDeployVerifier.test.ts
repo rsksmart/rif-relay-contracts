@@ -547,7 +547,7 @@ describe('BoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Method not allowed');
+      await expect(result).to.be.revertedWith('Signature not allowed');
     });
 
     describe('calling claim', function () {

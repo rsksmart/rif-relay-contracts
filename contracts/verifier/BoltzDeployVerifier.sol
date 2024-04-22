@@ -10,7 +10,6 @@ import "../DestinationContractHandler.sol";
 import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
-import "../interfaces/BoltzVerifier.sol";
 import "../utils/ContractValidator.sol";
 import "../utils/BoltzValidator.sol";
 
@@ -52,11 +51,11 @@ contract BoltzDeployVerifier is
 
         uint256 amount = 0;
         if (relayRequest.request.to != address(0)) {
-            NativeSwap.PublicClaimInfo memory claim = BoltzValidator.validate(
-                relayRequest,
+            amount = BoltzValidator.validate(
+                relayRequest.request.data,
+                relayRequest.request.to,
                 contractAddr
             );
-            amount = claim.amount;
         }
 
         if (relayRequest.request.tokenContract != address(0)) {

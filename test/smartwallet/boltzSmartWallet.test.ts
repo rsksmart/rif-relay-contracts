@@ -3,13 +3,14 @@ import { BaseProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { Wallet } from 'ethers';
+import { Wallet, constants, ethers } from 'ethers';
 import { ethers as hardhat } from 'hardhat';
 import {
   ERC20,
   BoltzSmartWallet,
   BoltzSmartWalletFactory,
   BoltzSmartWallet__factory,
+  NativeSwap,
 } from 'typechain-types';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import {
@@ -763,7 +764,7 @@ describe('BoltzSmartWallet contract', function () {
     let mockSmartWallet: MockContract<BoltzSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
-    let recipient: FakeContract<BoltzSmartWallet>;
+    let recipient: FakeContract<NativeSwap>;
     let recipientFunction: string;
     let privateKey: Buffer;
     let worker: SignerWithAddress;
@@ -797,12 +798,19 @@ describe('BoltzSmartWallet contract', function () {
         value: hardhat.utils.parseEther('1'),
       });
 
-      recipient = await smock.fake('BoltzSmartWallet');
-      recipient.isInitialized.returns(true);
+      recipient = await smock.fake('NativeSwap');
+      recipient.swaps.returns(true);
 
-      const ABI = ['function isInitialized()'];
+      const ABI = [
+        'function claim(bytes32 preimage, uint amount, address refundAddress, uint timelock)',
+      ];
       const abiInterface = new hardhat.utils.Interface(ABI);
-      recipientFunction = abiInterface.encodeFunctionData('isInitialized', []);
+      recipientFunction = abiInterface.encodeFunctionData('claim', [
+        constants.HashZero,
+        ethers.utils.parseEther('0.5'),
+        constants.AddressZero,
+        500,
+      ]);
 
       privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
 
@@ -844,8 +852,6 @@ describe('BoltzSmartWallet contract', function () {
       ).not.to.be.rejected;
 
       expect(fakeToken.transfer, 'Token.transfer was called').not.to.be.called;
-      expect(recipient.isInitialized, 'Recipient method was not called').to.be
-        .called;
     });
 
     it('Should pay for relay using token', async function () {
@@ -882,8 +888,6 @@ describe('BoltzSmartWallet contract', function () {
       ).not.to.be.rejected;
 
       expect(fakeToken.transfer, 'Token.transfer() was not called').to.be
-        .called;
-      expect(recipient.isInitialized, 'Recipient method was not called').to.be
         .called;
     });
 
@@ -938,8 +942,6 @@ describe('BoltzSmartWallet contract', function () {
       expect(finalWorkerBalance).to.be.equal(
         initialWorkerBalance.add(amountToBePaid)
       );
-      expect(recipient.isInitialized, 'Recipient method was not called').to.be
-        .called;
     });
 
     it('Should increment nonce', async function () {
@@ -1054,6 +1056,8 @@ describe('BoltzSmartWallet contract', function () {
         relayHub: relayHub.address,
         from: owner.address,
         validUntilTime: expirationInSeconds, //Always 1 day (86400 sec) ahead
+        data: recipientFunction,
+        to: recipient.address,
       });
 
       const typedRequestData = new TypedRequestData(

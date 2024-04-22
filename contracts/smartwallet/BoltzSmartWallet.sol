@@ -3,6 +3,7 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./BaseSmartWallet.sol";
+import "../utils/BoltzValidator.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -29,6 +30,8 @@ contract BoltzSmartWallet is BaseSmartWallet {
             "SW: request expired"
         );
         nonce++;
+
+        BoltzValidator.validateSignature(req.data);
 
         (success, ret) = req.to.call{gas: req.gas, value: req.value}(req.data);
 
@@ -92,15 +95,13 @@ contract BoltzSmartWallet is BaseSmartWallet {
 
         _setOwner(owner);
 
-        bool success;
-        bytes memory ret;
-        if (to != address(0)) {
-            (success, ret) = to.call{value: value}(data);
-            if (!success) {
-                if (ret.length == 0) revert("Unable to execute");
-                assembly {
-                    revert(add(ret, 32), mload(ret))
-                }
+        BoltzValidator.validateSignature(data);
+
+        (bool success, bytes memory ret) = to.call{value: value}(data);
+        if (!success) {
+            if (ret.length == 0) revert("Unable to execute");
+            assembly {
+                revert(add(ret, 32), mload(ret))
             }
         }
 

@@ -9,7 +9,6 @@ import "../DestinationContractHandler.sol";
 import "../factory/MinimalBoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
-import "../interfaces/BoltzVerifier.sol";
 import "../utils/ContractValidator.sol";
 import "../utils/BoltzValidator.sol";
 
@@ -53,8 +52,9 @@ contract MinimalBoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        NativeSwap.PublicClaimInfo memory claim = BoltzValidator.validate(
-            relayRequest,
+        uint256 amount = BoltzValidator.validate(
+            relayRequest.request.data,
+            relayRequest.request.to,
             contractAddr
         );
 
@@ -65,7 +65,7 @@ contract MinimalBoltzDeployVerifier is
 
         require(
             relayRequest.request.tokenAmount <=
-                address(contractAddr).balance + claim.amount,
+                address(contractAddr).balance + amount,
             "Native balance too low"
         );
 
