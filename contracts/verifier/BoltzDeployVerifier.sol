@@ -11,7 +11,6 @@ import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";
-import "../utils/BoltzValidator.sol";
 
 /**
  * A Verifier to be used on deploys.
@@ -49,15 +48,6 @@ contract BoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        uint256 amount = 0;
-        if (relayRequest.request.to != address(0)) {
-            amount = BoltzValidator.validate(
-                relayRequest.request.data,
-                relayRequest.request.to,
-                contractAddr
-            );
-        }
-
         if (relayRequest.request.tokenContract != address(0)) {
             require(
                 tokens[relayRequest.request.tokenContract],
@@ -74,7 +64,7 @@ contract BoltzDeployVerifier is
         } else {
             require(
                 relayRequest.request.tokenAmount <=
-                    address(contractAddr).balance + amount,
+                    address(contractAddr).balance,
                 "Native balance too low"
             );
         }
