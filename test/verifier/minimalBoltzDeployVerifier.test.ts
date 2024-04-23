@@ -382,7 +382,7 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Signature not allowed');
+      await expect(result).to.be.revertedWith('Method not allowed');
     });
 
     describe('public method', function () {

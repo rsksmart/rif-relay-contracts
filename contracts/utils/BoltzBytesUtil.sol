@@ -14,7 +14,7 @@ library BoltzBytesUtil {
         if (
             signature != _EXTERNAL_SIGNATURE && signature != _PUBLIC_SIGNATURE
         ) {
-            revert("Signature not allowed");
+            revert("Method not allowed");
         }
     }
 

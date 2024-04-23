@@ -335,7 +335,7 @@ describe('MinimalBoltzSmartWallet contract', function () {
             worker.address,
             signature
           )
-      ).to.be.rejectedWith('Signature not allowed');
+      ).to.be.rejectedWith('Method not allowed');
     });
   });
 });

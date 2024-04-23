@@ -102,7 +102,7 @@ contract MinimalBoltzDeployVerifier is
         } else if (signature == BoltzBytesUtil._PUBLIC_SIGNATURE) {
             claim = abi.decode(data[4:], (NativeSwap.PublicClaimInfo));
         } else {
-            revert("Signature not allowed");
+            revert("Method not allowed");
         }
 
         NativeSwap swap = NativeSwap(to);
