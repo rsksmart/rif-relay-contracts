@@ -40,22 +40,10 @@ contract DeployVerifier is IDeployVerifier, TokenHandler {
             tokens[relayRequest.request.tokenContract],
             "Token contract not allowed"
         );
-        require(
-            relayRequest.relayData.callForwarder == _factory,
-            "Invalid factory"
-        );
 
-        address contractAddr = SmartWalletFactory(
-            relayRequest.relayData.callForwarder
-        ).getSmartWalletAddress(
-                relayRequest.request.from,
-                relayRequest.request.recoverer,
-                relayRequest.request.index
-            );
-
-        require(
-            !ContractValidator.isContract(contractAddr),
-            "Address already created"
+        address contractAddr = ContractValidator.deployValidation(
+            relayRequest,
+            _factory
         );
 
         if (relayRequest.request.tokenContract != address(0)) {

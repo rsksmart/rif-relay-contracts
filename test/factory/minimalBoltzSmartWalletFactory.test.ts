@@ -4,7 +4,6 @@ import {
   MinimalBoltzSmartWallet,
   MinimalBoltzSmartWalletFactory,
   MinimalBoltzSmartWalletFactory__factory,
-  SmartWallet,
 } from 'typechain-types';
 import { ethers } from 'hardhat';
 import { constants, utils, Wallet } from 'ethers';
@@ -55,6 +54,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
       let fundedAccount: SignerWithAddress;
       let fakeToken: FakeContract<ERC20>;
       const tokenGas = 55000;
+      let recipient: FakeContract;
+      let recipientFunction: string;
 
       beforeEach(async function () {
         recoverer = constants.AddressZero;
@@ -68,6 +69,19 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         [worker, fundedAccount] = await ethers.getSigners();
         fakeToken = await smock.fake('ERC20');
         feesReceiver = ethers.Wallet.createRandom().connect(ethers.provider);
+
+        const ABI = [
+          'function claim(bytes32 preimage, uint amount, address refundAddress, uint timelock)',
+        ];
+        recipient = await smock.fake(ABI);
+
+        const abiInterface = new ethers.utils.Interface(ABI);
+        recipientFunction = abiInterface.encodeFunctionData('claim', [
+          constants.HashZero,
+          ethers.utils.parseEther('0.5'),
+          constants.AddressZero,
+          500,
+        ]);
       });
 
       it('should initialize the smart wallet in the expected address without paying fee', async function () {
@@ -80,6 +94,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -132,6 +148,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -181,6 +199,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -224,6 +244,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -265,6 +287,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             recoverer: recoverer,
             index: index,
             relayHub: worker.address,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -311,6 +335,8 @@ describe('MinimalBoltzSmartWalletFactory', function () {
             index: index,
             relayHub: worker.address,
             nonce: 1,
+            data: recipientFunction,
+            to: recipient.address,
           },
           {
             callForwarder: boltzSmartWalletFactory.address,
@@ -388,14 +414,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
       });
 
       it('should fail if contract execution fail', async function () {
-        const recipient: FakeContract<SmartWallet> = await smock.fake(
-          'SmartWallet'
-        );
-        const recipientFunction = recipient.interface.encodeFunctionData(
-          'isInitialized',
-          []
-        );
-        recipient.isInitialized.reverts();
+        recipient['claim'].reverts();
 
         const deployRequest = createDeployRequest(
           {
@@ -431,60 +450,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
         ).to.be.rejectedWith('Unable to execute');
       });
 
-      it('should pass the revert message from destination contract if fails', async function () {
-        const { contract: recipient } = await deployContract<SmartWallet, []>({
-          contractName: 'SmartWallet',
-          constructorArgs: [],
-        });
-        const recipientFunction = recipient.interface.encodeFunctionData(
-          'directExecute',
-          [recipient.address, '0x00']
-        );
-
-        const deployRequest = createDeployRequest(
-          {
-            from: owner.address,
-            tokenAmount: 0,
-            recoverer: recoverer,
-            index: index,
-            relayHub: worker.address,
-            data: recipientFunction,
-            to: recipient.address,
-          },
-          {
-            callForwarder: boltzSmartWalletFactory.address,
-          }
-        );
-
-        const { suffixData, signature } = signDeployRequest(
-          owner,
-          deployRequest,
-          boltzSmartWalletFactory.address,
-          chainId
-        );
-
-        await expect(
-          boltzSmartWalletFactory
-            .connect(worker)
-            .relayedUserSmartWalletCreation(
-              deployRequest.request,
-              suffixData,
-              feesReceiver.address,
-              signature
-            )
-        ).to.be.rejectedWith('Not the owner of the SmartWallet');
-      });
-
       it('should initialize the smart wallet in the expected address and execute the destination contract', async function () {
-        const recipient: FakeContract<SmartWallet> = await smock.fake(
-          'SmartWallet'
-        );
-        const recipientFunction = recipient.interface.encodeFunctionData(
-          'isInitialized',
-          []
-        );
-        recipient.isInitialized.returns(true);
-
         const deployRequest = createDeployRequest(
           {
             from: owner.address,
@@ -521,7 +487,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           smartWalletAddress
         );
 
-        expect(recipient.isInitialized).to.be.called;
+        expect(recipient['claim']).to.be.called;
         expect(smartWallet.address).to.be.equal(smartWalletAddress);
       });
     });

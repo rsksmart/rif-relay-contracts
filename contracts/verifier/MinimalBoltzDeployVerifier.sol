@@ -9,8 +9,9 @@ import "../DestinationContractHandler.sol";
 import "../factory/MinimalBoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
-import "../interfaces/BoltzVerifier.sol";
 import "../utils/ContractValidator.sol";
+import "../utils/BoltzBytesUtil.sol";
+import "../interfaces/NativeSwap.sol";
 
 /**
  * A Verifier to be used on deploys.
@@ -40,22 +41,9 @@ contract MinimalBoltzDeployVerifier is
         EnvelopingTypes.DeployRequest calldata relayRequest,
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
-        require(
-            relayRequest.relayData.callForwarder == _factory,
-            "Invalid factory"
-        );
-
-        address contractAddr = MinimalBoltzSmartWalletFactory(
-            relayRequest.relayData.callForwarder
-        ).getSmartWalletAddress(
-                relayRequest.request.from,
-                relayRequest.request.recoverer,
-                relayRequest.request.index
-            );
-
-        require(
-            !ContractValidator.isContract(contractAddr),
-            "Address already created"
+        address contractAddr = ContractValidator.deployValidation(
+            relayRequest,
+            _factory
         );
 
         require(
@@ -63,27 +51,24 @@ contract MinimalBoltzDeployVerifier is
             "SW needs a contract execution"
         );
 
-        require(
-            contracts[relayRequest.request.to],
-            "Destination contract not allowed"
+        destinationContractValidation(relayRequest.request.to);
+
+        uint256 amount = _validateClaim(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            contractAddr
         );
 
-        if (relayRequest.request.tokenAmount > 0) {
-            require(
-                relayRequest.request.tokenContract == address(0),
-                "RBTC necessary for payment"
-            );
+        require(
+            relayRequest.request.tokenContract == address(0),
+            "RBTC necessary for payment"
+        );
 
-            BoltzTypes.ClaimInfo memory claim = abi.decode(
-                relayRequest.request.data[4:],
-                (BoltzTypes.ClaimInfo)
-            );
-
-            require(
-                relayRequest.request.tokenAmount <= claim.amount,
-                "Claiming value lower than fees"
-            );
-        }
+        require(
+            relayRequest.request.tokenAmount <=
+                address(contractAddr).balance + amount,
+            "Native balance too low"
+        );
 
         return (
             abi.encode(
@@ -92,5 +77,48 @@ contract MinimalBoltzDeployVerifier is
                 relayRequest.request.tokenContract
             )
         );
+    }
+
+    function _validateClaim(
+        bytes calldata data,
+        address to,
+        address contractAddr
+    ) private returns (uint256) {
+        bytes4 signature = BoltzBytesUtil.toBytes4(data, 0);
+        NativeSwap.PublicClaimInfo memory claim;
+
+        if (signature == BoltzBytesUtil._EXTERNAL_SIGNATURE) {
+            NativeSwap.ExternalClaimInfo memory localClaim = abi.decode(
+                data[4:],
+                (NativeSwap.ExternalClaimInfo)
+            );
+            claim = NativeSwap.PublicClaimInfo(
+                localClaim.preimage,
+                localClaim.amount,
+                contractAddr,
+                localClaim.refundAddress,
+                localClaim.timelock
+            );
+        } else if (signature == BoltzBytesUtil._PUBLIC_SIGNATURE) {
+            claim = abi.decode(data[4:], (NativeSwap.PublicClaimInfo));
+        } else {
+            revert("Method not allowed");
+        }
+
+        NativeSwap swap = NativeSwap(to);
+
+        bytes32 preimageHash = sha256(abi.encodePacked(claim.preimage));
+
+        bytes32 hashValue = swap.hashValues(
+            preimageHash,
+            claim.amount,
+            claim.claimAddress,
+            claim.refundAddress,
+            claim.timelock
+        );
+
+        require(swap.swaps(hashValue), "Verifier: swap has no RBTC");
+
+        return claim.amount;
     }
 }

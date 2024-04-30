@@ -3,19 +3,15 @@ import { BaseProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { Wallet } from 'ethers';
+import { Wallet, constants, ethers } from 'ethers';
 import { ethers as hardhat } from 'hardhat';
-import {
-  ERC20,
-  MinimalBoltzSmartWalletFactory,
-  SmartWallet,
-} from 'typechain-types';
+import { ERC20, MinimalBoltzSmartWalletFactory } from 'typechain-types';
 import {
   getLocalEip712DeploySignature,
   TypedDeployRequestData,
 } from '../utils/EIP712Utils';
 import { createDeployRequest, getSuffixData, HARDHAT_CHAIN_ID } from './utils';
-import { deployContract } from '../../utils/deployment/deployment.utils';
+import { Interface } from 'ethers/lib/utils';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -45,9 +41,11 @@ describe('MinimalBoltzSmartWallet contract', function () {
       .deploy(smartWalletTemplate.address);
   }
 
-  //This function is being tested as an integration test because of the lack of tools to unit test it
   describe('Function initialize()', function () {
     let worker: Wallet;
+    let recipient: FakeContract;
+    let recipientFunction: string;
+    let abiInterface: Interface;
 
     beforeEach(async function () {
       let fundedAccount: SignerWithAddress;
@@ -68,226 +66,26 @@ describe('MinimalBoltzSmartWallet contract', function () {
       await createSmartWalletFactory(owner);
 
       fakeToken = await smock.fake('ERC20');
+
+      const ABI = [
+        'function claim(bytes32 preimage, uint amount, address claimAddress, address refundAddress, uint timelock)',
+        'function claim(bytes32 preimage, uint amount, address refundAddress, uint timelock)',
+      ];
+      recipient = await smock.fake(ABI);
+
+      abiInterface = new hardhat.utils.Interface(ABI);
+      recipientFunction = abiInterface.encodeFunctionData(
+        'claim(bytes32,uint256,address,uint256)',
+        [
+          constants.HashZero,
+          ethers.utils.parseEther('0.5'),
+          constants.AddressZero,
+          500,
+        ]
+      );
     });
 
-    describe('with contract execution', function () {
-      let recipient: FakeContract<SmartWallet>;
-      let recipientFunction: string;
-
-      beforeEach(async function () {
-        recipient = await smock.fake('SmartWallet');
-        recipient.isInitialized.returns(true);
-
-        recipientFunction = recipient.interface.encodeFunctionData(
-          'isInitialized',
-          []
-        );
-      });
-
-      it('Should pay for deployment using native', async function () {
-        const amountToBePaid = hardhat.utils.parseEther('0.01');
-        const deployRequest = createDeployRequest({
-          relayHub: relayHub.address,
-          from: owner.address,
-          nonce: '0',
-          tokenGas: '5000',
-          tokenAmount: amountToBePaid.toString(),
-          tokenContract: ZERO_ADDRESS,
-          to: recipient.address,
-          data: recipientFunction,
-        });
-
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
-          smartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
-        );
-
-        const smartWalletAddress =
-          await smartWalletFactory.getSmartWalletAddress(
-            owner.address,
-            ZERO_ADDRESS,
-            0
-          );
-        await owner.sendTransaction({
-          to: smartWalletAddress,
-          value: amountToBePaid,
-        });
-
-        const balanceBefore = await provider.getBalance(worker.address);
-
-        await smartWalletFactory
-          .connect(relayHub)
-          .relayedUserSmartWalletCreation(
-            deployRequest.request,
-            suffixData,
-            worker.address,
-            signature
-          );
-
-        const balanceAfter = await provider.getBalance(worker.address);
-
-        expect(balanceAfter).to.be.equal(balanceBefore.add(amountToBePaid));
-        expect(recipient.isInitialized, 'Recipient method was not called').to.be
-          .called;
-      });
-
-      it('Should not pay on sponsored deployment', async function () {
-        const deployRequest = createDeployRequest({
-          relayHub: relayHub.address,
-          from: owner.address,
-          nonce: '0',
-          tokenGas: '0',
-          tokenAmount: '0',
-          tokenContract: fakeToken.address,
-          to: recipient.address,
-          data: recipientFunction,
-        });
-
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
-          smartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
-        );
-
-        const workerBalanceBefore = await provider.getBalance(worker.address);
-
-        await smartWalletFactory
-          .connect(relayHub)
-          .relayedUserSmartWalletCreation(
-            deployRequest.request,
-            suffixData,
-            worker.address,
-            signature
-          );
-
-        const workerBalanceAfter = await provider.getBalance(worker.address);
-
-        expect(workerBalanceBefore).to.be.equal(workerBalanceAfter);
-        expect(recipient.isInitialized, 'Recipient method was not called').to.be
-          .called;
-      });
-
-      it('Should fail if contract execution fail', async function () {
-        const deployRequest = createDeployRequest({
-          relayHub: relayHub.address,
-          from: owner.address,
-          nonce: '0',
-          tokenGas: '0',
-          tokenAmount: '0',
-          tokenContract: fakeToken.address,
-          to: recipient.address,
-          data: recipientFunction,
-        });
-
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
-          smartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
-        );
-
-        recipient.isInitialized.reverts();
-
-        await expect(
-          smartWalletFactory
-            .connect(relayHub)
-            .relayedUserSmartWalletCreation(
-              deployRequest.request,
-              suffixData,
-              worker.address,
-              signature
-            )
-        ).to.be.rejectedWith('Unable to execute');
-
-        expect(recipient.isInitialized, 'Recipient method was not called').to.be
-          .called;
-      });
-
-      it('Should pass the revert message from destination contract if fails', async function () {
-        const { contract: recipient } = await deployContract<SmartWallet, []>({
-          contractName: 'SmartWallet',
-          constructorArgs: [],
-        });
-        const recipientFunction = recipient.interface.encodeFunctionData(
-          'directExecute',
-          [recipient.address, '0x00']
-        );
-
-        const deployRequest = createDeployRequest({
-          relayHub: relayHub.address,
-          from: owner.address,
-          nonce: '0',
-          tokenGas: '0',
-          tokenAmount: '0',
-          tokenContract: fakeToken.address,
-          to: recipient.address,
-          data: recipientFunction,
-        });
-
-        const typedDeployData = new TypedDeployRequestData(
-          HARDHAT_CHAIN_ID,
-          smartWalletFactory.address,
-          deployRequest
-        );
-
-        const suffixData = getSuffixData(typedDeployData);
-
-        const privateKey = Buffer.from(
-          owner.privateKey.substring(2, 66),
-          'hex'
-        );
-        const signature = getLocalEip712DeploySignature(
-          typedDeployData,
-          privateKey
-        );
-
-        await expect(
-          smartWalletFactory
-            .connect(relayHub)
-            .relayedUserSmartWalletCreation(
-              deployRequest.request,
-              suffixData,
-              worker.address,
-              signature
-            )
-        ).to.be.rejectedWith('Not the owner of the SmartWallet');
-      });
-    });
-
-    it('Should pay for deployment using native', async function () {
+    it('Should pay for deployment using native(external)', async function () {
       const amountToBePaid = hardhat.utils.parseEther('0.01');
       const deployRequest = createDeployRequest({
         relayHub: relayHub.address,
@@ -296,6 +94,8 @@ describe('MinimalBoltzSmartWallet contract', function () {
         tokenGas: '5000',
         tokenAmount: amountToBePaid.toString(),
         tokenContract: ZERO_ADDRESS,
+        to: recipient.address,
+        data: recipientFunction,
       });
 
       const typedDeployData = new TypedDeployRequestData(
@@ -322,9 +122,7 @@ describe('MinimalBoltzSmartWallet contract', function () {
         value: amountToBePaid,
       });
 
-      const initialSwBalance = await provider.getBalance(smartWalletAddress);
-      const initialOwnerBalance = await owner.getBalance();
-      const initialWorkerBalance = await worker.getBalance();
+      const balanceBefore = await provider.getBalance(worker.address);
 
       await smartWalletFactory
         .connect(relayHub)
@@ -335,27 +133,36 @@ describe('MinimalBoltzSmartWallet contract', function () {
           signature
         );
 
-      const finalSwBalance = await provider.getBalance(smartWalletAddress);
-      const finalOwnerBalance = await owner.getBalance();
-      const finalWorkerBalance = await worker.getBalance();
+      const balanceAfter = await provider.getBalance(worker.address);
 
-      expect(finalSwBalance).to.be.equal(0);
-      expect(finalOwnerBalance).to.be.equal(
-        initialOwnerBalance.add(initialSwBalance).sub(amountToBePaid)
-      );
-      expect(finalWorkerBalance).to.be.equal(
-        initialWorkerBalance.add(amountToBePaid)
-      );
+      expect(balanceAfter).to.be.equal(balanceBefore.add(amountToBePaid));
+      expect(
+        recipient['claim(bytes32,uint256,address,uint256)'],
+        'Recipient method was not called'
+      ).to.be.called;
     });
 
-    it('Should not pay on sponsored deployment', async function () {
+    it('Should pay for deployment using native(public)', async function () {
+      recipientFunction = abiInterface.encodeFunctionData(
+        'claim(bytes32,uint256,address,address,uint256)',
+        [
+          constants.HashZero,
+          ethers.utils.parseEther('0.5'),
+          constants.AddressZero,
+          constants.AddressZero,
+          500,
+        ]
+      );
+      const amountToBePaid = hardhat.utils.parseEther('0.01');
       const deployRequest = createDeployRequest({
         relayHub: relayHub.address,
         from: owner.address,
         nonce: '0',
-        tokenGas: '0',
-        tokenAmount: '0',
-        tokenContract: fakeToken.address,
+        tokenGas: '5000',
+        tokenAmount: amountToBePaid.toString(),
+        tokenContract: ZERO_ADDRESS,
+        to: recipient.address,
+        data: recipientFunction,
       });
 
       const typedDeployData = new TypedDeployRequestData(
@@ -372,7 +179,17 @@ describe('MinimalBoltzSmartWallet contract', function () {
         privateKey
       );
 
-      const ownerBalanceBefore = await provider.getBalance(owner.address);
+      const smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
+        owner.address,
+        ZERO_ADDRESS,
+        0
+      );
+      await owner.sendTransaction({
+        to: smartWalletAddress,
+        value: amountToBePaid,
+      });
+
+      const balanceBefore = await provider.getBalance(worker.address);
 
       await smartWalletFactory
         .connect(relayHub)
@@ -383,19 +200,116 @@ describe('MinimalBoltzSmartWallet contract', function () {
           signature
         );
 
-      const ownerBalanceAfter = await provider.getBalance(owner.address);
+      const balanceAfter = await provider.getBalance(worker.address);
 
-      expect(ownerBalanceBefore).to.be.equal(ownerBalanceAfter);
+      expect(balanceAfter).to.be.equal(balanceBefore.add(amountToBePaid));
+      expect(
+        recipient['claim(bytes32,uint256,address,address,uint256)'],
+        'Recipient method was not called'
+      ).to.be.called;
     });
 
-    it('Should fail when the call method fails on native payment', async function () {
+    it('Should not pay on sponsored deployment', async function () {
       const deployRequest = createDeployRequest({
         relayHub: relayHub.address,
         from: owner.address,
         nonce: '0',
-        tokenGas: '1',
-        tokenAmount: '1',
-        tokenContract: ZERO_ADDRESS,
+        tokenGas: '0',
+        tokenAmount: '0',
+        tokenContract: fakeToken.address,
+        to: recipient.address,
+        data: recipientFunction,
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      const workerBalanceBefore = await provider.getBalance(worker.address);
+
+      await smartWalletFactory
+        .connect(relayHub)
+        .relayedUserSmartWalletCreation(
+          deployRequest.request,
+          suffixData,
+          worker.address,
+          signature
+        );
+
+      const workerBalanceAfter = await provider.getBalance(worker.address);
+
+      expect(workerBalanceBefore).to.be.equal(workerBalanceAfter);
+      expect(
+        recipient['claim(bytes32,uint256,address,uint256)'],
+        'Recipient method was not called'
+      ).to.be.called;
+    });
+
+    it('Should fail if contract execution fail', async function () {
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '0',
+        tokenAmount: '0',
+        tokenContract: fakeToken.address,
+        to: recipient.address,
+        data: recipientFunction,
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      recipient['claim(bytes32,uint256,address,uint256)'].reverts();
+
+      await expect(
+        smartWalletFactory
+          .connect(relayHub)
+          .relayedUserSmartWalletCreation(
+            deployRequest.request,
+            suffixData,
+            worker.address,
+            signature
+          )
+      ).to.be.rejectedWith('Unable to execute');
+
+      expect(
+        recipient['claim(bytes32,uint256,address,uint256)'],
+        'Recipient method was not called'
+      ).to.be.called;
+    });
+
+    it('Should fail if signature is not allowed', async function () {
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '0',
+        tokenAmount: '0',
+        tokenContract: fakeToken.address,
+        to: recipient.address,
+        data: '0x00',
       });
 
       const typedDeployData = new TypedDeployRequestData(
@@ -421,7 +335,7 @@ describe('MinimalBoltzSmartWallet contract', function () {
             worker.address,
             signature
           )
-      ).to.be.revertedWith('Unable to pay for deployment');
+      ).to.be.rejectedWith('Method not allowed');
     });
   });
 });

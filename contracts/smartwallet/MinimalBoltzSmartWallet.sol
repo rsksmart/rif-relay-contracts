@@ -1,6 +1,7 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.6.12;
-pragma experimental ABIEncoderV2;
+
+import "../utils/BoltzBytesUtil.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -31,15 +32,13 @@ contract MinimalBoltzSmartWallet {
 
         _isInitialized = true;
 
-        bool success;
-        bytes memory ret;
-        if (to != address(0)) {
-            (success, ret) = to.call(data);
-            if (!success) {
-                if (ret.length == 0) revert("Unable to execute");
-                assembly {
-                    revert(add(ret, 32), mload(ret))
-                }
+        BoltzBytesUtil.validateClaimSignature(data);
+
+        (bool success, bytes memory ret) = to.call(data);
+        if (!success) {
+            if (ret.length == 0) revert("Unable to execute");
+            assembly {
+                revert(add(ret, 32), mload(ret))
             }
         }
 

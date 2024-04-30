@@ -10,7 +10,6 @@ import "../DestinationContractHandler.sol";
 import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
-import "../interfaces/BoltzVerifier.sol";
 import "../utils/ContractValidator.sol";
 
 /**
@@ -42,63 +41,32 @@ contract BoltzDeployVerifier is
         EnvelopingTypes.DeployRequest calldata relayRequest,
         bytes calldata signature
     ) external virtual override returns (bytes memory context) {
-        require(
-            relayRequest.relayData.callForwarder == _factory,
-            "Invalid factory"
+        address contractAddr = ContractValidator.deployValidation(
+            relayRequest,
+            _factory
         );
 
-        address contractAddr = BoltzSmartWalletFactory(
-            relayRequest.relayData.callForwarder
-        ).getSmartWalletAddress(
-                relayRequest.request.from,
-                relayRequest.request.recoverer,
-                relayRequest.request.index
+        destinationContractValidation(relayRequest.request.to);
+
+        if (relayRequest.request.tokenContract != address(0)) {
+            require(
+                tokens[relayRequest.request.tokenContract],
+                "Token contract not allowed"
             );
 
-        require(
-            !ContractValidator.isContract(contractAddr),
-            "Address already created"
-        );
-
-        require(
-            relayRequest.request.to == address(0) ||
-                contracts[relayRequest.request.to],
-            "Destination contract not allowed"
-        );
-
-        if (relayRequest.request.tokenAmount > 0) {
-            if (relayRequest.request.tokenContract != address(0)) {
-                require(
-                    tokens[relayRequest.request.tokenContract],
-                    "Token contract not allowed"
-                );
-
-                require(
-                    relayRequest.request.tokenAmount <=
-                        IERC20(relayRequest.request.tokenContract).balanceOf(
-                            contractAddr
-                        ),
-                    "Token balance too low"
-                );
-            } else {
-                if (relayRequest.request.to != address(0)) {
-                    BoltzTypes.ClaimInfo memory claim = abi.decode(
-                        relayRequest.request.data[4:],
-                        (BoltzTypes.ClaimInfo)
-                    );
-
-                    require(
-                        relayRequest.request.tokenAmount <= claim.amount,
-                        "Claiming value lower than fees"
-                    );
-                } else {
-                    require(
-                        relayRequest.request.tokenAmount <=
-                            address(contractAddr).balance,
-                        "Native balance too low"
-                    );
-                }
-            }
+            require(
+                relayRequest.request.tokenAmount <=
+                    IERC20(relayRequest.request.tokenContract).balanceOf(
+                        contractAddr
+                    ),
+                "Token balance too low"
+            );
+        } else {
+            require(
+                relayRequest.request.tokenAmount <=
+                    address(contractAddr).balance,
+                "Native balance too low"
+            );
         }
 
         return (

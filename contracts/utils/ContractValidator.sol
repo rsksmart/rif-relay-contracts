@@ -1,6 +1,9 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.6.12;
 
+import "../interfaces/ISmartWalletFactory.sol";
+import "../interfaces/EnvelopingTypes.sol";
+
 library ContractValidator {
     /**
      * Check if a contract has code in it
@@ -21,5 +24,27 @@ library ContractValidator {
         assembly {
             codeHash := extcodehash(addr)
         }
+    }
+
+    function deployValidation(
+        EnvelopingTypes.DeployRequest calldata relayRequest,
+        address factory
+    ) internal view returns (address) {
+        require(
+            relayRequest.relayData.callForwarder == factory,
+            "Invalid factory"
+        );
+
+        address contractAddr = ISmartWalletFactory(
+            relayRequest.relayData.callForwarder
+        ).getSmartWalletAddress(
+                relayRequest.request.from,
+                relayRequest.request.recoverer,
+                relayRequest.request.index
+            );
+
+        require(!isContract(contractAddr), "Address already created");
+
+        return contractAddr;
     }
 }

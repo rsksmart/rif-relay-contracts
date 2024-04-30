@@ -15,11 +15,8 @@ abstract contract DestinationContractHandler is Ownable {
 
     function acceptContract(address destinationContract) external onlyOwner {
         require(
-            destinationContract != address(0),
-            "Contract cannot be zero address"
-        );
-        require(
-            ContractValidator.isContract(destinationContract),
+            destinationContract == address(0) ||
+                ContractValidator.isContract(destinationContract),
             "Address is not a contract"
         );
         require(
@@ -34,10 +31,6 @@ abstract contract DestinationContractHandler is Ownable {
         address destinationContract,
         uint256 index
     ) external onlyOwner {
-        require(
-            destinationContract != address(0),
-            "Contract cannot be zero address"
-        );
         require(contracts[destinationContract], "Contract is not accepted");
         require(
             destinationContract == acceptedContracts[index],
@@ -58,5 +51,14 @@ abstract contract DestinationContractHandler is Ownable {
         address destinationContract
     ) external view returns (bool) {
         return contracts[destinationContract];
+    }
+
+    function destinationContractValidation(
+        address destinationContract
+    ) public view {
+        require(
+            contracts[destinationContract],
+            "Destination contract not allowed"
+        );
     }
 }
