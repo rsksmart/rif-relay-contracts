@@ -11,6 +11,7 @@ import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";
+import "../utils/BoltzUtils.sol";
 
 /**
  * A Verifier to be used on deploys.
@@ -48,25 +49,33 @@ contract BoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        if (relayRequest.request.tokenContract != address(0)) {
-            require(
-                tokens[relayRequest.request.tokenContract],
-                "Token contract not allowed"
-            );
+        if (relayRequest.request.tokenAmount > 0) {
+            if (relayRequest.request.tokenContract != address(0)) {
+                require(
+                    tokens[relayRequest.request.tokenContract],
+                    "Token contract not allowed"
+                );
 
-            require(
-                relayRequest.request.tokenAmount <=
-                    IERC20(relayRequest.request.tokenContract).balanceOf(
-                        contractAddr
-                    ),
-                "Token balance too low"
-            );
-        } else {
-            require(
-                relayRequest.request.tokenAmount <=
-                    address(contractAddr).balance,
-                "Native balance too low"
-            );
+                require(
+                    relayRequest.request.tokenAmount <=
+                        IERC20(relayRequest.request.tokenContract).balanceOf(
+                            contractAddr
+                        ),
+                    "Token balance too low"
+                );
+            } else {
+                uint256 amount = BoltzUtils.validateClaim(
+                    relayRequest.request.data,
+                    relayRequest.request.to,
+                    contractAddr
+                );
+
+                require(
+                    relayRequest.request.tokenAmount <=
+                        address(contractAddr).balance + amount,
+                    "Native balance too low"
+                );
+            }
         }
 
         return (

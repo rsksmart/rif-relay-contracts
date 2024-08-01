@@ -11,6 +11,7 @@ import "../interfaces/IWalletFactory.sol";
 import "../interfaces/IRelayVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";
+import "../utils/BoltzUtils.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -56,27 +57,35 @@ contract BoltzRelayVerifier is
             "SW different to template"
         );
 
-        require(
-            contracts[relayRequest.request.to],
-            "Destination contract not allowed"
-        );
+        destinationContractValidation(relayRequest.request.to);
 
-        if (relayRequest.request.tokenContract != address(0)) {
-            require(
-                tokens[relayRequest.request.tokenContract],
-                "Token contract not allowed"
-            );
+        if (relayRequest.request.tokenAmount > 0) {
+            if (relayRequest.request.tokenContract != address(0)) {
+                require(
+                    tokens[relayRequest.request.tokenContract],
+                    "Token contract not allowed"
+                );
 
-            require(
-                relayRequest.request.tokenAmount <=
-                    IERC20(relayRequest.request.tokenContract).balanceOf(payer),
-                "Token balance too low"
-            );
-        } else {
-            require(
-                relayRequest.request.tokenAmount <= address(payer).balance,
-                "Native balance too low"
-            );
+                require(
+                    relayRequest.request.tokenAmount <=
+                        IERC20(relayRequest.request.tokenContract).balanceOf(
+                            payer
+                        ),
+                    "Token balance too low"
+                );
+            } else {
+                uint256 amount = BoltzUtils.validateClaim(
+                    relayRequest.request.data,
+                    relayRequest.request.to,
+                    relayRequest.relayData.callForwarder
+                );
+
+                require(
+                    relayRequest.request.tokenAmount <=
+                        address(payer).balance + amount,
+                    "Native balance too low"
+                );
+            }
         }
 
         return (
