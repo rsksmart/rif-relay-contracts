@@ -35,6 +35,14 @@ library BoltzUtils {
         return output;
     }
 
+    /**
+     * @dev Decode the claim data and validate if
+     * a swap is stored in the Swap contract.
+     * @param data The claim data.
+     * @param to The address of the Swap contract.
+     * @param contractAddr The claiming address.
+     * @return The amount of RBTC to be claimed.
+     */
     function validateClaim(
         bytes calldata data,
         address to,
