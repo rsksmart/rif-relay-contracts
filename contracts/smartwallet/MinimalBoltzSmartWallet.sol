@@ -1,7 +1,7 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.6.12;
 
-import "../utils/BoltzBytesUtil.sol";
+import "../utils/BoltzUtils.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -32,7 +32,7 @@ contract MinimalBoltzSmartWallet {
 
         _isInitialized = true;
 
-        BoltzBytesUtil.validateClaimSignature(data);
+        BoltzUtils.validateClaimSignature(data);
 
         (bool success, bytes memory ret) = to.call(data);
         if (!success) {

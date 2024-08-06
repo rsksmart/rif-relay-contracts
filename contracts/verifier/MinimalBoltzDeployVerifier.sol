@@ -10,7 +10,7 @@ import "../factory/MinimalBoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";
-import "../utils/BoltzBytesUtil.sol";
+import "../utils/BoltzUtils.sol";
 import "../interfaces/NativeSwap.sol";
 
 /**
@@ -53,7 +53,7 @@ contract MinimalBoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        uint256 amount = _validateClaim(
+        uint256 amount = BoltzUtils.validateClaim(
             relayRequest.request.data,
             relayRequest.request.to,
             contractAddr
@@ -77,48 +77,5 @@ contract MinimalBoltzDeployVerifier is
                 relayRequest.request.tokenContract
             )
         );
-    }
-
-    function _validateClaim(
-        bytes calldata data,
-        address to,
-        address contractAddr
-    ) private returns (uint256) {
-        bytes4 signature = BoltzBytesUtil.toBytes4(data, 0);
-        NativeSwap.PublicClaimInfo memory claim;
-
-        if (signature == BoltzBytesUtil._EXTERNAL_SIGNATURE) {
-            NativeSwap.ExternalClaimInfo memory localClaim = abi.decode(
-                data[4:],
-                (NativeSwap.ExternalClaimInfo)
-            );
-            claim = NativeSwap.PublicClaimInfo(
-                localClaim.preimage,
-                localClaim.amount,
-                contractAddr,
-                localClaim.refundAddress,
-                localClaim.timelock
-            );
-        } else if (signature == BoltzBytesUtil._PUBLIC_SIGNATURE) {
-            claim = abi.decode(data[4:], (NativeSwap.PublicClaimInfo));
-        } else {
-            revert("Method not allowed");
-        }
-
-        NativeSwap swap = NativeSwap(to);
-
-        bytes32 preimageHash = sha256(abi.encodePacked(claim.preimage));
-
-        bytes32 hashValue = swap.hashValues(
-            preimageHash,
-            claim.amount,
-            claim.claimAddress,
-            claim.refundAddress,
-            claim.timelock
-        );
-
-        require(swap.swaps(hashValue), "Verifier: swap has no RBTC");
-
-        return claim.amount;
     }
 }
