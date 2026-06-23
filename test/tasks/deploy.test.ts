@@ -15,13 +15,22 @@ describe('Deploy Script', function () {
     const testAddress = '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7';
 
     beforeEach(function () {
-      const contract = new Contract(testAddress, []);
+      process.env['PEGIN_CONTRACT_ADDRESS'] = testAddress;
+      process.env['COLLATERAL_MANAGEMENT_ADDRESS'] = testAddress;
+
+      const contract = {
+        address: testAddress,
+        acceptContract: sinon.stub().resolves({}),
+      } as unknown as Contract;
+
       const contractFactoryStub = sinon.createStubInstance(ContractFactory);
       sinon.stub(ethers, 'getContractFactory').resolves(contractFactoryStub);
       contractFactoryStub.deploy.resolves(contract);
     });
 
     afterEach(function () {
+      delete process.env['PEGIN_CONTRACT_ADDRESS'];
+      delete process.env['COLLATERAL_MANAGEMENT_ADDRESS'];
       sinon.restore();
     });
 
@@ -52,7 +61,10 @@ describe('Deploy Script', function () {
           'MinimalBoltzDeployVerifier',
           'MinimalBoltzRelayVerifier',
           'MinimalBoltzSmartWallet',
-          'MinimalBoltzSmartWalletFactory'
+          'MinimalBoltzSmartWalletFactory',
+          'FlyoverSmartWallet',
+          'FlyoverSmartWalletFactory',
+          'FlyoverDeployVerifier'
         );
       });
 
@@ -218,6 +230,29 @@ describe('Deploy Script', function () {
         expect(result).not.to.have.any.keys(...unexpectedKeys);
       });
 
+      it('should deploy the flyover wallet', async function () {
+        const result = await deployContracts(
+          { flyoverSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'FlyoverSmartWallet',
+          'FlyoverSmartWalletFactory',
+          'FlyoverDeployVerifier',
+        ];
+        const unexpectedKeys = [
+          'Penalizer',
+          'RelayHub',
+          'SmartWallet',
+          'SmartWalletFactory',
+          'DeployVerifier',
+          'RelayVerifier',
+          'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
       it('should deploy the boltz wallet', async function () {
         const result = await deployContracts(
           { boltzSmartWallet: true },
@@ -371,6 +406,9 @@ describe('Deploy Script', function () {
         '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       MinimalBoltzDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       MinimalBoltzRelayVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      FlyoverSmartWallet: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      FlyoverSmartWalletFactory: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
+      FlyoverDeployVerifier: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       UtilToken: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
       VersionRegistry: '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7',
     };
