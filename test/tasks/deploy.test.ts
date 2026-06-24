@@ -13,12 +13,13 @@ use(chaiAsPromised);
 describe('Deploy Script', function () {
   describe('deployContracts', function () {
     const testAddress = '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7';
-    let originalPeginContractAddress: string|undefined;
-    let originalCollateralManagementAddress: string|undefined;
+    let originalPeginContractAddress: string | undefined;
+    let originalCollateralManagementAddress: string | undefined;
 
     beforeEach(function () {
       originalPeginContractAddress = process.env['PEGIN_CONTRACT_ADDRESS'];
-      originalCollateralManagementAddress = process.env['COLLATERAL_MANAGEMENT_ADDRESS'];
+      originalCollateralManagementAddress =
+        process.env['COLLATERAL_MANAGEMENT_ADDRESS'];
       process.env['PEGIN_CONTRACT_ADDRESS'] = testAddress;
       process.env['COLLATERAL_MANAGEMENT_ADDRESS'] = testAddress;
 
@@ -34,7 +35,8 @@ describe('Deploy Script', function () {
 
     afterEach(function () {
       process.env['PEGIN_CONTRACT_ADDRESS'] = originalPeginContractAddress;
-      process.env['COLLATERAL_MANAGEMENT_ADDRESS'] = originalCollateralManagementAddress;
+      process.env['COLLATERAL_MANAGEMENT_ADDRESS'] =
+        originalCollateralManagementAddress;
       sinon.restore();
     });
 

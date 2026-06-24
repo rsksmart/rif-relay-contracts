@@ -4,8 +4,10 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/ICollateralManagement.sol";
 import "../interfaces/IFlyoverPegIn.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 library FlyoverUtils {
+    using SafeMath for uint256;
     struct PegInQuote {
         uint256 chainId;
         uint256 callFee;
@@ -75,8 +77,9 @@ library FlyoverUtils {
 
         uint256 rewardPercentage = ICollateralManagement(collateralManagement)
             .getRewardPercentage();
-        uint256 expectedReward = (quote.penaltyFee * rewardPercentage) /
-            _TOTAL_REWARD_PERCENTAGE;
+        uint256 expectedReward = quote.penaltyFee.mul(rewardPercentage).div(
+            _TOTAL_REWARD_PERCENTAGE
+        );
 
         require(expectedReward >= minPunisherReward, "Reward below minimum");
     }
