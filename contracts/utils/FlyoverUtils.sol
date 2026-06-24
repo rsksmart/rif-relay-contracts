@@ -53,7 +53,6 @@ library FlyoverUtils {
      * Penalization is inferred when the quote is still UNPROCESSED (callForUser was
      * never executed). Deposit timing and paid amount are validated by PegIn at execution.
      * @param minPunisherReward Minimum punisher reward the relayer must receive.
-     * @return expectedReward The punisher reward if penalization executes on-chain.
      */
     function validateRelayEligibility(
         bytes calldata data,
@@ -61,7 +60,7 @@ library FlyoverUtils {
         address pegInContract,
         address collateralManagement,
         uint256 minPunisherReward
-    ) internal view returns (uint256 expectedReward) {
+    ) internal view {
         PegInQuote memory quote;
         (quote, ) = decodeRegisterPegIn(data, to, pegInContract);
 
@@ -76,8 +75,7 @@ library FlyoverUtils {
 
         uint256 rewardPercentage = ICollateralManagement(collateralManagement)
             .getRewardPercentage();
-        expectedReward =
-            (quote.penaltyFee * rewardPercentage) /
+        uint256 expectedReward = (quote.penaltyFee * rewardPercentage) /
             _TOTAL_REWARD_PERCENTAGE;
 
         require(expectedReward >= minPunisherReward, "Reward below minimum");

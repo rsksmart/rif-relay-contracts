@@ -27,6 +27,7 @@ contract FlyoverDeployVerifier is IDeployVerifier, DestinationContractHandler {
     event MinPunisherRewardSet(uint256 minPunisherReward);
 
     constructor(address walletFactory) public {
+        require(walletFactory != address(0), "Invalid wallet factory");
         _factory = walletFactory;
     }
 

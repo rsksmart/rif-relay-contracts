@@ -73,6 +73,9 @@ contract FlyoverSmartWalletFactory is
             }
         }
 
+        //No info is returned, an event is emitted to inform the new deployment
+        emit Deployed(addr, uint256(salt));
+
         //Since the init code determines the address of the smart wallet, any initialization
         //required is done via the runtime code, to avoid the parameters impacting on the resulting address
         (bool success, bytes memory ret) = addr.call(initdata);
@@ -82,8 +85,5 @@ contract FlyoverSmartWalletFactory is
                 revert(add(ret, 32), mload(ret))
             }
         }
-
-        //No info is returned, an event is emitted to inform the new deployment
-        emit Deployed(addr, uint256(salt));
     }
 }

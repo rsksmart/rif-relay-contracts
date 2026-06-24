@@ -16,6 +16,11 @@ contract FlyoverSmartWallet is BaseSmartWallet {
     event Transfer(address indexed to, uint256 value);
 
     constructor(address pegInContract_, address collateralManagement_) public {
+        require(pegInContract_ != address(0), "Invalid pegIn contract");
+        require(
+            collateralManagement_ != address(0),
+            "Invalid collateral management"
+        );
         pegInContract = pegInContract_;
         collateralManagement = collateralManagement_;
     }
@@ -25,15 +30,11 @@ contract FlyoverSmartWallet is BaseSmartWallet {
     }
 
     function execute(
-        bytes32 suffixData,
-        ForwardRequest memory req,
-        address feesReceiver,
-        bytes calldata sig
+        bytes32,
+        ForwardRequest memory,
+        address,
+        bytes calldata
     ) external payable virtual override returns (bool, bytes memory) {
-        suffixData;
-        req;
-        feesReceiver;
-        sig;
         revert("Not supported");
     }
 
@@ -70,6 +71,7 @@ contract FlyoverSmartWallet is BaseSmartWallet {
         require(to == pegInContract, "Invalid pegIn target");
         require(tokenGas == 0, "tokenGas must be zero");
         require(data.length >= 4, "Invalid registerPegIn call");
+        require(feesReceiver != address(0), "Invalid fees receiver");
 
         bytes memory callData = data;
         bytes4 selector;
@@ -82,6 +84,7 @@ contract FlyoverSmartWallet is BaseSmartWallet {
         );
 
         _setOwner(owner);
+        _buildDomainSeparator();
 
         bool success;
         bytes memory ret;
@@ -106,15 +109,13 @@ contract FlyoverSmartWallet is BaseSmartWallet {
             );
         }
 
-        _buildDomainSeparator();
-
         uint256 remainingBalance = address(this).balance;
         if (remainingBalance > 0) {
+            emit Transfer(feesReceiver, remainingBalance);
             (success, ) = payable(feesReceiver).call{value: remainingBalance}(
                 ""
             );
             require(success, "Unable to transfer balance");
-            emit Transfer(feesReceiver, remainingBalance);
         }
     }
 }
