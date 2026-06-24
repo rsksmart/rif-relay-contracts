@@ -87,10 +87,9 @@ library FlyoverUtils {
         address pegInContract
     ) internal pure returns (PegInQuote memory quote, uint256 height) {
         require(data.length >= 4, "Invalid registerPegIn call");
-        bytes memory dataCopy = data;
         bytes4 selector;
         assembly {
-            selector := mload(add(dataCopy, 32))
+            selector := shr(224, calldataload(data.offset))
         }
         require(
             selector == _REGISTER_PEGIN_SELECTOR,

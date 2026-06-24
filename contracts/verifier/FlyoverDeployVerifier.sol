@@ -66,6 +66,11 @@ contract FlyoverDeployVerifier is IDeployVerifier, DestinationContractHandler {
         );
         require(relayRequest.request.tokenGas == 0, "tokenGas must be zero");
 
+        address contractAddr = ContractValidator.deployValidation(
+            relayRequest,
+            _factory
+        );
+
         destinationContractValidation(relayRequest.request.to);
 
         FlyoverSmartWallet walletTemplate = FlyoverSmartWallet(
@@ -82,6 +87,7 @@ contract FlyoverDeployVerifier is IDeployVerifier, DestinationContractHandler {
 
         return (
             abi.encode(
+                contractAddr,
                 relayRequest.request.tokenAmount,
                 relayRequest.request.tokenContract
             )
