@@ -169,6 +169,10 @@ task(
     'If specified, it will deploy the boltz smart wallet with the factory and the verifiers (deploy, relay)'
   )
   .addFlag(
+    'flyoverSmartWallet',
+    'If specified, it will deploy the flyover smart wallet with the factory and the deploy verifier'
+  )
+  .addFlag(
     'minimalBoltzSmartWallet',
     'If specified, it will deploy the minimal boltz smart wallet with the factory and the verifiers (deploy, relay)'
   )

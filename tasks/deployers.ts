@@ -1,5 +1,6 @@
 import { HardhatEthersHelpers } from 'hardhat/types';
 import { ContractAddresses } from '../utils/scripts/types';
+import { getFlyoverContractAddresses } from '../utils/deployment/flyoverAddresses';
 
 export const deployVersionRegistry = async (
   ethers: HardhatEthersHelpers
@@ -141,6 +142,49 @@ export const deployBoltzSmartWallet = async (
     BoltzSmartWalletFactory: boltzSmartWalletFactoryAddress,
     BoltzDeployVerifier: boltzDeployVerifierAddress,
     BoltzRelayVerifier: boltzRelayVerifierAddress,
+  };
+};
+
+export const deployFlyoverSmartWallet = async (
+  ethers: HardhatEthersHelpers
+): Promise<
+  Pick<
+    ContractAddresses,
+    'FlyoverSmartWallet' | 'FlyoverSmartWalletFactory' | 'FlyoverDeployVerifier'
+  >
+> => {
+  const { pegInContract, collateralManagement } =
+    await getFlyoverContractAddresses(ethers);
+
+  const flyoverSmartWalletF = await ethers.getContractFactory(
+    'FlyoverSmartWallet'
+  );
+  const { address: flyoverSmartWalletAddress } =
+    await flyoverSmartWalletF.deploy(pegInContract, collateralManagement);
+
+  const flyoverSmartWalletFactoryF = await ethers.getContractFactory(
+    'FlyoverSmartWalletFactory'
+  );
+  const { address: flyoverSmartWalletFactoryAddress } =
+    await flyoverSmartWalletFactoryF.deploy(flyoverSmartWalletAddress);
+
+  const flyoverDeployVerifierF = await ethers.getContractFactory(
+    'FlyoverDeployVerifier'
+  );
+  const flyoverDeployVerifier = await flyoverDeployVerifierF.deploy(
+    flyoverSmartWalletFactoryAddress
+  );
+  const { address: flyoverDeployVerifierAddress } = flyoverDeployVerifier;
+
+  await flyoverDeployVerifier.acceptContract(pegInContract);
+  console.log(
+    `Allowed PegIn contract ${pegInContract} on FlyoverDeployVerifier`
+  );
+
+  return {
+    FlyoverSmartWallet: flyoverSmartWalletAddress,
+    FlyoverSmartWalletFactory: flyoverSmartWalletFactoryAddress,
+    FlyoverDeployVerifier: flyoverDeployVerifierAddress,
   };
 };
 
