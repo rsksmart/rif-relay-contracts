@@ -1,3 +1,4 @@
+import { utils } from 'ethers';
 import { HardhatEthersHelpers } from 'hardhat/types';
 import { ContractAddresses } from '../utils/scripts/types';
 
@@ -238,5 +239,98 @@ export const deployRelayHub = async (
   return {
     RelayHub: relayHubAddress,
     Penalizer: penalizerAddress,
+  };
+};
+
+export const deployLendaswapSmartWallet = async (
+  ethers: HardhatEthersHelpers
+): Promise<
+  Pick<
+    ContractAddresses,
+    | 'LendaswapSmartWallet'
+    | 'LendaswapSmartWalletFactory'
+    | 'LendaswapRelayVerifier'
+    | 'LendaswapDeployVerifier'
+  >
+> => {
+  const lendaswapSmartWalletF = await ethers.getContractFactory(
+    'BoltzSmartWallet'
+  );
+  const { address: lendaswapSmartWalletAddress } =
+    await lendaswapSmartWalletF.deploy();
+
+  const lendaswapSmartWalletFactoryF = await ethers.getContractFactory(
+    'BoltzSmartWalletFactory'
+  );
+  const { address: lendaswapSmartWalletFactoryAddress } =
+    await lendaswapSmartWalletFactoryF.deploy(lendaswapSmartWalletAddress);
+
+  const lendaswapDeployVerifierF = await ethers.getContractFactory(
+    'LendaswapDeployVerifier'
+  );
+  const { address: lendaswapDeployVerifierAddress } =
+    await lendaswapDeployVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
+
+  const lendaswapRelayVerifierF = await ethers.getContractFactory(
+    'LendaswapRelayVerifier'
+  );
+  const { address: lendaswapRelayVerifierAddress } =
+    await lendaswapRelayVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
+
+  return {
+    LendaswapSmartWallet: lendaswapSmartWalletAddress,
+    LendaswapSmartWalletFactory: lendaswapSmartWalletFactoryAddress,
+    LendaswapDeployVerifier: lendaswapDeployVerifierAddress,
+    LendaswapRelayVerifier: lendaswapRelayVerifierAddress,
+  };
+};
+
+// Lendaswap HTLCNative and HTLCNativeCoordinator methods a minimal wallet can execute
+export const LENDASWAP_REDEEM_METHODS = [
+  'redeem(bytes32,uint256,address,uint256)',
+  'redeemBySig(bytes32,uint256,address,uint256,address,address,uint256,bytes32,uint8,bytes32,bytes32)',
+  'redeemAndExecute(bytes32,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,address,uint8,bytes32,bytes32)',
+].map((signature) => utils.id(signature).slice(0, 10));
+
+export const deployMinimalLendaswapSmartWallet = async (
+  ethers: HardhatEthersHelpers
+): Promise<
+  Pick<
+    ContractAddresses,
+    | 'MinimalLendaswapSmartWallet'
+    | 'MinimalLendaswapSmartWalletFactory'
+    | 'MinimalLendaswapRelayVerifier'
+    | 'MinimalLendaswapDeployVerifier'
+  >
+> => {
+  const lendaswapSmartWalletF = await ethers.getContractFactory(
+    'MinimalSwapSmartWallet'
+  );
+  const { address: lendaswapSmartWalletAddress } =
+    await lendaswapSmartWalletF.deploy(LENDASWAP_REDEEM_METHODS);
+
+  const lendaswapSmartWalletFactoryF = await ethers.getContractFactory(
+    'MinimalBoltzSmartWalletFactory'
+  );
+  const { address: lendaswapSmartWalletFactoryAddress } =
+    await lendaswapSmartWalletFactoryF.deploy(lendaswapSmartWalletAddress);
+
+  const lendaswapDeployVerifierF = await ethers.getContractFactory(
+    'MinimalLendaswapDeployVerifier'
+  );
+  const { address: lendaswapDeployVerifierAddress } =
+    await lendaswapDeployVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
+
+  const lendaswapRelayVerifierF = await ethers.getContractFactory(
+    'MinimalBoltzRelayVerifier'
+  );
+  const { address: lendaswapRelayVerifierAddress } =
+    await lendaswapRelayVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
+
+  return {
+    MinimalLendaswapSmartWallet: lendaswapSmartWalletAddress,
+    MinimalLendaswapSmartWalletFactory: lendaswapSmartWalletFactoryAddress,
+    MinimalLendaswapDeployVerifier: lendaswapDeployVerifierAddress,
+    MinimalLendaswapRelayVerifier: lendaswapRelayVerifierAddress,
   };
 };

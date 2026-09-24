@@ -16,7 +16,7 @@ const factoryList = {
     : never ;
   
   export type ContractAddresses = {
-    [key in (ContractName | 'CustomSmartWalletRelayVerifier' | 'NativeHolderSmartWalletFactory' | 'NativeHolderSmartWalletDeployVerifier' | 'NativeHolderSmartWalletRelayVerifier')]: string | undefined;
+    [key in (ContractName | 'CustomSmartWalletRelayVerifier' | 'NativeHolderSmartWalletFactory' | 'NativeHolderSmartWalletDeployVerifier' | 'NativeHolderSmartWalletRelayVerifier' | 'LendaswapSmartWallet' | 'LendaswapSmartWalletFactory' | 'MinimalLendaswapSmartWallet' | 'MinimalLendaswapSmartWalletFactory' | 'MinimalLendaswapRelayVerifier')]: string | undefined;
   };
   
   export type NetworkConfig = {

@@ -66,6 +66,12 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     contractAddressesDeployed.BoltzRelayVerifier;
   const minimalBoltzDeployVerifierAddress =
     contractAddressesDeployed.MinimalBoltzDeployVerifier;
+  const lendaswapDeployVerifierAddress =
+    contractAddressesDeployed.LendaswapDeployVerifier;
+  const lendaswapRelayVerifierAddress =
+    contractAddressesDeployed.LendaswapRelayVerifier;
+  const minimalLendaswapDeployVerifierAddress =
+    contractAddressesDeployed.MinimalLendaswapDeployVerifier;
 
   if (!deployVerifierAddress) {
     throw new Error('Could not obtain deploy verifier address');
@@ -148,6 +154,26 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     minimalBoltzDeployVerifierAddress
   );
 
+  // The lendaswap verifiers are optional, since not every network has them deployed
+  const lendaswapDeployVerifier = lendaswapDeployVerifierAddress
+    ? await ethers.getContractAt(
+        'LendaswapDeployVerifier',
+        lendaswapDeployVerifierAddress
+      )
+    : undefined;
+  const lendaswapRelayVerifier = lendaswapRelayVerifierAddress
+    ? await ethers.getContractAt(
+        'LendaswapRelayVerifier',
+        lendaswapRelayVerifierAddress
+      )
+    : undefined;
+  const minimalLendaswapDeployVerifier = minimalLendaswapDeployVerifierAddress
+    ? await ethers.getContractAt(
+        'MinimalLendaswapDeployVerifier',
+        minimalLendaswapDeployVerifierAddress
+      )
+    : undefined;
+
   return {
     deployVerifier,
     relayVerifier,
@@ -158,6 +184,9 @@ export async function getVerifiers(hre: HardhatRuntimeEnvironment) {
     boltzDeployVerifier,
     boltzRelayVerifier,
     minimalBoltzDeployVerifier,
+    lendaswapDeployVerifier,
+    lendaswapRelayVerifier,
+    minimalLendaswapDeployVerifier,
   };
 }
 
@@ -177,7 +206,20 @@ export const getVerifiersFromFile = async <T>(
     boltzDeployVerifier,
     boltzRelayVerifier,
     minimalBoltzDeployVerifier,
+    lendaswapDeployVerifier,
+    lendaswapRelayVerifier,
+    minimalLendaswapDeployVerifier,
   } = await getVerifiers(hre);
+
+  const lendaswapTokenVerifiers = [
+    lendaswapDeployVerifier,
+    lendaswapRelayVerifier,
+  ].filter(Boolean);
+  const lendaswapContractVerifiers = [
+    lendaswapDeployVerifier,
+    lendaswapRelayVerifier,
+    minimalLendaswapDeployVerifier,
+  ].filter(Boolean);
 
   const verifiers: Record<Handler, T[]> = {
     Token: [
@@ -189,11 +231,13 @@ export const getVerifiersFromFile = async <T>(
       nativeHolderRelayVerifier,
       boltzDeployVerifier,
       boltzRelayVerifier,
+      ...lendaswapTokenVerifiers,
     ] as T[],
     Contract: [
       boltzDeployVerifier,
       boltzRelayVerifier,
       minimalBoltzDeployVerifier,
+      ...lendaswapContractVerifiers,
     ] as T[],
   };
 
