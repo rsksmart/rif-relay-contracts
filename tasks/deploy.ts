@@ -10,6 +10,7 @@ import {
   deployUtilToken,
   deployVersionRegistry,
   deployBoltzSmartWallet,
+  deployFlyoverSmartWallet,
   deployMinimalBoltzSmartWallet,
   deployLendaswapSmartWallet,
   deployMinimalLendaswapSmartWallet,
@@ -27,6 +28,7 @@ export type DeployArg = {
   utilToken?: boolean;
   versionRegistry?: boolean;
   boltzSmartWallet?: boolean;
+  flyoverSmartWallet?: boolean;
   minimalBoltzSmartWallet?: boolean;
   lendaswapSmartWallet?: boolean;
   minimalLendaswapSmartWallet?: boolean;
@@ -91,6 +93,7 @@ export const deployContracts = async (
     utilToken: deployUtilToken,
     versionRegistry: deployVersionRegistry,
     boltzSmartWallet: deployBoltzSmartWallet,
+    flyoverSmartWallet: deployFlyoverSmartWallet,
     minimalBoltzSmartWallet: deployMinimalBoltzSmartWallet,
     lendaswapSmartWallet: deployLendaswapSmartWallet,
     minimalLendaswapSmartWallet: deployMinimalLendaswapSmartWallet,
