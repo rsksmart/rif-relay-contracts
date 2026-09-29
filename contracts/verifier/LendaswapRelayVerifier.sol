@@ -29,6 +29,7 @@ contract LendaswapRelayVerifier is
     address private immutable _factory;
 
     constructor(address walletFactory) public {
+        require(walletFactory != address(0), "Invalid wallet factory");
         _factory = walletFactory;
     }
 

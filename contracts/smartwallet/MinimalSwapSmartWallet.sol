@@ -59,6 +59,11 @@ contract MinimalSwapSmartWallet {
         bytes calldata data
     ) external {
         require(!_isInitialized, "Already initialized");
+        require(owner != address(0), "Invalid owner");
+        require(
+            feesAmount == 0 || feesReceiver != address(0),
+            "Invalid fees receiver"
+        );
 
         _isInitialized = true;
 
