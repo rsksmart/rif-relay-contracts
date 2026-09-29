@@ -1,6 +1,5 @@
+import { utils } from 'ethers';
 import { HardhatEthersHelpers } from 'hardhat/types';
-
-
 
 export const getFlyoverContractAddresses = async (
   ethers: HardhatEthersHelpers
@@ -18,8 +17,8 @@ export const getFlyoverContractAddresses = async (
   }
 
   if (
-    !ethers.utils.isAddress(pegInContractRaw) ||
-    !ethers.utils.isAddress(collateralManagementRaw)
+    !utils.isAddress(pegInContractRaw) ||
+    !utils.isAddress(collateralManagementRaw)
   ) {
     throw new Error(
       `Invalid Flyover addresses for chainId ${chainId} (PEGIN_CONTRACT_ADDRESS=${pegInContractRaw}, COLLATERAL_MANAGEMENT_ADDRESS=${collateralManagementRaw})`
@@ -27,7 +26,7 @@ export const getFlyoverContractAddresses = async (
   }
 
   return {
-    pegInContract: ethers.utils.getAddress(pegInContractRaw),
-    collateralManagement: ethers.utils.getAddress(collateralManagementRaw),
+    pegInContract: utils.getAddress(pegInContractRaw),
+    collateralManagement: utils.getAddress(collateralManagementRaw),
   };
 };
