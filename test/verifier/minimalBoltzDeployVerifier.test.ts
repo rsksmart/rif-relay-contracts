@@ -495,7 +495,7 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
             );
           });
 
-          it('should revert if the request forwards value', async function () {
+          it('should revert if the request sets a value', async function () {
             fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
 
             const deployRequest: EnvelopingTypes.DeployRequestStruct = {

@@ -47,6 +47,10 @@ contract BoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
+        // Both claim methods are nonpayable and initialize bubbles the failed
+        // claim, whatever pays the fee
+        require(relayRequest.request.value == 0, "Value not allowed");
+
         _validateFee(
             relayRequest.request.data,
             relayRequest.request.to,

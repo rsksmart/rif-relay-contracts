@@ -595,7 +595,7 @@ describe('BoltzRelayVerifier Contract', function () {
               'function claim(bytes32 preimage, uint amount, address refundAddress, uint timelock)',
             ];
             const abiInterface = new ethers.utils.Interface(ABI);
-            smartWalletAddress = ethers.Wallet.createRandom().address;
+            smartWalletAddress = fakeSmartWallet.address;
             switch (method) {
               case 'external':
                 data = abiInterface.encodeFunctionData(
@@ -628,7 +628,7 @@ describe('BoltzRelayVerifier Contract', function () {
           ): EnvelopingTypes.RelayRequestStruct {
             return {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,
@@ -681,10 +681,53 @@ describe('BoltzRelayVerifier Contract', function () {
             );
           });
 
+          if (method === 'public') {
+            it('should not credit the swap if the claim address is not the smart wallet', async function () {
+              const abiInterface = new ethers.utils.Interface([
+                'function claim(bytes32 preimage, uint amount, address claimAddress, address refundAddress, uint timelock)',
+              ]);
+              const otherClaimData = abiInterface.encodeFunctionData('claim', [
+                constants.HashZero,
+                ethers.utils.parseEther('0.5'),
+                ethers.Wallet.createRandom().address,
+                constants.AddressZero,
+                500,
+              ]);
+
+              const relayRequest: EnvelopingTypes.RelayRequestStruct = {
+                relayData: {
+                  callForwarder: fakeSmartWallet.address,
+                  callVerifier: relayVerifierMock.address,
+                  gasPrice: '10',
+                  feesReceiver: relayWorker.address,
+                },
+                request: {
+                  data: otherClaimData,
+                  from: owner.address,
+                  to: fakeSwap.address,
+                  gas: '1000000',
+                  nonce: '0',
+                  tokenGas: '50000',
+                  relayHub: fakeRelayHub.address,
+                  tokenAmount: '1',
+                  tokenContract: constants.AddressZero,
+                  validUntilTime: '0',
+                  value: '0',
+                },
+              };
+
+              const result = relayVerifierMock.verifyRelayedCall(
+                relayRequest,
+                '0x00'
+              );
+              await expect(result).to.be.revertedWith('Native balance too low');
+            });
+          }
+
           it('should revert if native balance is too low', async function () {
             const relayRequest: EnvelopingTypes.RelayRequestStruct = {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,
@@ -717,7 +760,7 @@ describe('BoltzRelayVerifier Contract', function () {
 
             const relayRequest: EnvelopingTypes.RelayRequestStruct = {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,
@@ -759,7 +802,7 @@ describe('BoltzRelayVerifier Contract', function () {
 
             const deployRequest: EnvelopingTypes.RelayRequestStruct = {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,
@@ -791,7 +834,7 @@ describe('BoltzRelayVerifier Contract', function () {
 
             const relayRequest: EnvelopingTypes.RelayRequestStruct = {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,
@@ -823,7 +866,7 @@ describe('BoltzRelayVerifier Contract', function () {
 
             const relayRequest: EnvelopingTypes.RelayRequestStruct = {
               relayData: {
-                callForwarder: fakeWalletFactory.address,
+                callForwarder: fakeSmartWallet.address,
                 callVerifier: relayVerifierMock.address,
                 gasPrice: '10',
                 feesReceiver: relayWorker.address,

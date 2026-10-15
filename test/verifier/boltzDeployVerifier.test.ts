@@ -414,6 +414,39 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.not.be.reverted;
     });
 
+    it('should revert if the request forwards value when paying with ERC20 token', async function () {
+      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: fakeWalletFactory.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x00',
+          from: owner.address,
+          to: fakeSwap.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: '100000000000',
+          tokenContract: fakeToken.address,
+          validUntilTime: '0',
+          value: '1',
+        },
+      };
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Value not allowed');
+    });
+
     it('should revert if not paying for a call that is not a claim', async function () {
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
@@ -742,6 +775,53 @@ describe('BoltzDeployVerifier Contract', function () {
               'Verifier: swap has no RBTC'
             );
           });
+
+          if (method === 'public') {
+            it('should not credit the swap if the claim address is not the smart wallet', async function () {
+              fakeWalletFactory.getSmartWalletAddress.returns(
+                smartWalletAddress
+              );
+              const abiInterface = new ethers.utils.Interface([
+                'function claim(bytes32 preimage, uint amount, address claimAddress, address refundAddress, uint timelock)',
+              ]);
+              const otherClaimData = abiInterface.encodeFunctionData('claim', [
+                constants.HashZero,
+                ethers.utils.parseEther('0.5'),
+                ethers.Wallet.createRandom().address,
+                constants.AddressZero,
+                500,
+              ]);
+
+              const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+                relayData: {
+                  callForwarder: fakeWalletFactory.address,
+                  callVerifier: deployVerifierMock.address,
+                  gasPrice: '10',
+                  feesReceiver: relayWorker.address,
+                },
+                request: {
+                  recoverer: constants.AddressZero,
+                  index: '0',
+                  data: otherClaimData,
+                  from: owner.address,
+                  to: fakeSwap.address,
+                  nonce: '0',
+                  tokenGas: '50000',
+                  relayHub: fakeRelayHub.address,
+                  tokenAmount: '1',
+                  tokenContract: constants.AddressZero,
+                  validUntilTime: '0',
+                  value: '0',
+                },
+              };
+
+              const result = deployVerifierMock.verifyRelayedCall(
+                deployRequest,
+                '0x00'
+              );
+              await expect(result).to.be.revertedWith('Native balance too low');
+            });
+          }
 
           it('should revert if native balance is too low', async function () {
             const deployRequest: EnvelopingTypes.DeployRequestStruct = {
