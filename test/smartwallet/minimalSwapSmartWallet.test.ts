@@ -6,7 +6,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { BigNumberish, Wallet } from 'ethers';
 import { ethers as hardhat } from 'hardhat';
 import {
-  MinimalBoltzSmartWalletFactory,
+  MinimalSwapSmartWalletFactory,
   MinimalSwapSmartWallet__factory,
 } from 'typechain-types';
 import { LENDASWAP_REDEEM_METHODS } from '../../tasks/deployers';
@@ -103,7 +103,7 @@ describe('MinimalSwapSmartWallet contract', function () {
   });
 
   describe('Function initialize()', function () {
-    let smartWalletFactory: MinimalBoltzSmartWalletFactory;
+    let smartWalletFactory: MinimalSwapSmartWalletFactory;
     let provider: BaseProvider;
     let owner: Wallet;
     let worker: Wallet;
@@ -116,7 +116,7 @@ describe('MinimalSwapSmartWallet contract', function () {
       );
 
       const smartWalletFactoryFactory = await hardhat.getContractFactory(
-        'MinimalBoltzSmartWalletFactory'
+        'MinimalSwapSmartWalletFactory'
       );
 
       smartWalletFactory = await smartWalletFactoryFactory

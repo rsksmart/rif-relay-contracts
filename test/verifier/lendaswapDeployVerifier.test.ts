@@ -10,7 +10,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { BigNumber, BigNumberish, Wallet, constants } from 'ethers';
 import { ethers } from 'hardhat';
 import {
-  BoltzSmartWalletFactory,
+  SwapSmartWalletFactory,
   ERC20,
   IHTLCNative,
   IHTLCNativeCoordinator,
@@ -39,14 +39,14 @@ const setBalance = (address: string, balance: BigNumber) =>
 
 describe('LendaswapDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<SwapSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<LendaswapDeployVerifier__factory>;
   let deployVerifierMock: MockContract<LendaswapDeployVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<BoltzSmartWalletFactory>(
-      'BoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<SwapSmartWalletFactory>(
+      'SwapSmartWalletFactory'
     );
     deployVerifierFactoryMock =
       await smock.mock<LendaswapDeployVerifier__factory>(

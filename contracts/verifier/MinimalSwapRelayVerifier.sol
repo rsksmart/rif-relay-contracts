@@ -15,7 +15,7 @@ import "../interfaces/EnvelopingTypes.sol";
 /**
  * A verifier for relay transactions.
  */
-contract MinimalBoltzRelayVerifier is IRelayVerifier {
+contract MinimalSwapRelayVerifier is IRelayVerifier {
     using SafeMath for uint256;
 
     address private immutable _factory;

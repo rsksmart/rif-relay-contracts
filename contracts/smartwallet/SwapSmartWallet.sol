@@ -7,7 +7,7 @@ import "./BaseSmartWallet.sol";
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
 
-contract BoltzSmartWallet is BaseSmartWallet {
+contract SwapSmartWallet is BaseSmartWallet {
     function execute(
         bytes32 suffixData,
         ForwardRequest memory req,

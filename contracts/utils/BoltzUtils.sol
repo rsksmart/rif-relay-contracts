@@ -3,6 +3,7 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/NativeSwap.sol";
+import "./MinLibBytes.sol";
 
 library BoltzUtils {
     //c3c37fbc  =>  claim(bytes32,uint256,address,uint256)
@@ -10,20 +11,6 @@ library BoltzUtils {
 
     //cd413efa  =>  claim(bytes32,uint256,address,address,uint256)
     bytes4 internal constant _PUBLIC_SIGNATURE = 0xcd413efa;
-
-    function toBytes4(
-        bytes memory input,
-        uint256 offset
-    ) internal pure returns (bytes4) {
-        bytes4 output;
-
-        /* solhint-disable-next-line no-inline-assembly */
-        assembly {
-            output := mload(add(add(input, 0x20), offset))
-        }
-
-        return output;
-    }
 
     /**
      * @dev Decode the claim data and validate if
@@ -45,7 +32,7 @@ library BoltzUtils {
     ) internal view returns (uint256) {
         require(value == 0, "Value not allowed");
 
-        bytes4 signature = toBytes4(data, 0);
+        bytes4 signature = MinLibBytes.readBytes4(data, 0);
         /* solhint-disable-next-line no-unused-vars	*/
         NativeSwap.PublicClaimInfo memory claim;
 

@@ -1,5 +1,5 @@
 import { MockContract, smock } from '@defi-wonderland/smock';
-import { BoltzSmartWallet, BoltzSmartWallet__factory } from 'typechain-types';
+import { SwapSmartWallet, SwapSmartWallet__factory } from 'typechain-types';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ethers as hardhat } from 'hardhat';
@@ -10,13 +10,14 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-describe('BoltzSmartWallet template', function () {
+describe('SwapSmartWallet template', function () {
   describe('Function initialize()', function () {
-    let smartWalletMock: MockContract<BoltzSmartWallet>;
+    let smartWalletMock: MockContract<SwapSmartWallet>;
 
     beforeEach(async function () {
-      const smartWalletFactoryMock =
-        await smock.mock<BoltzSmartWallet__factory>('BoltzSmartWallet');
+      const smartWalletFactoryMock = await smock.mock<SwapSmartWallet__factory>(
+        'SwapSmartWallet'
+      );
 
       smartWalletMock = await smartWalletFactoryMock.deploy();
     });

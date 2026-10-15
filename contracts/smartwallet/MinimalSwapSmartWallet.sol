@@ -1,7 +1,7 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.6.12;
 
-import "../utils/BoltzUtils.sol";
+import "../utils/MinLibBytes.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
@@ -68,7 +68,8 @@ contract MinimalSwapSmartWallet {
         _isInitialized = true;
 
         require(
-            data.length >= 4 && isAllowedMethod(BoltzUtils.toBytes4(data, 0)),
+            data.length >= 4 &&
+                isAllowedMethod(MinLibBytes.readBytes4(data, 0)),
             "Method not allowed"
         );
 

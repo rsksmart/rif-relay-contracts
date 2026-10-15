@@ -13,7 +13,7 @@ import {
   MinimalBoltzDeployVerifier,
   MinimalBoltzDeployVerifier__factory,
   ERC20,
-  MinimalBoltzSmartWalletFactory,
+  MinimalSwapSmartWalletFactory,
   MinimalSwapSmartWallet__factory,
   NativeSwap,
 } from 'typechain-types';
@@ -28,15 +28,15 @@ chai.use(chaiAsPromised);
 describe('MinimalBoltzDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeContract: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<MinimalSwapSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<MinimalBoltzDeployVerifier__factory>;
   let deployVerifierMock: MockContract<MinimalBoltzDeployVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeContract = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
-      'MinimalBoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<MinimalSwapSmartWalletFactory>(
+      'MinimalSwapSmartWalletFactory'
     );
     deployVerifierFactoryMock =
       await smock.mock<MinimalBoltzDeployVerifier__factory>(
@@ -272,7 +272,7 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
 
     it('should revert if factory address in request is different than factory address in contract', async function () {
       const differentFactoryFake = await smock.fake(
-        'MinimalBoltzSmartWalletFactory'
+        'MinimalSwapSmartWalletFactory'
       );
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {

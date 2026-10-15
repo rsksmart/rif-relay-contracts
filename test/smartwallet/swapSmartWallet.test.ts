@@ -7,9 +7,9 @@ import { Wallet } from 'ethers';
 import { ethers as hardhat } from 'hardhat';
 import {
   ERC20,
-  BoltzSmartWallet,
-  BoltzSmartWalletFactory,
-  BoltzSmartWallet__factory,
+  SwapSmartWallet,
+  SwapSmartWalletFactory,
+  SwapSmartWallet__factory,
 } from 'typechain-types';
 import { createValidPersonalSignSignature } from '../utils/createValidPersonalSignSignature';
 import {
@@ -32,8 +32,8 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-describe('BoltzSmartWallet contract', function () {
-  let smartWalletFactory: BoltzSmartWalletFactory;
+describe('SwapSmartWallet contract', function () {
+  let smartWalletFactory: SwapSmartWalletFactory;
   let provider: BaseProvider;
   let owner: Wallet;
   let relayHub: SignerWithAddress;
@@ -41,13 +41,13 @@ describe('BoltzSmartWallet contract', function () {
 
   async function createSmartWalletFactory(owner: Wallet) {
     const smartWalletTemplateFactory = await hardhat.getContractFactory(
-      'BoltzSmartWallet'
+      'SwapSmartWallet'
     );
 
     const smartWalletTemplate = await smartWalletTemplateFactory.deploy();
 
     const smartWalletFactoryFactory = await hardhat.getContractFactory(
-      'BoltzSmartWalletFactory'
+      'SwapSmartWalletFactory'
     );
 
     smartWalletFactory = await smartWalletFactoryFactory
@@ -66,10 +66,7 @@ describe('BoltzSmartWallet contract', function () {
         0
       );
 
-      return await hardhat.getContractAt(
-        'BoltzSmartWallet',
-        smartWalletAddress
-      );
+      return await hardhat.getContractAt('SwapSmartWallet', smartWalletAddress);
     }
 
     beforeEach(async function () {
@@ -94,7 +91,7 @@ describe('BoltzSmartWallet contract', function () {
     });
 
     describe('', function () {
-      let smartWallet: BoltzSmartWallet;
+      let smartWallet: SwapSmartWallet;
 
       beforeEach(async function () {
         const dataTypesToSign = ['address', 'address', 'address', 'uint256'];
@@ -125,11 +122,11 @@ describe('BoltzSmartWallet contract', function () {
         smartWallet = await getAlreadyDeployedSmartWallet();
       });
 
-      it('Should initialize a BoltzSmartWallet', async function () {
+      it('Should initialize a SwapSmartWallet', async function () {
         expect(await smartWallet.isInitialized()).to.be.true;
       });
 
-      it('Should fail to initialize a BoltzSmartWallet twice', async function () {
+      it('Should fail to initialize a SwapSmartWallet twice', async function () {
         await expect(
           smartWallet.initialize(
             owner.address,
@@ -151,11 +148,11 @@ describe('BoltzSmartWallet contract', function () {
     });
 
     describe('with contract execution', function () {
-      let recipient: FakeContract<BoltzSmartWallet>;
+      let recipient: FakeContract<SwapSmartWallet>;
       let recipientFunction: string;
 
       beforeEach(async function () {
-        recipient = await smock.fake('BoltzSmartWallet');
+        recipient = await smock.fake('SwapSmartWallet');
         recipient.isInitialized.returns(true);
 
         recipientFunction = recipient.interface.encodeFunctionData(
@@ -364,10 +361,10 @@ describe('BoltzSmartWallet contract', function () {
 
       it('Should pass the revert message from destination contract if fails', async function () {
         const { contract: recipient } = await deployContract<
-          BoltzSmartWallet,
+          SwapSmartWallet,
           []
         >({
-          contractName: 'BoltzSmartWallet',
+          contractName: 'SwapSmartWallet',
           constructorArgs: [],
         });
         const recipientFunction = recipient.interface.encodeFunctionData(
@@ -634,7 +631,7 @@ describe('BoltzSmartWallet contract', function () {
   });
 
   describe('Function verify()', function () {
-    let mockSmartWallet: MockContract<BoltzSmartWallet>;
+    let mockSmartWallet: MockContract<SwapSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
 
@@ -643,8 +640,9 @@ describe('BoltzSmartWallet contract', function () {
         SignerWithAddress
       ];
 
-      const mockSmartWalletFactory =
-        await smock.mock<BoltzSmartWallet__factory>('CustomSmartWallet');
+      const mockSmartWalletFactory = await smock.mock<SwapSmartWallet__factory>(
+        'CustomSmartWallet'
+      );
 
       provider = hardhat.provider;
       owner = hardhat.Wallet.createRandom().connect(provider);
@@ -760,10 +758,10 @@ describe('BoltzSmartWallet contract', function () {
   });
 
   describe('Function execute()', function () {
-    let mockSmartWallet: MockContract<BoltzSmartWallet>;
+    let mockSmartWallet: MockContract<SwapSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
-    let recipient: FakeContract<BoltzSmartWallet>;
+    let recipient: FakeContract<SwapSmartWallet>;
     let recipientFunction: string;
     let privateKey: Buffer;
     let worker: SignerWithAddress;
@@ -776,8 +774,9 @@ describe('BoltzSmartWallet contract', function () {
         SignerWithAddress
       ];
 
-      const mockSmartWalletFactory =
-        await smock.mock<BoltzSmartWallet__factory>('BoltzSmartWallet');
+      const mockSmartWalletFactory = await smock.mock<SwapSmartWallet__factory>(
+        'SwapSmartWallet'
+      );
 
       provider = hardhat.provider;
       owner = hardhat.Wallet.createRandom().connect(provider);
@@ -797,7 +796,7 @@ describe('BoltzSmartWallet contract', function () {
         value: hardhat.utils.parseEther('1'),
       });
 
-      recipient = await smock.fake('BoltzSmartWallet');
+      recipient = await smock.fake('SwapSmartWallet');
       recipient.isInitialized.returns(true);
 
       const ABI = ['function isInitialized()'];
@@ -1077,10 +1076,10 @@ describe('BoltzSmartWallet contract', function () {
   });
 
   describe('Function directExecute()', function () {
-    let mockSmartWallet: MockContract<BoltzSmartWallet>;
+    let mockSmartWallet: MockContract<SwapSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
-    let recipient: FakeContract<BoltzSmartWallet>;
+    let recipient: FakeContract<SwapSmartWallet>;
     let recipientFunction: string;
     let utilWallet: SignerWithAddress;
 
@@ -1092,8 +1091,9 @@ describe('BoltzSmartWallet contract', function () {
         SignerWithAddress
       ];
 
-      const mockSmartWalletFactory =
-        await smock.mock<BoltzSmartWallet__factory>('CustomSmartWallet');
+      const mockSmartWalletFactory = await smock.mock<SwapSmartWallet__factory>(
+        'CustomSmartWallet'
+      );
 
       provider = hardhat.provider;
       owner = hardhat.Wallet.createRandom().connect(provider);
@@ -1105,7 +1105,7 @@ describe('BoltzSmartWallet contract', function () {
       });
       mockSmartWallet = await mockSmartWalletFactory.connect(owner).deploy();
 
-      recipient = await smock.fake('BoltzSmartWallet');
+      recipient = await smock.fake('SwapSmartWallet');
       recipient.isInitialized.returns(true);
 
       const ABI = ['function isInitialized()'];
@@ -1162,7 +1162,7 @@ describe('BoltzSmartWallet contract', function () {
   });
 
   describe('Function getOwner()', function () {
-    let mockSmartWallet: MockContract<BoltzSmartWallet>;
+    let mockSmartWallet: MockContract<SwapSmartWallet>;
     let provider: BaseProvider;
     let owner: Wallet;
 
@@ -1171,8 +1171,9 @@ describe('BoltzSmartWallet contract', function () {
         SignerWithAddress
       ];
 
-      const mockSmartWalletFactory =
-        await smock.mock<BoltzSmartWallet__factory>('CustomSmartWallet');
+      const mockSmartWalletFactory = await smock.mock<SwapSmartWallet__factory>(
+        'CustomSmartWallet'
+      );
 
       provider = hardhat.provider;
       owner = hardhat.Wallet.createRandom().connect(provider);

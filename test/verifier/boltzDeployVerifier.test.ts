@@ -13,8 +13,8 @@ import {
   BoltzDeployVerifier,
   BoltzDeployVerifier__factory,
   ERC20,
-  BoltzSmartWalletFactory,
-  BoltzSmartWallet__factory,
+  SwapSmartWalletFactory,
+  SwapSmartWallet__factory,
   NativeSwap,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
@@ -25,15 +25,15 @@ chai.use(chaiAsPromised);
 describe('BoltzDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeContract: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<SwapSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<BoltzDeployVerifier__factory>;
   let deployVerifierMock: MockContract<BoltzDeployVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeContract = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<BoltzSmartWalletFactory>(
-      'BoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<SwapSmartWalletFactory>(
+      'SwapSmartWalletFactory'
     );
     deployVerifierFactoryMock = await smock.mock<BoltzDeployVerifier__factory>(
       'BoltzDeployVerifier'
@@ -527,7 +527,7 @@ describe('BoltzDeployVerifier Contract', function () {
           [fakeToken.address]: true,
         },
       });
-      const differentFactoryFake = await smock.fake('BoltzSmartWalletFactory');
+      const differentFactoryFake = await smock.fake('SwapSmartWalletFactory');
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
@@ -562,8 +562,9 @@ describe('BoltzDeployVerifier Contract', function () {
     it('should revert if Smart Wallet is already created', async function () {
       fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
-      const fakeSmartWalletFactory =
-        await smock.mock<BoltzSmartWallet__factory>('SmartWallet');
+      const fakeSmartWalletFactory = await smock.mock<SwapSmartWallet__factory>(
+        'SmartWallet'
+      );
       const mockSmartWallet = await fakeSmartWalletFactory.deploy();
       await mockSmartWallet.setVariables({
         nonce: 1,

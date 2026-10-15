@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "../SwapFeeHandler.sol";
 import "../DestinationContractHandler.sol";
-import "../factory/BoltzSmartWalletFactory.sol";
+import "../factory/SwapSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";

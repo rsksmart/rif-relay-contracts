@@ -10,28 +10,28 @@ import chaiAsPromised from 'chai-as-promised';
 import { constants } from 'ethers';
 import { ethers } from 'hardhat';
 import {
-  MinimalBoltzRelayVerifier,
-  MinimalBoltzRelayVerifier__factory,
+  MinimalSwapRelayVerifier,
+  MinimalSwapRelayVerifier__factory,
   MinimalSwapSmartWallet,
-  MinimalBoltzSmartWalletFactory,
+  MinimalSwapSmartWalletFactory,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-describe('MinimalBoltzRelayVerifier Contract', function () {
-  let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
-  let relayVerifierFactoryMock: MockContractFactory<MinimalBoltzRelayVerifier__factory>;
-  let relayVerifierMock: MockContract<MinimalBoltzRelayVerifier>;
+describe('MinimalSwapRelayVerifier Contract', function () {
+  let fakeWalletFactory: FakeContract<MinimalSwapSmartWalletFactory>;
+  let relayVerifierFactoryMock: MockContractFactory<MinimalSwapRelayVerifier__factory>;
+  let relayVerifierMock: MockContract<MinimalSwapRelayVerifier>;
 
   beforeEach(async function () {
-    fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
-      'MinimalBoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<MinimalSwapSmartWalletFactory>(
+      'MinimalSwapSmartWalletFactory'
     );
     relayVerifierFactoryMock =
-      await smock.mock<MinimalBoltzRelayVerifier__factory>(
-        'MinimalBoltzRelayVerifier'
+      await smock.mock<MinimalSwapRelayVerifier__factory>(
+        'MinimalSwapRelayVerifier'
       );
     relayVerifierMock = await relayVerifierFactoryMock.deploy(
       fakeWalletFactory.address

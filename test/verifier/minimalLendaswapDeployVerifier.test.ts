@@ -13,7 +13,7 @@ import {
   ERC20,
   IHTLCNative,
   IHTLCNativeCoordinator,
-  MinimalBoltzSmartWalletFactory,
+  MinimalSwapSmartWalletFactory,
   MinimalLendaswapDeployVerifier,
   MinimalLendaswapDeployVerifier__factory,
 } from 'typechain-types';
@@ -30,13 +30,13 @@ chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
 describe('MinimalLendaswapDeployVerifier Contract', function () {
-  let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<MinimalSwapSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<MinimalLendaswapDeployVerifier__factory>;
   let deployVerifierMock: MockContract<MinimalLendaswapDeployVerifier>;
 
   beforeEach(async function () {
-    fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
-      'MinimalBoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<MinimalSwapSmartWalletFactory>(
+      'MinimalSwapSmartWalletFactory'
     );
     deployVerifierFactoryMock =
       await smock.mock<MinimalLendaswapDeployVerifier__factory>(

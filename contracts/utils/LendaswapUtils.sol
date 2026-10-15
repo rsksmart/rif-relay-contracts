@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/IHTLCNative.sol";
-import "./BoltzUtils.sol";
+import "./MinLibBytes.sol";
 
 library LendaswapUtils {
     //d592e483  =>  redeem(bytes32,uint256,address,uint256)
@@ -131,7 +131,7 @@ library LendaswapUtils {
         address contractAddr,
         uint256 value
     ) private view returns (Quote memory quote) {
-        bytes4 signature = BoltzUtils.toBytes4(data, 0);
+        bytes4 signature = MinLibBytes.readBytes4(data, 0);
 
         if (signature == _REDEEM_SIGNATURE) {
             require(value == 0, "Value not allowed");

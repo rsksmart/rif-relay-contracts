@@ -10,8 +10,8 @@ import chaiAsPromised from 'chai-as-promised';
 import { BigNumber, BigNumberish, constants } from 'ethers';
 import { ethers } from 'hardhat';
 import {
-  BoltzSmartWallet,
-  BoltzSmartWalletFactory,
+  SwapSmartWallet,
+  SwapSmartWalletFactory,
   ERC20,
   IHTLCNative,
   IHTLCNativeCoordinator,
@@ -44,14 +44,14 @@ const setBalance = (address: string, balance: BigNumber) =>
 
 describe('LendaswapRelayVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<SwapSmartWalletFactory>;
   let relayVerifierFactoryMock: MockContractFactory<LendaswapRelayVerifier__factory>;
   let relayVerifierMock: MockContract<LendaswapRelayVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<BoltzSmartWalletFactory>(
-      'BoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<SwapSmartWalletFactory>(
+      'SwapSmartWalletFactory'
     );
     relayVerifierFactoryMock =
       await smock.mock<LendaswapRelayVerifier__factory>(
@@ -82,7 +82,7 @@ describe('LendaswapRelayVerifier Contract', function () {
   describe('verifyRelayedCall()', function () {
     let owner: SignerWithAddress;
     let relayWorker: SignerWithAddress;
-    let fakeSmartWallet: FakeContract<BoltzSmartWallet>;
+    let fakeSmartWallet: FakeContract<SwapSmartWallet>;
     let fakeRelayHub: FakeContract<RelayHub>;
     let fakeHtlc: FakeContract<IHTLCNative>;
     let fakeCoordinator: FakeContract<IHTLCNativeCoordinator>;
@@ -137,7 +137,7 @@ describe('LendaswapRelayVerifier Contract', function () {
         SignerWithAddress
       ];
       ({ chainId } = await ethers.provider.getNetwork());
-      fakeSmartWallet = await smock.fake<BoltzSmartWallet>('BoltzSmartWallet');
+      fakeSmartWallet = await smock.fake<SwapSmartWallet>('SwapSmartWallet');
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
       fakeHtlc = await smock.fake<IHTLCNative>('IHTLCNative');
       fakeCoordinator = await smock.fake<IHTLCNativeCoordinator>(

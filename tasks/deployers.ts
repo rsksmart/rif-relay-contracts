@@ -116,11 +116,11 @@ export const deployBoltzSmartWallet = async (
     | 'BoltzDeployVerifier'
   >
 > => {
-  const boltzSmartWalletF = await ethers.getContractFactory('BoltzSmartWallet');
+  const boltzSmartWalletF = await ethers.getContractFactory('SwapSmartWallet');
   const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy();
 
   const boltzSmartWalletFactoryF = await ethers.getContractFactory(
-    'BoltzSmartWalletFactory'
+    'SwapSmartWalletFactory'
   );
   const { address: boltzSmartWalletFactoryAddress } =
     await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
@@ -170,7 +170,7 @@ export const deployMinimalBoltzSmartWallet = async (
   );
 
   const boltzSmartWalletFactoryF = await ethers.getContractFactory(
-    'MinimalBoltzSmartWalletFactory'
+    'MinimalSwapSmartWalletFactory'
   );
   const { address: boltzSmartWalletFactoryAddress } =
     await boltzSmartWalletFactoryF.deploy(boltzSmartWalletAddress);
@@ -182,7 +182,7 @@ export const deployMinimalBoltzSmartWallet = async (
     await boltzDeployVerifierF.deploy(boltzSmartWalletFactoryAddress);
 
   const boltzRelayVerifierF = await ethers.getContractFactory(
-    'MinimalBoltzRelayVerifier'
+    'MinimalSwapRelayVerifier'
   );
   const { address: boltzRelayVerifierAddress } =
     await boltzRelayVerifierF.deploy(boltzSmartWalletFactoryAddress);
@@ -262,13 +262,13 @@ export const deployLendaswapSmartWallet = async (
   >
 > => {
   const lendaswapSmartWalletF = await ethers.getContractFactory(
-    'BoltzSmartWallet'
+    'SwapSmartWallet'
   );
   const { address: lendaswapSmartWalletAddress } =
     await lendaswapSmartWalletF.deploy();
 
   const lendaswapSmartWalletFactoryF = await ethers.getContractFactory(
-    'BoltzSmartWalletFactory'
+    'SwapSmartWalletFactory'
   );
   const { address: lendaswapSmartWalletFactoryAddress } =
     await lendaswapSmartWalletFactoryF.deploy(lendaswapSmartWalletAddress);
@@ -318,7 +318,7 @@ export const deployMinimalLendaswapSmartWallet = async (
     await lendaswapSmartWalletF.deploy(LENDASWAP_REDEEM_METHODS);
 
   const lendaswapSmartWalletFactoryF = await ethers.getContractFactory(
-    'MinimalBoltzSmartWalletFactory'
+    'MinimalSwapSmartWalletFactory'
   );
   const { address: lendaswapSmartWalletFactoryAddress } =
     await lendaswapSmartWalletFactoryF.deploy(lendaswapSmartWalletAddress);
@@ -330,7 +330,7 @@ export const deployMinimalLendaswapSmartWallet = async (
     await lendaswapDeployVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
 
   const lendaswapRelayVerifierF = await ethers.getContractFactory(
-    'MinimalBoltzRelayVerifier'
+    'MinimalSwapRelayVerifier'
   );
   const { address: lendaswapRelayVerifierAddress } =
     await lendaswapRelayVerifierF.deploy(lendaswapSmartWalletFactoryAddress);
