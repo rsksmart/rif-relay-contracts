@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 /**
  * Subset of the Lendaswap HTLCNative contract used by the verifiers.
- * See https://github.com/satoraHQ/lendaswap-contracts/blob/main/src/HTLCNative.sol
+ * See https://github.com/satoraHQ/lendaswap-contracts/blob/b2ca6a3a2262c405a5c3f61d7298e1d9fb4c135f/src/HTLCNative.sol
  */
 interface IHTLCNative {
     struct RedeemInfo {
@@ -43,7 +43,7 @@ interface IHTLCNative {
 
 /**
  * Subset of the Lendaswap HTLCNativeCoordinator contract used by the verifiers.
- * See https://github.com/satoraHQ/lendaswap-contracts/blob/main/src/HTLCNativeCoordinator.sol
+ * See https://github.com/satoraHQ/lendaswap-contracts/blob/b2ca6a3a2262c405a5c3f61d7298e1d9fb4c135f/src/HTLCNativeCoordinator.sol
  */
 interface IHTLCNativeCoordinator {
     struct Call {
