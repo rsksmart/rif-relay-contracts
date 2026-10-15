@@ -11,16 +11,6 @@ library BoltzUtils {
     //cd413efa  =>  claim(bytes32,uint256,address,address,uint256)
     bytes4 internal constant _PUBLIC_SIGNATURE = 0xcd413efa;
 
-    function validateClaimSignature(bytes memory data) internal pure {
-        bytes4 signature = toBytes4(data, 0);
-
-        if (
-            signature != _EXTERNAL_SIGNATURE && signature != _PUBLIC_SIGNATURE
-        ) {
-            revert("Method not allowed");
-        }
-    }
-
     function toBytes4(
         bytes memory input,
         uint256 offset

@@ -1,7 +1,7 @@
 import { MockContract, smock } from '@defi-wonderland/smock';
 import {
-  MinimalBoltzSmartWallet,
-  MinimalBoltzSmartWallet__factory,
+  MinimalSwapSmartWallet,
+  MinimalSwapSmartWallet__factory,
 } from 'typechain-types';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,17 +13,22 @@ chai.use(chaiAsPromised);
 
 const ZERO_ADDRESS = hardhat.constants.AddressZero;
 
-describe('MinimalBoltzSmartWallet template', function () {
+// EtherSwap claim methods the minimal Boltz wallet can execute
+const BOLTZ_CLAIM_METHODS = ['0xc3c37fbc', '0xcd413efa'];
+
+describe('MinimalSwapSmartWallet template', function () {
   describe('Function initialize()', function () {
-    let smartWalletMock: MockContract<MinimalBoltzSmartWallet>;
+    let smartWalletMock: MockContract<MinimalSwapSmartWallet>;
 
     beforeEach(async function () {
       const smartWalletFactoryMock =
-        await smock.mock<MinimalBoltzSmartWallet__factory>(
-          'MinimalBoltzSmartWallet'
+        await smock.mock<MinimalSwapSmartWallet__factory>(
+          'MinimalSwapSmartWallet'
         );
 
-      smartWalletMock = await smartWalletFactoryMock.deploy();
+      smartWalletMock = await smartWalletFactoryMock.deploy(
+        BOLTZ_CLAIM_METHODS
+      );
     });
 
     it('Should fail to initialize if alredy initialized', async function () {

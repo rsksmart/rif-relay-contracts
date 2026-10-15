@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {
   ERC20,
-  MinimalBoltzSmartWallet,
+  MinimalSwapSmartWallet,
   MinimalBoltzSmartWalletFactory,
   MinimalBoltzSmartWalletFactory__factory,
 } from 'typechain-types';
@@ -17,6 +17,9 @@ type MinimalBoltzSmartWalletFactoryOptions = Parameters<
   MinimalBoltzSmartWalletFactory__factory['deploy']
 >;
 
+// EtherSwap claim methods the minimal Boltz wallet can execute
+const BOLTZ_CLAIM_METHODS = ['0xc3c37fbc', '0xcd413efa'];
+
 describe('MinimalBoltzSmartWalletFactory', function () {
   let chainId: number;
 
@@ -29,11 +32,11 @@ describe('MinimalBoltzSmartWalletFactory', function () {
 
     beforeEach(async function () {
       const { contract: template } = await deployContract<
-        MinimalBoltzSmartWallet,
-        []
+        MinimalSwapSmartWallet,
+        [string[]]
       >({
-        contractName: 'MinimalBoltzSmartWallet',
-        constructorArgs: [],
+        contractName: 'MinimalSwapSmartWallet',
+        constructorArgs: [BOLTZ_CLAIM_METHODS],
       });
       ({ contract: boltzSmartWalletFactory } = await deployContract<
         MinimalBoltzSmartWalletFactory,
@@ -121,7 +124,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 
@@ -175,7 +178,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 
@@ -483,7 +486,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 

@@ -14,10 +14,13 @@ import {
   MinimalBoltzDeployVerifier__factory,
   ERC20,
   MinimalBoltzSmartWalletFactory,
-  MinimalBoltzSmartWallet__factory,
+  MinimalSwapSmartWallet__factory,
   NativeSwap,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
+
+// EtherSwap claim methods the minimal Boltz wallet can execute
+const BOLTZ_CLAIM_METHODS = ['0xc3c37fbc', '0xcd413efa'];
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -304,10 +307,12 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
 
     it('should revert if Smart Wallet is already created', async function () {
       const fakeSmartWalletFactory =
-        await smock.mock<MinimalBoltzSmartWallet__factory>(
-          'MinimalBoltzSmartWallet'
+        await smock.mock<MinimalSwapSmartWallet__factory>(
+          'MinimalSwapSmartWallet'
         );
-      const mockSmartWallet = await fakeSmartWalletFactory.deploy();
+      const mockSmartWallet = await fakeSmartWalletFactory.deploy(
+        BOLTZ_CLAIM_METHODS
+      );
 
       fakeWalletFactory.getSmartWalletAddress.returns(mockSmartWallet.address);
 

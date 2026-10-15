@@ -145,6 +145,12 @@ export const deployBoltzSmartWallet = async (
   };
 };
 
+// Boltz EtherSwap claim methods a minimal wallet can execute
+export const BOLTZ_CLAIM_METHODS = [
+  'claim(bytes32,uint256,address,uint256)',
+  'claim(bytes32,uint256,address,address,uint256)',
+].map((signature) => utils.id(signature).slice(0, 10));
+
 export const deployMinimalBoltzSmartWallet = async (
   ethers: HardhatEthersHelpers
 ): Promise<
@@ -157,9 +163,11 @@ export const deployMinimalBoltzSmartWallet = async (
   >
 > => {
   const boltzSmartWalletF = await ethers.getContractFactory(
-    'MinimalBoltzSmartWallet'
+    'MinimalSwapSmartWallet'
   );
-  const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy();
+  const { address: boltzSmartWalletAddress } = await boltzSmartWalletF.deploy(
+    BOLTZ_CLAIM_METHODS
+  );
 
   const boltzSmartWalletFactoryF = await ethers.getContractFactory(
     'MinimalBoltzSmartWalletFactory'

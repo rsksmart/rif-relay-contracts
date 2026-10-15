@@ -12,7 +12,7 @@ import { ethers } from 'hardhat';
 import {
   MinimalBoltzRelayVerifier,
   MinimalBoltzRelayVerifier__factory,
-  MinimalBoltzSmartWallet,
+  MinimalSwapSmartWallet,
   MinimalBoltzSmartWalletFactory,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
@@ -60,7 +60,7 @@ describe('MinimalBoltzRelayVerifier Contract', function () {
     let recipient: SignerWithAddress;
     let relayWorker: SignerWithAddress;
     let fakeRelayHub: FakeContract<RelayHub>;
-    let fakeSmartWallet: FakeContract<MinimalBoltzSmartWallet>;
+    let fakeSmartWallet: FakeContract<MinimalSwapSmartWallet>;
 
     beforeEach(async function () {
       [owner, recipient, relayWorker] = (await ethers.getSigners()) as [
@@ -69,8 +69,8 @@ describe('MinimalBoltzRelayVerifier Contract', function () {
         SignerWithAddress
       ];
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
-      fakeSmartWallet = await smock.fake<MinimalBoltzSmartWallet>(
-        'MinimalBoltzSmartWallet'
+      fakeSmartWallet = await smock.fake<MinimalSwapSmartWallet>(
+        'MinimalSwapSmartWallet'
       );
     });
 
