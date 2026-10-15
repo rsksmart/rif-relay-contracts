@@ -41,9 +41,11 @@ library BoltzUtils {
      * @param data The claim data.
      * @param to The address of the Swap contract.
      * @param contractAddr The claiming address.
-     * @param value The RBTC the smart wallet forwards with the call.
-     * Both claim methods are nonpayable, so it must be zero.
-     * @return The amount of RBTC to be claimed.
+     * @param value The request's value. The full wallet forwards it and both
+     * claim methods are nonpayable; the minimal wallet never sends it.
+     * Either way it must be zero.
+     * @return The RBTC the claiming address receives: the amount when it is
+     * the claim address, otherwise 0.
      */
     function validateClaim(
         bytes calldata data,
@@ -89,6 +91,8 @@ library BoltzUtils {
 
         require(swap.swaps(hashValue), "Verifier: swap has no RBTC");
 
-        return claim.amount;
+        // EtherSwap pays claimAddress, so the wallet only receives the
+        // amount when it is the claim address.
+        return claim.claimAddress == contractAddr ? claim.amount : 0;
     }
 }
