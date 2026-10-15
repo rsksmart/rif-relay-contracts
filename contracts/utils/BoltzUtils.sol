@@ -50,7 +50,7 @@ library BoltzUtils {
         address to,
         address contractAddr,
         uint256 value
-    ) internal returns (uint256) {
+    ) internal view returns (uint256) {
         require(value == 0, "Value not allowed");
 
         bytes4 signature = toBytes4(data, 0);
