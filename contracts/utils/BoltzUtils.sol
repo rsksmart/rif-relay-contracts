@@ -41,13 +41,18 @@ library BoltzUtils {
      * @param data The claim data.
      * @param to The address of the Swap contract.
      * @param contractAddr The claiming address.
+     * @param value The RBTC the smart wallet forwards with the call.
+     * Both claim methods are nonpayable, so it must be zero.
      * @return The amount of RBTC to be claimed.
      */
     function validateClaim(
         bytes calldata data,
         address to,
-        address contractAddr
+        address contractAddr,
+        uint256 value
     ) internal returns (uint256) {
+        require(value == 0, "Value not allowed");
+
         bytes4 signature = toBytes4(data, 0);
         /* solhint-disable-next-line no-unused-vars	*/
         NativeSwap.PublicClaimInfo memory claim;

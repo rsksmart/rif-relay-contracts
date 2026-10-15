@@ -495,6 +495,39 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
             );
           });
 
+          it('should revert if the request forwards value', async function () {
+            fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+
+            const deployRequest: EnvelopingTypes.DeployRequestStruct = {
+              relayData: {
+                callForwarder: fakeWalletFactory.address,
+                callVerifier: deployVerifierMock.address,
+                gasPrice: '10',
+                feesReceiver: relayWorker.address,
+              },
+              request: {
+                recoverer: constants.AddressZero,
+                index: '0',
+                data,
+                from: owner.address,
+                to: fakeSwap.address,
+                nonce: '0',
+                tokenGas: '50000',
+                relayHub: fakeRelayHub.address,
+                tokenAmount: ethers.utils.parseEther('0.5'),
+                tokenContract: constants.AddressZero,
+                validUntilTime: '0',
+                value: '1',
+              },
+            };
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              deployRequest,
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Value not allowed');
+          });
+
           it('should not revert if swap contract can pay for the native fee', async function () {
             fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
 
