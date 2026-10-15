@@ -3,6 +3,7 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/IHTLCNative.sol";
 import "./BoltzUtils.sol";
@@ -24,6 +25,20 @@ library LendaswapUtils {
     // Size of the redeemAndExecute head up to (and including) the calls offset
     uint256 private constant _REDEEM_AND_EXECUTE_TAIL_OFFSET = 4 + 5 * 32;
 
+    // What a redeem leaves to the smart wallet
+    struct Quote {
+        // The RBTC the smart wallet is sure to receive
+        uint256 nativeProceeds;
+        // The token the coordinator sweeps to the smart wallet, if any, and
+        // the amount of it the smart wallet is sure to receive
+        address sweepToken;
+        uint256 tokenProceeds;
+        // The call runs code chosen by the request before the fee is paid.
+        // That code can re-enter the smart wallet with an owner-signed
+        // request and spend what it already holds.
+        bool hasCallback;
+    }
+
     /**
      * @dev Decode the redeem data, validate that an active swap is stored in
      * the HTLCNative contract and quote the RBTC the smart wallet will receive.
@@ -33,22 +48,22 @@ library LendaswapUtils {
      * @param contractAddr The smart wallet executing the redeem.
      * @param value The RBTC the smart wallet forwards with the call. Only
      * redeemAndExecute is payable; the HTLCNative redeems reject any value.
-     * @return proceeds The amount of RBTC the smart wallet will receive.
+     * @return The amount of RBTC the smart wallet will receive.
      */
     function quoteRedeemProceeds(
         bytes calldata data,
         address to,
         address contractAddr,
         uint256 value
-    ) internal view returns (uint256 proceeds) {
-        (proceeds, ) = _quoteRedeemProceeds(data, to, contractAddr, value);
+    ) internal view returns (uint256) {
+        return _quote(data, to, contractAddr, value).nativeProceeds;
     }
 
     /**
      * @dev Quote the RBTC a smart wallet with an execute entry point is sure
-     * to hold after the redeem call, before paying the fee. The calls run by
-     * the coordinator can re-enter the smart wallet and spend its balance, so
-     * when there are calls only the proceeds are counted.
+     * to hold after the redeem call, before paying the fee. The balance it
+     * already holds only counts when the call cannot run code chosen by the
+     * request.
      * @param data The redeem data.
      * @param to The address of the HTLCNative contract, or of the
      * HTLCNativeCoordinator when calling redeemAndExecute.
@@ -62,43 +77,73 @@ library LendaswapUtils {
         address contractAddr,
         uint256 value
     ) internal view returns (uint256) {
-        (uint256 proceeds, bool runsCalls) = _quoteRedeemProceeds(
-            data,
-            to,
-            contractAddr,
-            value
-        );
+        Quote memory quote = _quote(data, to, contractAddr, value);
 
         // The wallet forwards value before paying the fee
         uint256 balance = contractAddr.balance;
         require(value <= balance, "Native balance too low");
 
-        if (runsCalls) {
+        if (quote.hasCallback) {
+            return quote.nativeProceeds;
+        }
+
+        return balance - value + quote.nativeProceeds;
+    }
+
+    /**
+     * @dev Quote the amount of `token` a smart wallet with an execute entry
+     * point is sure to hold after the redeem call, before paying the fee.
+     * Same rule as quoteNativeBalanceAfterRedeem: the balance it already
+     * holds only counts without a callback, and the coordinator's sweep of
+     * `token` to the smart wallet is credited for its signed minimum.
+     * @param data The redeem data.
+     * @param to The address of the HTLCNative contract, or of the
+     * HTLCNativeCoordinator when calling redeemAndExecute.
+     * @param contractAddr The smart wallet executing the redeem.
+     * @param value The RBTC the smart wallet forwards with the call.
+     * @param token The ERC20 token paying the fee.
+     * @return The amount of `token` available to pay the fee.
+     */
+    function quoteTokenBalanceAfterRedeem(
+        bytes calldata data,
+        address to,
+        address contractAddr,
+        uint256 value,
+        address token
+    ) internal view returns (uint256) {
+        Quote memory quote = _quote(data, to, contractAddr, value);
+
+        // The wallet forwards value before paying the fee
+        require(value <= contractAddr.balance, "Native balance too low");
+
+        uint256 proceeds = quote.sweepToken == token ? quote.tokenProceeds : 0;
+
+        if (quote.hasCallback) {
             return proceeds;
         }
 
-        return balance - value + proceeds;
+        return IERC20(token).balanceOf(contractAddr) + proceeds;
     }
 
-    function _quoteRedeemProceeds(
+    function _quote(
         bytes calldata data,
         address to,
         address contractAddr,
         uint256 value
-    ) private view returns (uint256 proceeds, bool runsCalls) {
+    ) private view returns (Quote memory quote) {
         bytes4 signature = BoltzUtils.toBytes4(data, 0);
 
         if (signature == _REDEEM_SIGNATURE) {
             require(value == 0, "Value not allowed");
-            return (_quoteRedeem(data, to, contractAddr), false);
+            quote.nativeProceeds = _quoteRedeem(data, to, contractAddr);
         } else if (signature == _REDEEM_BY_SIG_SIGNATURE) {
             require(value == 0, "Value not allowed");
-            return (_quoteRedeemBySig(data, to, contractAddr), false);
+            quote.nativeProceeds = _quoteRedeemBySig(data, to, contractAddr);
         } else if (signature == _REDEEM_AND_EXECUTE_SIGNATURE) {
-            return _quoteCoordinatorProceeds(data, to, contractAddr, value);
+            quote = _quoteCoordinatorProceeds(data, to, contractAddr, value);
+        } else {
+            revert("Method not allowed");
         }
-
-        revert("Method not allowed");
     }
 
     /**
@@ -156,21 +201,22 @@ library LendaswapUtils {
 
     /**
      * @dev redeemAndExecute: the coordinator is the authorized caller, runs the
-     * signed calls and sweeps its whole balance to the signed destination. Only
-     * a native sweep to the smart wallet is credited: with no calls, the amount
-     * plus the forwarded value; otherwise the minAmountOut the coordinator
-     * enforces.
+     * signed calls and sweeps its whole balance to the signed destination.
+     * Only a sweep to the smart wallet is credited: a native sweep for the
+     * amount plus the forwarded value when there are no calls, otherwise for
+     * the minAmountOut the coordinator enforces; a token sweep for its
+     * minAmountOut. The calls, a sweep to another destination and a token
+     * sweep all run code chosen by the request.
      */
     function _quoteCoordinatorProceeds(
         bytes calldata data,
         address coordinator,
         address contractAddr,
         uint256 value
-    ) private view returns (uint256 proceeds, bool runsCalls) {
+    ) private view returns (Quote memory quote) {
         IHTLCNative.RedeemBySigInfo memory redeem;
         uint256 callsLength;
         (redeem, callsLength) = _decodeRedeemAndExecute(data);
-        runsCalls = callsLength > 0;
 
         address htlc = IHTLCNativeCoordinator(coordinator).HTLC_NATIVE();
 
@@ -185,14 +231,23 @@ library LendaswapUtils {
             redeem.timelock
         );
 
-        if (
-            redeem.destination != contractAddr ||
-            redeem.sweepToken != address(0)
-        ) {
-            return (0, runsCalls);
+        bool sweepsToWallet = redeem.destination == contractAddr;
+        bool sweepsNative = redeem.sweepToken == address(0);
+
+        quote.hasCallback = callsLength > 0 || !sweepsToWallet || !sweepsNative;
+
+        if (!sweepsToWallet) {
+            return quote;
         }
 
-        proceeds = runsCalls ? redeem.minAmountOut : redeem.amount + value;
+        if (sweepsNative) {
+            quote.nativeProceeds = callsLength == 0
+                ? redeem.amount + value
+                : redeem.minAmountOut;
+        } else {
+            quote.sweepToken = redeem.sweepToken;
+            quote.tokenProceeds = redeem.minAmountOut;
+        }
     }
 
     function _decodeRedeemAndExecute(

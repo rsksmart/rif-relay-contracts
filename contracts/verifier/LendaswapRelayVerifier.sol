@@ -91,4 +91,21 @@ contract LendaswapRelayVerifier is
                 value
             );
     }
+
+    function _quoteTokenBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value,
+        address token
+    ) internal view override returns (uint256) {
+        return
+            LendaswapUtils.quoteTokenBalanceAfterRedeem(
+                data,
+                to,
+                payer,
+                value,
+                token
+            );
+    }
 }

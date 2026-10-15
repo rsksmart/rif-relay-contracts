@@ -8,11 +8,12 @@ import "./TokenHandler.sol";
 
 /**
  * Fee validation shared by the verifiers of the swap smart wallets.
- * A fee paid in an accepted ERC20 token only needs the wallet to hold it.
- * Every other request, including a sponsored one with no fee, must be the
- * claim of an active swap into the wallet, and the RBTC the wallet is sure
- * to hold afterwards must cover the fee. Validating sponsored requests too
- * keeps the relayer from paying the gas of a claim that can only fail.
+ * A fee paid in an accepted ERC20 token needs the wallet to be sure to hold
+ * it after the call. Every other request, including a sponsored one with no
+ * fee, must be the claim of an active swap into the wallet, and the RBTC the
+ * wallet is sure to hold afterwards must cover the fee. Validating sponsored
+ * requests too keeps the relayer from paying the gas of a claim that can
+ * only fail.
  */
 abstract contract SwapFeeHandler is TokenHandler {
     function _validateFee(
@@ -27,7 +28,8 @@ abstract contract SwapFeeHandler is TokenHandler {
             require(tokens[tokenContract], "Token contract not allowed");
 
             require(
-                tokenAmount <= IERC20(tokenContract).balanceOf(payer),
+                tokenAmount <=
+                    _quoteTokenBalance(data, to, payer, value, tokenContract),
                 "Token balance too low"
             );
         } else {
@@ -53,4 +55,26 @@ abstract contract SwapFeeHandler is TokenHandler {
         address payer,
         uint256 value
     ) internal view virtual returns (uint256);
+
+    /**
+     * @dev Quote the amount of `token` `payer` is sure to hold after the
+     * call, before paying the fee. By default the current balance: the swap
+     * contracts pay out plain RBTC, so the call runs no code chosen by the
+     * request that could spend it.
+     * @param data The call data of the request.
+     * @param to The destination contract of the request.
+     * @param payer The smart wallet paying the fee.
+     * @param value The RBTC the smart wallet forwards with the call.
+     * @param token The ERC20 token paying the fee.
+     */
+    function _quoteTokenBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value,
+        address token
+    ) internal view virtual returns (uint256) {
+        (data, to, value);
+        return IERC20(token).balanceOf(payer);
+    }
 }
