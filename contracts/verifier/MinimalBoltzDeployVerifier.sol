@@ -56,7 +56,8 @@ contract MinimalBoltzDeployVerifier is
         uint256 amount = BoltzUtils.validateClaim(
             relayRequest.request.data,
             relayRequest.request.to,
-            contractAddr
+            contractAddr,
+            relayRequest.request.value
         );
 
         require(
