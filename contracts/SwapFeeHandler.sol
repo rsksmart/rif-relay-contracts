@@ -7,13 +7,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./TokenHandler.sol";
 
 /**
- * Fee validation shared by the verifiers of the swap smart wallets.
- * A fee paid in an accepted ERC20 token needs the wallet to be sure to hold
- * it after the call. Every other request, including a sponsored one with no
- * fee, must be the claim of an active swap into the wallet, and the RBTC the
- * wallet is sure to hold afterwards must cover the fee. Validating sponsored
- * requests too keeps the relayer from paying the gas of a claim that can
- * only fail.
+ * Fee validation shared by the verifiers of the full swap smart wallets.
+ * The wallet is a general purpose RIF Relay wallet whose verifier allows
+ * the swap contracts as destinations, so the fee is validated as for any
+ * other wallet: a sponsored request (no fee) only needs an allowed
+ * destination, since the relayer chose to pay; a fee in an accepted ERC20
+ * token is charged from the wallet's token balance; a fee in RBTC is
+ * charged from the wallet's RBTC balance. The one addition is that a claim
+ * of an active swap into the wallet is credited for the RBTC it pays out,
+ * so a wallet can claim its first swap before holding anything.
  */
 abstract contract SwapFeeHandler is TokenHandler {
     function _validateFee(
@@ -24,7 +26,11 @@ abstract contract SwapFeeHandler is TokenHandler {
         address tokenContract,
         uint256 tokenAmount
     ) internal view {
-        if (tokenAmount > 0 && tokenContract != address(0)) {
+        if (tokenAmount == 0) {
+            return;
+        }
+
+        if (tokenContract != address(0)) {
             require(tokens[tokenContract], "Token contract not allowed");
 
             require(
@@ -41,9 +47,11 @@ abstract contract SwapFeeHandler is TokenHandler {
     }
 
     /**
-     * @dev Validate that `data` claims an active swap into `payer` and quote
-     * the RBTC `payer` is sure to hold after the call, before paying the fee.
-     * Must revert if the request is not such a claim.
+     * @dev Quote the RBTC `payer` holds after the call, before paying the
+     * fee: its balance less the value it forwards, plus what a claim of an
+     * active swap into it pays out. Any other call adds nothing. A claim the
+     * wallet cannot execute (inactive swap, value on a nonpayable claim)
+     * must revert.
      * @param data The call data of the request.
      * @param to The destination contract of the request.
      * @param payer The smart wallet paying the fee.
@@ -57,21 +65,18 @@ abstract contract SwapFeeHandler is TokenHandler {
     ) internal view virtual returns (uint256);
 
     /**
-     * @dev Validate that `data` claims an active swap into `payer` and quote
-     * the amount of `token` `payer` is sure to hold after the call, before
-     * paying the fee. Must revert if the request is not such a claim, so a
-     * token fee never relaxes what the request may do.
-     * @param data The call data of the request.
-     * @param to The destination contract of the request.
+     * @dev Quote the amount of `token` `payer` holds after the call, before
+     * paying the fee. By default its current balance.
      * @param payer The smart wallet paying the fee.
-     * @param value The RBTC the smart wallet forwards with the call.
      * @param token The ERC20 token paying the fee.
      */
     function _quoteTokenBalance(
-        bytes calldata data,
-        address to,
+        bytes calldata,
+        address,
         address payer,
-        uint256 value,
+        uint256,
         address token
-    ) internal view virtual returns (uint256);
+    ) internal view virtual returns (uint256) {
+        return IERC20(token).balanceOf(payer);
+    }
 }

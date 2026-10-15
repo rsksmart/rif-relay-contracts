@@ -84,7 +84,18 @@ contract BoltzRelayVerifier is
         address payer,
         uint256 value
     ) internal view override returns (uint256) {
-        return payer.balance + BoltzUtils.validateClaim(data, to, payer, value);
+        uint256 proceeds = BoltzUtils.quoteClaimProceeds(
+            data,
+            to,
+            payer,
+            value
+        );
+
+        // The wallet forwards value before paying the fee
+        uint256 balance = payer.balance;
+        require(value <= balance, "Native balance too low");
+
+        return balance - value + proceeds;
     }
 
     function _quoteTokenBalance(
@@ -94,9 +105,11 @@ contract BoltzRelayVerifier is
         uint256 value,
         address token
     ) internal view override returns (uint256) {
-        // EtherSwap pays plain RBTC into an empty receive(), so nothing the
-        // request chooses runs before the fee: the current balance holds.
-        BoltzUtils.validateClaim(data, to, payer, value);
+        // A claim the wallet cannot execute is refused whatever pays the fee;
+        // the RBTC it pays out is irrelevant to a token fee.
+        // slither-disable-next-line unused-return
+        BoltzUtils.quoteClaimProceeds(data, to, payer, value);
+
         return IERC20(token).balanceOf(payer);
     }
 }
