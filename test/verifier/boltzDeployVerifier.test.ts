@@ -414,40 +414,7 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.not.be.reverted;
     });
 
-    it('should revert if the request forwards value when paying with ERC20 token', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-
-      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-        relayData: {
-          callForwarder: fakeWalletFactory.address,
-          callVerifier: deployVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          recoverer: constants.AddressZero,
-          index: '0',
-          data: '0x00',
-          from: owner.address,
-          to: fakeSwap.address,
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '1',
-        },
-      };
-
-      const result = deployVerifierMock.verifyRelayedCall(
-        deployRequest,
-        '0x00'
-      );
-      await expect(result).to.be.revertedWith('Value not allowed');
-    });
-
-    it('should revert if not paying for a call that is not a claim', async function () {
+    it('should not revert if not paying', async function () {
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
           callForwarder: fakeWalletFactory.address,
@@ -475,7 +442,7 @@ describe('BoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.be.revertedWith('Method not allowed');
+      await expect(result).to.not.be.reverted;
     });
 
     it('should revert if destination contract is not allowed', async function () {
@@ -674,6 +641,46 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.be.revertedWith('Token balance too low');
     });
 
+    it('should charge a call that is not a claim to the wallet balance', async function () {
+      const smartWalletAddress = ethers.Wallet.createRandom().address;
+      fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
+      await ethers.provider.send('hardhat_setBalance', [
+        smartWalletAddress,
+        ethers.utils.hexValue(ethers.utils.parseEther('1')),
+      ]);
+
+      const request: EnvelopingTypes.DeployRequestStruct = {
+        relayData: {
+          callForwarder: fakeWalletFactory.address,
+          callVerifier: deployVerifierMock.address,
+          gasPrice: '10',
+          feesReceiver: relayWorker.address,
+        },
+        request: {
+          recoverer: constants.AddressZero,
+          index: '0',
+          data: '0x12345678',
+          from: owner.address,
+          to: fakeSwap.address,
+          nonce: '0',
+          tokenGas: '50000',
+          relayHub: fakeRelayHub.address,
+          tokenAmount: ethers.utils.parseEther('1'),
+          tokenContract: constants.AddressZero,
+          validUntilTime: '0',
+          value: '0',
+        },
+      };
+
+      await expect(deployVerifierMock.verifyRelayedCall(request, '0x00')).to.not
+        .be.reverted;
+
+      request.request.tokenAmount = ethers.utils.parseEther('1').add(1);
+      await expect(
+        deployVerifierMock.verifyRelayedCall(request, '0x00')
+      ).to.be.revertedWith('Native balance too low');
+    });
+
     describe('calling claim', function () {
       type ClaimMethodType = 'public' | 'external';
 
@@ -717,8 +724,10 @@ describe('BoltzDeployVerifier Contract', function () {
             }
           });
 
-          function createSponsoredRequest(
-            tokenContract: string
+          function createClaimRequest(
+            tokenAmount: string,
+            tokenContract: string,
+            value = '0'
           ): EnvelopingTypes.DeployRequestStruct {
             return {
               relayData: {
@@ -736,44 +745,40 @@ describe('BoltzDeployVerifier Contract', function () {
                 nonce: '0',
                 tokenGas: '0',
                 relayHub: fakeRelayHub.address,
-                tokenAmount: '0',
+                tokenAmount,
                 tokenContract,
                 validUntilTime: '0',
-                value: '0',
+                value,
               },
             };
           }
 
           it('should not revert if not paying', async function () {
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
             await expect(result).to.not.be.reverted;
           });
 
-          it('should revert if the swap has no RBTC, even if not paying', async function () {
+          it('should not revert if not paying, even if the swap has no RBTC', async function () {
             fakeSwap.swaps.returns(false);
 
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
-            await expect(result).to.be.revertedWith(
-              'Verifier: swap has no RBTC'
-            );
+            await expect(result).to.not.be.reverted;
           });
 
-          it('should revert if the swap has no RBTC, even with a zero ERC20 fee', async function () {
+          it('should not revert with a zero ERC20 fee, even if the swap has no RBTC', async function () {
             fakeSwap.swaps.returns(false);
 
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(fakeToken.address),
+              createClaimRequest('0', fakeToken.address),
               '0x00'
             );
-            await expect(result).to.be.revertedWith(
-              'Verifier: swap has no RBTC'
-            );
+            await expect(result).to.not.be.reverted;
           });
 
           if (method === 'public') {
@@ -822,6 +827,29 @@ describe('BoltzDeployVerifier Contract', function () {
               await expect(result).to.be.revertedWith('Native balance too low');
             });
           }
+
+          it('should revert if the request forwards value when paying with ERC20 token', async function () {
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address, '1'),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Value not allowed');
+          });
+
+          it('should revert if the swap has no RBTC when paying with ERC20 token', async function () {
+            fakeSwap.swaps.returns(false);
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith(
+              'Verifier: swap has no RBTC'
+            );
+          });
 
           it('should revert if native balance is too low', async function () {
             const deployRequest: EnvelopingTypes.DeployRequestStruct = {
@@ -890,7 +918,7 @@ describe('BoltzDeployVerifier Contract', function () {
             );
           });
 
-          it('should revert if method is not allowed', async function () {
+          it('should revert if a call that is not a claim cannot pay the fee from the wallet balance', async function () {
             const ABI = [
               'function claim(bytes32 preimage, uint amount, address claimAddress)',
             ];
@@ -928,7 +956,7 @@ describe('BoltzDeployVerifier Contract', function () {
               deployRequest,
               '0x00'
             );
-            await expect(result).to.be.revertedWith('Method not allowed');
+            await expect(result).to.be.revertedWith('Native balance too low');
           });
 
           it('should revert if the request forwards value', async function () {
