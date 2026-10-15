@@ -17,7 +17,7 @@ interface NativeSwap {
         uint timelock;
     }
 
-    function swaps(bytes32) external returns (bool);
+    function swaps(bytes32) external view returns (bool);
 
     function hashValues(
         bytes32 preimageHash,

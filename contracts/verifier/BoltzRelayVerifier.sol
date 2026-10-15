@@ -3,9 +3,8 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../TokenHandler.sol";
+import "../SwapFeeHandler.sol";
 import "../DestinationContractHandler.sol";
 import "../interfaces/IWalletFactory.sol";
 import "../interfaces/IRelayVerifier.sol";
@@ -21,7 +20,7 @@ import "../utils/BoltzUtils.sol";
  */
 contract BoltzRelayVerifier is
     IRelayVerifier,
-    TokenHandler,
+    SwapFeeHandler,
     DestinationContractHandler
 {
     using SafeMath for uint256;
@@ -59,35 +58,14 @@ contract BoltzRelayVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        if (relayRequest.request.tokenAmount > 0) {
-            if (relayRequest.request.tokenContract != address(0)) {
-                require(
-                    tokens[relayRequest.request.tokenContract],
-                    "Token contract not allowed"
-                );
-
-                require(
-                    relayRequest.request.tokenAmount <=
-                        IERC20(relayRequest.request.tokenContract).balanceOf(
-                            payer
-                        ),
-                    "Token balance too low"
-                );
-            } else {
-                uint256 amount = BoltzUtils.validateClaim(
-                    relayRequest.request.data,
-                    relayRequest.request.to,
-                    payer,
-                    relayRequest.request.value
-                );
-
-                require(
-                    relayRequest.request.tokenAmount <=
-                        address(payer).balance + amount,
-                    "Native balance too low"
-                );
-            }
-        }
+        _validateFee(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            payer,
+            relayRequest.request.value,
+            relayRequest.request.tokenContract,
+            relayRequest.request.tokenAmount
+        );
 
         return (
             abi.encode(
@@ -96,5 +74,14 @@ contract BoltzRelayVerifier is
                 relayRequest.request.tokenContract
             )
         );
+    }
+
+    function _quoteNativeBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value
+    ) internal view override returns (uint256) {
+        return payer.balance + BoltzUtils.validateClaim(data, to, payer, value);
     }
 }

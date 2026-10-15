@@ -414,7 +414,7 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.not.be.reverted;
     });
 
-    it('should not revert if not paying', async function () {
+    it('should revert if not paying for a call that is not a claim', async function () {
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
         relayData: {
           callForwarder: fakeWalletFactory.address,
@@ -425,7 +425,7 @@ describe('BoltzDeployVerifier Contract', function () {
         request: {
           recoverer: constants.AddressZero,
           index: '0',
-          data: '0x00',
+          data: '0x12345678',
           from: owner.address,
           to: fakeSwap.address,
           nonce: '0',
@@ -442,7 +442,7 @@ describe('BoltzDeployVerifier Contract', function () {
         deployRequest,
         '0x00'
       );
-      await expect(result).to.not.be.reverted;
+      await expect(result).to.be.revertedWith('Method not allowed');
     });
 
     it('should revert if destination contract is not allowed', async function () {
@@ -682,6 +682,65 @@ describe('BoltzDeployVerifier Contract', function () {
                 );
                 break;
             }
+          });
+
+          function createSponsoredRequest(
+            tokenContract: string
+          ): EnvelopingTypes.DeployRequestStruct {
+            return {
+              relayData: {
+                callForwarder: fakeWalletFactory.address,
+                callVerifier: deployVerifierMock.address,
+                gasPrice: '10',
+                feesReceiver: relayWorker.address,
+              },
+              request: {
+                recoverer: constants.AddressZero,
+                index: '0',
+                data,
+                from: owner.address,
+                to: fakeSwap.address,
+                nonce: '0',
+                tokenGas: '0',
+                relayHub: fakeRelayHub.address,
+                tokenAmount: '0',
+                tokenContract,
+                validUntilTime: '0',
+                value: '0',
+              },
+            };
+          }
+
+          it('should not revert if not paying', async function () {
+            const result = deployVerifierMock.verifyRelayedCall(
+              createSponsoredRequest(constants.AddressZero),
+              '0x00'
+            );
+            await expect(result).to.not.be.reverted;
+          });
+
+          it('should revert if the swap has no RBTC, even if not paying', async function () {
+            fakeSwap.swaps.returns(false);
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createSponsoredRequest(constants.AddressZero),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith(
+              'Verifier: swap has no RBTC'
+            );
+          });
+
+          it('should revert if the swap has no RBTC, even with a zero ERC20 fee', async function () {
+            fakeSwap.swaps.returns(false);
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createSponsoredRequest(fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith(
+              'Verifier: swap has no RBTC'
+            );
           });
 
           it('should revert if native balance is too low', async function () {
