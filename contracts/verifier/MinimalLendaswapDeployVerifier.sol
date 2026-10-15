@@ -52,10 +52,14 @@ contract MinimalLendaswapDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
+        // The minimal wallet never forwards value with the claim call
+        require(relayRequest.request.value == 0, "Value not allowed");
+
         uint256 amount = LendaswapUtils.validateRedeem(
             relayRequest.request.data,
             relayRequest.request.to,
-            contractAddr
+            contractAddr,
+            relayRequest.request.value
         );
 
         require(

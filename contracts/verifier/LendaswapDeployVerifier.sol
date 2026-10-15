@@ -67,12 +67,19 @@ contract LendaswapDeployVerifier is
                 uint256 amount = LendaswapUtils.validateRedeem(
                     relayRequest.request.data,
                     relayRequest.request.to,
-                    contractAddr
+                    contractAddr,
+                    relayRequest.request.value
                 );
 
+                // The wallet forwards request.value before paying the fee
+                uint256 balance = address(contractAddr).balance;
+                require(
+                    relayRequest.request.value <= balance,
+                    "Native balance too low"
+                );
                 require(
                     relayRequest.request.tokenAmount <=
-                        address(contractAddr).balance + amount,
+                        balance - relayRequest.request.value + amount,
                     "Native balance too low"
                 );
             }

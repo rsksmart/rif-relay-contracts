@@ -31,18 +31,23 @@ library LendaswapUtils {
      * @param to The address of the HTLCNative contract, or of the
      * HTLCNativeCoordinator when calling redeemAndExecute.
      * @param contractAddr The smart wallet executing the redeem.
+     * @param value The RBTC the smart wallet forwards with the call. Only
+     * redeemAndExecute is payable; the HTLCNative redeems reject any value.
      * @return The amount of RBTC the smart wallet will receive.
      */
     function validateRedeem(
         bytes calldata data,
         address to,
-        address contractAddr
+        address contractAddr,
+        uint256 value
     ) internal view returns (uint256) {
         bytes4 signature = BoltzUtils.toBytes4(data, 0);
 
         if (signature == _REDEEM_SIGNATURE) {
+            require(value == 0, "Value not allowed");
             return _validateRedeem(data, to, contractAddr);
         } else if (signature == _REDEEM_BY_SIG_SIGNATURE) {
+            require(value == 0, "Value not allowed");
             return _validateRedeemBySig(data, to, contractAddr);
         } else if (signature == _REDEEM_AND_EXECUTE_SIGNATURE) {
             return _validateRedeemAndExecute(data, to, contractAddr);

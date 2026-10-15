@@ -48,7 +48,7 @@ contract MinimalSwapSmartWallet {
      * @param feesAmount - Amount to pay
      * @param feesGas - Gas limit of payment
      * @param to - Destination contract to execute
-     * @param data - Data to be execute by destination contract
+     * @param data - Data to be executed by destination contract
      */
     function initialize(
         address owner,
@@ -96,7 +96,7 @@ contract MinimalSwapSmartWallet {
             );
         }
 
-        //If any balance has been added then trasfer it to the owner EOA
+        //If any balance has been added then transfer it to the owner EOA
         if (address(this).balance > 0) {
             //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
             payable(owner).transfer(address(this).balance);

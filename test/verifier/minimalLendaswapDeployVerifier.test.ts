@@ -77,7 +77,8 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
       to: string,
       data: string,
       tokenAmount: BigNumberish,
-      tokenContract = constants.AddressZero
+      tokenContract = constants.AddressZero,
+      value: BigNumberish = 0
     ): EnvelopingTypes.DeployRequestStruct {
       return {
         relayData: {
@@ -98,7 +99,7 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
           tokenAmount,
           tokenContract,
           validUntilTime: '0',
-          value: '0',
+          value,
         },
       };
     }
@@ -256,6 +257,24 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
             '0x00'
           );
           await expect(result).to.be.revertedWith('Native balance too low');
+        });
+
+        it('should revert if the request forwards value', async function () {
+          activateSwap(redeemRequest);
+          const { to, data, terms } = redeemRequest;
+          const deployRequest = createDeployRequest(
+            to,
+            data,
+            terms.amount,
+            constants.AddressZero,
+            1
+          );
+
+          const result = deployVerifierMock.verifyRelayedCall(
+            deployRequest,
+            '0x00'
+          );
+          await expect(result).to.be.revertedWith('Value not allowed');
         });
       });
     });

@@ -31,6 +31,12 @@ chai.use(chaiAsPromised);
 
 const CALL_TARGET = '0x145845fd06c85B7EA1AA2d030E1a747B3d8d15D7';
 
+const setBalance = (address: string, balance: BigNumber) =>
+  ethers.provider.send('hardhat_setBalance', [
+    address,
+    ethers.utils.hexValue(balance),
+  ]);
+
 describe('LendaswapDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
@@ -81,7 +87,8 @@ describe('LendaswapDeployVerifier Contract', function () {
       to: string,
       data: string,
       tokenAmount: BigNumberish,
-      tokenContract = constants.AddressZero
+      tokenContract = constants.AddressZero,
+      value: BigNumberish = 0
     ): EnvelopingTypes.DeployRequestStruct {
       return {
         relayData: {
@@ -102,7 +109,7 @@ describe('LendaswapDeployVerifier Contract', function () {
           tokenAmount,
           tokenContract,
           validUntilTime: '0',
-          value: '0',
+          value,
         },
       };
     }
@@ -291,6 +298,76 @@ describe('LendaswapDeployVerifier Contract', function () {
           );
           await expect(result).to.be.revertedWith('Native balance too low');
         });
+
+        if (method === 'redeemAndExecute') {
+          it('should revert if the forwarded value exceeds the wallet balance', async function () {
+            activateSwap(redeemRequest);
+            const { to, data, terms } = redeemRequest;
+            const deployRequest = createDeployRequest(
+              to,
+              data,
+              terms.amount,
+              constants.AddressZero,
+              1
+            );
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              deployRequest,
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Native balance too low');
+          });
+
+          it('should deduct the forwarded value from the wallet balance', async function () {
+            activateSwap(redeemRequest);
+            const { to, data, terms } = redeemRequest;
+            const value = ethers.utils.parseEther('1');
+            await setBalance(smartWalletAddress, value);
+
+            await expect(
+              deployVerifierMock.verifyRelayedCall(
+                createDeployRequest(
+                  to,
+                  data,
+                  terms.amount,
+                  constants.AddressZero,
+                  value
+                ),
+                '0x00'
+              )
+            ).to.not.be.reverted;
+            await expect(
+              deployVerifierMock.verifyRelayedCall(
+                createDeployRequest(
+                  to,
+                  data,
+                  terms.amount.add(1),
+                  constants.AddressZero,
+                  value
+                ),
+                '0x00'
+              )
+            ).to.be.revertedWith('Native balance too low');
+          });
+        } else {
+          it('should revert if the request forwards value', async function () {
+            activateSwap(redeemRequest);
+            const { to, data, terms } = redeemRequest;
+            const deployRequest = createDeployRequest(
+              to,
+              data,
+              terms.amount,
+              constants.AddressZero,
+              1
+            );
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              deployRequest,
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Value not allowed');
+          });
+        }
       });
     });
 
