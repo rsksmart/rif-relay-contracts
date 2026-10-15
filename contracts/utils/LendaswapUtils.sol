@@ -25,32 +25,77 @@ library LendaswapUtils {
     uint256 private constant _REDEEM_AND_EXECUTE_TAIL_OFFSET = 4 + 5 * 32;
 
     /**
-     * @dev Decode the redeem data and validate if
-     * an active swap is stored in the HTLCNative contract.
+     * @dev Decode the redeem data, validate that an active swap is stored in
+     * the HTLCNative contract and quote the RBTC the smart wallet will receive.
      * @param data The redeem data.
      * @param to The address of the HTLCNative contract, or of the
      * HTLCNativeCoordinator when calling redeemAndExecute.
      * @param contractAddr The smart wallet executing the redeem.
      * @param value The RBTC the smart wallet forwards with the call. Only
      * redeemAndExecute is payable; the HTLCNative redeems reject any value.
-     * @return The amount of RBTC the smart wallet will receive.
+     * @return proceeds The amount of RBTC the smart wallet will receive.
      */
-    function validateRedeem(
+    function quoteRedeemProceeds(
+        bytes calldata data,
+        address to,
+        address contractAddr,
+        uint256 value
+    ) internal view returns (uint256 proceeds) {
+        (proceeds, ) = _quoteRedeemProceeds(data, to, contractAddr, value);
+    }
+
+    /**
+     * @dev Quote the RBTC a smart wallet with an execute entry point is sure
+     * to hold after the redeem call, before paying the fee. The calls run by
+     * the coordinator can re-enter the smart wallet and spend its balance, so
+     * when there are calls only the proceeds are counted.
+     * @param data The redeem data.
+     * @param to The address of the HTLCNative contract, or of the
+     * HTLCNativeCoordinator when calling redeemAndExecute.
+     * @param contractAddr The smart wallet executing the redeem.
+     * @param value The RBTC the smart wallet forwards with the call.
+     * @return The amount of RBTC available to pay the fee.
+     */
+    function quoteNativeBalanceAfterRedeem(
         bytes calldata data,
         address to,
         address contractAddr,
         uint256 value
     ) internal view returns (uint256) {
+        (uint256 proceeds, bool runsCalls) = _quoteRedeemProceeds(
+            data,
+            to,
+            contractAddr,
+            value
+        );
+
+        // The wallet forwards value before paying the fee
+        uint256 balance = contractAddr.balance;
+        require(value <= balance, "Native balance too low");
+
+        if (runsCalls) {
+            return proceeds;
+        }
+
+        return balance - value + proceeds;
+    }
+
+    function _quoteRedeemProceeds(
+        bytes calldata data,
+        address to,
+        address contractAddr,
+        uint256 value
+    ) private view returns (uint256 proceeds, bool runsCalls) {
         bytes4 signature = BoltzUtils.toBytes4(data, 0);
 
         if (signature == _REDEEM_SIGNATURE) {
             require(value == 0, "Value not allowed");
-            return _validateRedeem(data, to, contractAddr);
+            return (_quoteRedeem(data, to, contractAddr), false);
         } else if (signature == _REDEEM_BY_SIG_SIGNATURE) {
             require(value == 0, "Value not allowed");
-            return _validateRedeemBySig(data, to, contractAddr);
+            return (_quoteRedeemBySig(data, to, contractAddr), false);
         } else if (signature == _REDEEM_AND_EXECUTE_SIGNATURE) {
-            return _validateRedeemAndExecute(data, to, contractAddr);
+            return _quoteCoordinatorProceeds(data, to, contractAddr, value);
         }
 
         revert("Method not allowed");
@@ -59,7 +104,7 @@ library LendaswapUtils {
     /**
      * @dev redeem: the smart wallet is the claimAddress and receives the amount.
      */
-    function _validateRedeem(
+    function _quoteRedeem(
         bytes calldata data,
         address htlc,
         address contractAddr
@@ -85,7 +130,7 @@ library LendaswapUtils {
      * @dev redeemBySig: the smart wallet is the authorized caller and
      * receives the amount; the claimAddress is the signer.
      */
-    function _validateRedeemBySig(
+    function _quoteRedeemBySig(
         bytes calldata data,
         address htlc,
         address contractAddr
@@ -111,18 +156,21 @@ library LendaswapUtils {
 
     /**
      * @dev redeemAndExecute: the coordinator is the authorized caller, runs the
-     * signed calls and sweeps its balance to the signed destination. Only a
-     * native sweep to the smart wallet is credited: the whole amount if there
-     * are no calls, otherwise the minAmountOut the coordinator enforces.
+     * signed calls and sweeps its whole balance to the signed destination. Only
+     * a native sweep to the smart wallet is credited: with no calls, the amount
+     * plus the forwarded value; otherwise the minAmountOut the coordinator
+     * enforces.
      */
-    function _validateRedeemAndExecute(
+    function _quoteCoordinatorProceeds(
         bytes calldata data,
         address coordinator,
-        address contractAddr
-    ) private view returns (uint256) {
+        address contractAddr,
+        uint256 value
+    ) private view returns (uint256 proceeds, bool runsCalls) {
         IHTLCNative.RedeemBySigInfo memory redeem;
         uint256 callsLength;
         (redeem, callsLength) = _decodeRedeemAndExecute(data);
+        runsCalls = callsLength > 0;
 
         address htlc = IHTLCNativeCoordinator(coordinator).HTLC_NATIVE();
 
@@ -141,10 +189,10 @@ library LendaswapUtils {
             redeem.destination != contractAddr ||
             redeem.sweepToken != address(0)
         ) {
-            return 0;
+            return (0, runsCalls);
         }
 
-        return callsLength == 0 ? redeem.amount : redeem.minAmountOut;
+        proceeds = runsCalls ? redeem.minAmountOut : redeem.amount + value;
     }
 
     function _decodeRedeemAndExecute(
