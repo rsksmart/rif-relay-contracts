@@ -42,6 +42,8 @@ library LendaswapUtils {
     /**
      * @dev Decode the redeem data, validate that an active swap is stored in
      * the HTLCNative contract and quote the RBTC the smart wallet will receive.
+     * For the minimal wallet: it only forwards RBTC and has no other entry
+     * point, so a token swept to it would be locked and is refused.
      * @param data The redeem data.
      * @param to The address of the HTLCNative contract, or of the
      * HTLCNativeCoordinator when calling redeemAndExecute.
@@ -56,7 +58,10 @@ library LendaswapUtils {
         address contractAddr,
         uint256 value
     ) internal view returns (uint256) {
-        return _quote(data, to, contractAddr, value).nativeProceeds;
+        Quote memory quote = _quote(data, to, contractAddr, value);
+        require(quote.sweepToken == address(0), "Token sweep not allowed");
+
+        return quote.nativeProceeds;
     }
 
     /**

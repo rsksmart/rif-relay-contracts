@@ -243,6 +243,48 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
           await expect(result).to.be.revertedWith('RBTC necessary for payment');
         });
 
+        if (method === 'redeemAndExecute') {
+          const createTokenSweepRequest = async () => {
+            const sweepRequest = await createRedeemRequest({
+              method,
+              htlcAddress: fakeHtlc.address,
+              coordinatorAddress: fakeCoordinator.address,
+              smartWalletAddress,
+              chainId,
+              authorization: { sweepToken: Wallet.createRandom().address },
+            });
+            activateSwap(sweepRequest);
+
+            return sweepRequest;
+          };
+
+          it('should revert if a token is swept to the smart wallet, even if not paying', async function () {
+            const { to, data } = await createTokenSweepRequest();
+            const deployRequest = createDeployRequest(to, data, '0');
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              deployRequest,
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Token sweep not allowed');
+          });
+
+          it('should revert if a token is swept to the smart wallet, even if the wallet can pay', async function () {
+            const { to, data } = await createTokenSweepRequest();
+            await ethers.provider.send('hardhat_setBalance', [
+              smartWalletAddress,
+              ethers.utils.hexValue(ethers.utils.parseEther('1')),
+            ]);
+            const deployRequest = createDeployRequest(to, data, '1');
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              deployRequest,
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Token sweep not allowed');
+          });
+        }
+
         it('should revert if native balance is too low', async function () {
           activateSwap(redeemRequest);
           const { to, data, terms } = redeemRequest;

@@ -381,39 +381,6 @@ describe('BoltzDeployVerifier Contract', function () {
       });
     });
 
-    it('should not revert if paying with ERC20 token', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-
-      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-        relayData: {
-          callForwarder: fakeWalletFactory.address,
-          callVerifier: deployVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          recoverer: constants.AddressZero,
-          index: '0',
-          data: '0x00',
-          from: owner.address,
-          to: fakeSwap.address,
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = deployVerifierMock.verifyRelayedCall(
-        deployRequest,
-        '0x00'
-      );
-      await expect(result).to.not.be.reverted;
-    });
-
     it('should revert if the request forwards value when paying with ERC20 token', async function () {
       fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
 
@@ -642,39 +609,6 @@ describe('BoltzDeployVerifier Contract', function () {
       await expect(result).to.be.revertedWith('Token contract not allowed');
     });
 
-    it('should revert if ERC20 token balance is too low', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('10'));
-
-      const deployRequest: EnvelopingTypes.DeployRequestStruct = {
-        relayData: {
-          callForwarder: fakeWalletFactory.address,
-          callVerifier: deployVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          recoverer: constants.AddressZero,
-          index: '0',
-          data: '0x00',
-          from: owner.address,
-          to: fakeSwap.address,
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = deployVerifierMock.verifyRelayedCall(
-        deployRequest,
-        '0x00'
-      );
-      await expect(result).to.be.revertedWith('Token balance too low');
-    });
-
     describe('calling claim', function () {
       type ClaimMethodType = 'public' | 'external';
 
@@ -718,7 +652,8 @@ describe('BoltzDeployVerifier Contract', function () {
             }
           });
 
-          function createSponsoredRequest(
+          function createClaimRequest(
+            tokenAmount: string,
             tokenContract: string
           ): EnvelopingTypes.DeployRequestStruct {
             return {
@@ -737,7 +672,7 @@ describe('BoltzDeployVerifier Contract', function () {
                 nonce: '0',
                 tokenGas: '0',
                 relayHub: fakeRelayHub.address,
-                tokenAmount: '0',
+                tokenAmount,
                 tokenContract,
                 validUntilTime: '0',
                 value: '0',
@@ -747,7 +682,7 @@ describe('BoltzDeployVerifier Contract', function () {
 
           it('should not revert if not paying', async function () {
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
             await expect(result).to.not.be.reverted;
@@ -757,7 +692,7 @@ describe('BoltzDeployVerifier Contract', function () {
             fakeSwap.swaps.returns(false);
 
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
             await expect(result).to.be.revertedWith(
@@ -769,7 +704,7 @@ describe('BoltzDeployVerifier Contract', function () {
             fakeSwap.swaps.returns(false);
 
             const result = deployVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(fakeToken.address),
+              createClaimRequest('0', fakeToken.address),
               '0x00'
             );
             await expect(result).to.be.revertedWith(
@@ -823,6 +758,39 @@ describe('BoltzDeployVerifier Contract', function () {
               await expect(result).to.be.revertedWith('Native balance too low');
             });
           }
+
+          it('should not revert if paying with ERC20 token', async function () {
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.not.be.reverted;
+          });
+
+          it('should revert if ERC20 token balance is too low', async function () {
+            fakeToken.balanceOf.returns(BigNumber.from('10'));
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Token balance too low');
+          });
+
+          it('should revert if the swap has no RBTC when paying with ERC20 token', async function () {
+            fakeSwap.swaps.returns(false);
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = deployVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith(
+              'Verifier: swap has no RBTC'
+            );
+          });
 
           it('should revert if native balance is too low', async function () {
             const deployRequest: EnvelopingTypes.DeployRequestStruct = {

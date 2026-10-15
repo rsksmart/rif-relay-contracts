@@ -57,10 +57,10 @@ abstract contract SwapFeeHandler is TokenHandler {
     ) internal view virtual returns (uint256);
 
     /**
-     * @dev Quote the amount of `token` `payer` is sure to hold after the
-     * call, before paying the fee. By default the current balance: the swap
-     * contracts pay out plain RBTC, so the call runs no code chosen by the
-     * request that could spend it.
+     * @dev Validate that `data` claims an active swap into `payer` and quote
+     * the amount of `token` `payer` is sure to hold after the call, before
+     * paying the fee. Must revert if the request is not such a claim, so a
+     * token fee never relaxes what the request may do.
      * @param data The call data of the request.
      * @param to The destination contract of the request.
      * @param payer The smart wallet paying the fee.
@@ -73,8 +73,5 @@ abstract contract SwapFeeHandler is TokenHandler {
         address payer,
         uint256 value,
         address token
-    ) internal view virtual returns (uint256) {
-        (data, to, value);
-        return IERC20(token).balanceOf(payer);
-    }
+    ) internal view virtual returns (uint256);
 }

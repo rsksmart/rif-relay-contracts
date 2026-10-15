@@ -386,35 +386,6 @@ describe('BoltzRelayVerifier Contract', function () {
       );
     });
 
-    it('should not revert if paying with ERC20 token', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
-
-      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
-        relayData: {
-          callForwarder: fakeSmartWallet.address,
-          callVerifier: relayVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          data: '0x00',
-          from: owner.address,
-          to: recipient.address,
-          gas: '1000000',
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
-      await expect(result).to.not.be.reverted;
-    });
-
     it('should revert if not paying for a call that is not a claim', async function () {
       const relayRequest: EnvelopingTypes.RelayRequestStruct = {
         relayData: {
@@ -512,35 +483,6 @@ describe('BoltzRelayVerifier Contract', function () {
       );
     });
 
-    it('should revert if ERC20 token balance is too low', async function () {
-      fakeToken.balanceOf.returns(BigNumber.from('10'));
-
-      const relayRequest: EnvelopingTypes.RelayRequestStruct = {
-        relayData: {
-          callForwarder: fakeSmartWallet.address,
-          callVerifier: relayVerifierMock.address,
-          gasPrice: '10',
-          feesReceiver: relayWorker.address,
-        },
-        request: {
-          data: '0x00',
-          from: owner.address,
-          to: recipient.address,
-          gas: '1000000',
-          nonce: '0',
-          tokenGas: '50000',
-          relayHub: fakeRelayHub.address,
-          tokenAmount: '100000000000',
-          tokenContract: fakeToken.address,
-          validUntilTime: '0',
-          value: '0',
-        },
-      };
-
-      const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
-      await expect(result).to.be.revertedWith('Token balance too low');
-    });
-
     it('should revert if smart wallet template is different than smart wallet factory', async function () {
       fakeWalletFactory.runtimeCodeHash.returns(
         '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98b'
@@ -623,7 +565,8 @@ describe('BoltzRelayVerifier Contract', function () {
             }
           });
 
-          function createSponsoredRequest(
+          function createClaimRequest(
+            tokenAmount: string,
             tokenContract: string
           ): EnvelopingTypes.RelayRequestStruct {
             return {
@@ -641,7 +584,7 @@ describe('BoltzRelayVerifier Contract', function () {
                 nonce: '0',
                 tokenGas: '0',
                 relayHub: fakeRelayHub.address,
-                tokenAmount: '0',
+                tokenAmount,
                 tokenContract,
                 validUntilTime: '0',
                 value: '0',
@@ -651,7 +594,7 @@ describe('BoltzRelayVerifier Contract', function () {
 
           it('should not revert if not paying', async function () {
             const result = relayVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
             await expect(result).to.not.be.reverted;
@@ -661,7 +604,7 @@ describe('BoltzRelayVerifier Contract', function () {
             fakeSwap.swaps.returns(false);
 
             const result = relayVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(constants.AddressZero),
+              createClaimRequest('0', constants.AddressZero),
               '0x00'
             );
             await expect(result).to.be.revertedWith(
@@ -673,7 +616,7 @@ describe('BoltzRelayVerifier Contract', function () {
             fakeSwap.swaps.returns(false);
 
             const result = relayVerifierMock.verifyRelayedCall(
-              createSponsoredRequest(fakeToken.address),
+              createClaimRequest('0', fakeToken.address),
               '0x00'
             );
             await expect(result).to.be.revertedWith(
@@ -723,6 +666,39 @@ describe('BoltzRelayVerifier Contract', function () {
               await expect(result).to.be.revertedWith('Native balance too low');
             });
           }
+
+          it('should not revert if paying with ERC20 token', async function () {
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = relayVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.not.be.reverted;
+          });
+
+          it('should revert if ERC20 token balance is too low', async function () {
+            fakeToken.balanceOf.returns(BigNumber.from('10'));
+
+            const result = relayVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith('Token balance too low');
+          });
+
+          it('should revert if the swap has no RBTC when paying with ERC20 token', async function () {
+            fakeSwap.swaps.returns(false);
+            fakeToken.balanceOf.returns(BigNumber.from('200000000000'));
+
+            const result = relayVerifierMock.verifyRelayedCall(
+              createClaimRequest('100000000000', fakeToken.address),
+              '0x00'
+            );
+            await expect(result).to.be.revertedWith(
+              'Verifier: swap has no RBTC'
+            );
+          });
 
           it('should revert if native balance is too low', async function () {
             const relayRequest: EnvelopingTypes.RelayRequestStruct = {

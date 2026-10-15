@@ -3,6 +3,8 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "../SwapFeeHandler.sol";
 import "../DestinationContractHandler.sol";
 import "../factory/SwapSmartWalletFactory.sol";
@@ -76,5 +78,18 @@ contract BoltzDeployVerifier is
         uint256 value
     ) internal view override returns (uint256) {
         return payer.balance + BoltzUtils.validateClaim(data, to, payer, value);
+    }
+
+    function _quoteTokenBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value,
+        address token
+    ) internal view override returns (uint256) {
+        // EtherSwap pays plain RBTC into an empty receive(), so nothing the
+        // request chooses runs before the fee: the current balance holds.
+        BoltzUtils.validateClaim(data, to, payer, value);
+        return IERC20(token).balanceOf(payer);
     }
 }
