@@ -453,30 +453,26 @@ describe('LendaswapRelayVerifier Contract', function () {
         ).to.be.revertedWith('Token balance too low');
       });
 
-      it('should credit minAmountOut of the swept token when it pays the fee', async function () {
+      it('should not credit the swept token, even when it pays the fee', async function () {
         const minAmountOut = ethers.utils.parseEther('0.1');
+        const balance = ethers.utils.parseEther('0.05');
         const redeemRequest = await createCoordinatorRequest({
           calls,
           authorization: { sweepToken: fakeToken.address, minAmountOut },
         });
         activateSwap(redeemRequest);
-        fakeToken.balanceOf.returns(0);
+        fakeToken.balanceOf.returns(balance);
         const { to, data } = redeemRequest;
 
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(to, data, minAmountOut, fakeToken.address),
+            createRelayRequest(to, data, balance, fakeToken.address),
             '0x00'
           )
         ).to.not.be.reverted;
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(
-              to,
-              data,
-              minAmountOut.add(1),
-              fakeToken.address
-            ),
+            createRelayRequest(to, data, balance.add(1), fakeToken.address),
             '0x00'
           )
         ).to.be.revertedWith('Token balance too low');
@@ -528,7 +524,7 @@ describe('LendaswapRelayVerifier Contract', function () {
         ).to.be.revertedWith('Native balance too low');
       });
 
-      it('should credit the wallet balance when there are calls', async function () {
+      it('should credit only the wallet balance when there are calls', async function () {
         const minAmountOut = ethers.utils.parseEther('0.1');
         const balance = ethers.utils.parseEther('1');
         const redeemRequest = await createCoordinatorRequest({
@@ -541,13 +537,13 @@ describe('LendaswapRelayVerifier Contract', function () {
 
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(to, data, balance.add(minAmountOut)),
+            createRelayRequest(to, data, balance),
             '0x00'
           )
         ).to.not.be.reverted;
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(to, data, balance.add(minAmountOut).add(1)),
+            createRelayRequest(to, data, balance.add(1)),
             '0x00'
           )
         ).to.be.revertedWith('Native balance too low');

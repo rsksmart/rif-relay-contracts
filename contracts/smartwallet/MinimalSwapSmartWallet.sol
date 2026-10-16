@@ -73,11 +73,17 @@ contract MinimalSwapSmartWallet {
             "Method not allowed"
         );
 
-        bool success;
-        bytes memory ret;
+        // The fee leaves before the claim when the wallet already holds it, so
+        // nothing the claim runs can spend it; a fee the claim brings in is
+        // paid after it
+        bool paid = feesAmount == 0 || address(this).balance >= feesAmount;
+        if (paid && feesAmount > 0) {
+            _payFee(feesReceiver, feesAmount, feesGas);
+        }
+
         // Although this check isn't strictly necessary, it's included to improve the transaction estimation
         if (to != address(0)) {
-            (success, ret) = to.call(data);
+            (bool success, bytes memory ret) = to.call(data);
             if (!success) {
                 if (ret.length == 0) revert("Unable to execute");
                 assembly {
@@ -86,15 +92,8 @@ contract MinimalSwapSmartWallet {
             }
         }
 
-        if (feesAmount > 0) {
-            (success, ret) = payable(feesReceiver).call{
-                value: feesAmount,
-                gas: feesGas
-            }("");
-            require(
-                success && (ret.length == 0 || abi.decode(ret, (bool))),
-                "Unable to pay for deployment"
-            );
+        if (!paid) {
+            _payFee(feesReceiver, feesAmount, feesGas);
         }
 
         //If any balance has been added then transfer it to the owner EOA
@@ -102,6 +101,21 @@ contract MinimalSwapSmartWallet {
             //can't fail: req.from signed (off-chain) the request, so it must be an EOA...
             payable(owner).transfer(address(this).balance);
         }
+    }
+
+    function _payFee(
+        address feesReceiver,
+        uint256 feesAmount,
+        uint256 feesGas
+    ) private {
+        (bool success, bytes memory ret) = payable(feesReceiver).call{
+            value: feesAmount,
+            gas: feesGas
+        }("");
+        require(
+            success && (ret.length == 0 || abi.decode(ret, (bool))),
+            "Unable to pay for deployment"
+        );
     }
 
     function isAllowedMethod(bytes4 method) public view returns (bool) {

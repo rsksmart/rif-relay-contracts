@@ -255,6 +255,34 @@ describe('MinimalSwapSmartWallet contract', function () {
         expect(await provider.getBalance(smartWalletAddress)).to.be.equal(0);
       });
 
+      it('Should pay for deployment after the redeem when the redeem funds the wallet', async function () {
+        const swapMock = await (
+          await hardhat.getContractFactory('SwapRecipientMock')
+        ).deploy();
+        const amountToBePaid = hardhat.utils.parseEther('0.01');
+        const payout = hardhat.utils.parseEther('0.5');
+        await relayHub.sendTransaction({ to: swapMock.address, value: payout });
+        await swapMock.setPayout(payout);
+        const { to, data } = await createRedeemRequest({
+          method: 'redeem',
+          htlcAddress: swapMock.address,
+          coordinatorAddress: fakeCoordinator.address,
+          smartWalletAddress,
+          chainId: HARDHAT_CHAIN_ID,
+        });
+        const ownerBalanceBefore = await provider.getBalance(owner.address);
+
+        await relayDeploy(to, data, amountToBePaid);
+
+        expect(await provider.getBalance(worker.address)).to.be.equal(
+          amountToBePaid
+        );
+        expect(await provider.getBalance(owner.address)).to.be.equal(
+          ownerBalanceBefore.add(payout).sub(amountToBePaid)
+        );
+        expect(await provider.getBalance(smartWalletAddress)).to.be.equal(0);
+      });
+
       it('Should fail if contract execution fail', async function () {
         fakeHtlc['redeem'].reverts();
 
