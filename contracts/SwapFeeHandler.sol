@@ -15,7 +15,11 @@ import "./TokenHandler.sol";
  * token is charged from the wallet's token balance; a fee in RBTC is
  * charged from the wallet's RBTC balance. The one addition is that a claim
  * of an active swap into the wallet is credited for the RBTC it pays out,
- * so a wallet can claim its first swap before holding anything.
+ * so a wallet can claim its first swap before holding anything. That credit
+ * only applies when nothing chosen by the request runs between the claim
+ * and the payment of the fee: a request that runs its own calls must hold
+ * the fee, which the wallet pays before the call so those calls can't spend
+ * it.
  */
 abstract contract SwapFeeHandler is TokenHandler {
     function _validateFee(
@@ -65,10 +69,10 @@ abstract contract SwapFeeHandler is TokenHandler {
     ) internal view virtual returns (uint256);
 
     /**
-     * @dev Quote the amount of `token` `payer` holds after the call, before
-     * paying the fee: its balance, plus whatever the call is sure to deliver
-     * to it in that token. A claim the wallet cannot execute must revert, as
-     * above, so a token fee never relaxes what the request may do.
+     * @dev Quote the amount of `token` `payer` holds to pay the fee: its
+     * balance, which the wallet pays from before the call. A claim the
+     * wallet cannot execute must revert, as above, so a token fee never
+     * relaxes what the request may do.
      * @param data The call data of the request.
      * @param to The destination contract of the request.
      * @param payer The smart wallet paying the fee.

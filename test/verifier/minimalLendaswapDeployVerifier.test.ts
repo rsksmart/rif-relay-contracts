@@ -269,6 +269,44 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
             await expect(result).to.be.revertedWith('Token sweep not allowed');
           });
 
+          it('should credit only the wallet balance when there are calls', async function () {
+            const callsRequest = await createRedeemRequest({
+              method,
+              htlcAddress: fakeHtlc.address,
+              coordinatorAddress: fakeCoordinator.address,
+              smartWalletAddress,
+              chainId,
+              calls: [
+                {
+                  target: Wallet.createRandom().address,
+                  value: 0,
+                  callData: '0x1234',
+                },
+              ],
+              authorization: { minAmountOut: ethers.utils.parseEther('0.1') },
+            });
+            activateSwap(callsRequest);
+            const balance = ethers.utils.parseEther('0.05');
+            await ethers.provider.send('hardhat_setBalance', [
+              smartWalletAddress,
+              ethers.utils.hexValue(balance),
+            ]);
+            const { to, data } = callsRequest;
+
+            await expect(
+              deployVerifierMock.verifyRelayedCall(
+                createDeployRequest(to, data, balance),
+                '0x00'
+              )
+            ).to.not.be.reverted;
+            await expect(
+              deployVerifierMock.verifyRelayedCall(
+                createDeployRequest(to, data, balance.add(1)),
+                '0x00'
+              )
+            ).to.be.revertedWith('Native balance too low');
+          });
+
           it('should revert if a token is swept to the smart wallet, even if the wallet can pay', async function () {
             const { to, data } = await createTokenSweepRequest();
             await ethers.provider.send('hardhat_setBalance', [

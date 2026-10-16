@@ -27,12 +27,10 @@ library LendaswapUtils {
 
     // What a redeem leaves to the smart wallet
     struct Quote {
-        // The RBTC the smart wallet receives
+        // The RBTC the smart wallet is sure to hold before paying the fee
         uint256 nativeProceeds;
-        // The token the coordinator sweeps to the smart wallet, if any, and
-        // the amount of it the smart wallet is sure to receive
+        // The token the coordinator sweeps to the smart wallet, if any
         address sweepToken;
-        uint256 tokenProceeds;
     }
 
     /**
@@ -82,9 +80,10 @@ library LendaswapUtils {
     /**
      * @dev For the full wallet: the RBTC it holds after the call, before
      * paying the fee. Its balance less the value it forwards, plus what a
-     * redeem of an active swap into it pays out; any other call adds
-     * nothing. A redeem the wallet cannot execute (inactive swap, value on a
-     * nonpayable redeem) reverts.
+     * redeem of an active swap into it pays out when nothing chosen by the
+     * request runs before the fee is paid; any other call adds nothing. A
+     * redeem the wallet cannot execute (inactive swap, value on a nonpayable
+     * redeem) reverts.
      * @param data The call data.
      * @param to The destination contract.
      * @param contractAddr The smart wallet executing the call.
@@ -99,7 +98,7 @@ library LendaswapUtils {
     ) internal view returns (uint256) {
         Quote memory quote = isRedeem(data)
             ? _quote(data, to, contractAddr, value)
-            : Quote(0, address(0), 0);
+            : Quote(0, address(0));
 
         // The wallet forwards value before paying the fee
         uint256 balance = contractAddr.balance;
@@ -109,10 +108,11 @@ library LendaswapUtils {
     }
 
     /**
-     * @dev For the full wallet: the amount of `token` it holds after the
-     * call, before paying the fee. Its balance, plus the signed minimum of a
-     * coordinator sweep of `token` into it; any other call adds nothing.
-     * A redeem the wallet cannot execute reverts, as above.
+     * @dev For the full wallet: the amount of `token` it holds to pay the
+     * fee: its balance, which the wallet pays from before the call. A token
+     * the coordinator sweeps into it is not credited: it only arrives after
+     * the calls the request chooses. A redeem the wallet cannot execute
+     * reverts, as above.
      * @param data The call data.
      * @param to The destination contract.
      * @param contractAddr The smart wallet executing the call.
@@ -127,16 +127,15 @@ library LendaswapUtils {
         uint256 value,
         address token
     ) internal view returns (uint256) {
-        Quote memory quote = isRedeem(data)
-            ? _quote(data, to, contractAddr, value)
-            : Quote(0, address(0), 0);
+        if (isRedeem(data)) {
+            // slither-disable-next-line unused-return
+            _quote(data, to, contractAddr, value);
+        }
 
         // The wallet forwards value before paying the fee
         require(value <= contractAddr.balance, "Native balance too low");
 
-        uint256 proceeds = quote.sweepToken == token ? quote.tokenProceeds : 0;
-
-        return IERC20(token).balanceOf(contractAddr) + proceeds;
+        return IERC20(token).balanceOf(contractAddr);
     }
 
     /**
@@ -217,10 +216,12 @@ library LendaswapUtils {
     /**
      * @dev redeemAndExecute: the coordinator is the authorized caller, runs the
      * signed calls and sweeps its whole balance to the signed destination.
-     * Only a sweep to the smart wallet is credited: a native sweep for the
-     * amount plus the forwarded value when there are no calls, otherwise for
-     * the minAmountOut the coordinator enforces; a token sweep for its
-     * minAmountOut.
+     * Only a native sweep to the smart wallet with no calls is credited, for
+     * the amount plus the forwarded value: the HTLC pays the coordinator and
+     * the coordinator pays the wallet, so nothing chosen by the request runs
+     * before the fee is paid. With calls, the request chooses code that runs
+     * before the sweep and can make it fail, so the wallet must hold the fee,
+     * which it pays before the call. A token sweep is reported, not credited.
      */
     function _quoteCoordinatorProceeds(
         bytes calldata data,
@@ -249,13 +250,10 @@ library LendaswapUtils {
             return quote;
         }
 
-        if (redeem.sweepToken == address(0)) {
-            quote.nativeProceeds = callsLength == 0
-                ? redeem.amount + value
-                : redeem.minAmountOut;
-        } else {
+        if (redeem.sweepToken != address(0)) {
             quote.sweepToken = redeem.sweepToken;
-            quote.tokenProceeds = redeem.minAmountOut;
+        } else if (callsLength == 0) {
+            quote.nativeProceeds = redeem.amount + value;
         }
     }
 
