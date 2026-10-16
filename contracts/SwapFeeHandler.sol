@@ -66,17 +66,20 @@ abstract contract SwapFeeHandler is TokenHandler {
 
     /**
      * @dev Quote the amount of `token` `payer` holds after the call, before
-     * paying the fee. By default its current balance.
+     * paying the fee: its balance, plus whatever the call is sure to deliver
+     * to it in that token. A claim the wallet cannot execute must revert, as
+     * above, so a token fee never relaxes what the request may do.
+     * @param data The call data of the request.
+     * @param to The destination contract of the request.
      * @param payer The smart wallet paying the fee.
+     * @param value The RBTC the smart wallet forwards with the call.
      * @param token The ERC20 token paying the fee.
      */
     function _quoteTokenBalance(
-        bytes calldata,
-        address,
+        bytes calldata data,
+        address to,
         address payer,
-        uint256,
+        uint256 value,
         address token
-    ) internal view virtual returns (uint256) {
-        return IERC20(token).balanceOf(payer);
-    }
+    ) internal view virtual returns (uint256);
 }
