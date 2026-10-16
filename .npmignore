@@ -18,3 +18,4 @@
 /.solhintignore
 !dist
 !artifacts
+/artifacts/contracts/test

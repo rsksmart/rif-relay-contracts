@@ -512,6 +512,66 @@ describe('SwapSmartWallet contract', function () {
       );
     });
 
+    it('Should pay for deployment using native after the call when the call funds the wallet', async function () {
+      const swapMock = await (
+        await hardhat.getContractFactory('SwapRecipientMock')
+      ).deploy();
+      const amountToBePaid = hardhat.utils.parseEther('0.01');
+      const payout = hardhat.utils.parseEther('0.5');
+      await relayHub.sendTransaction({ to: swapMock.address, value: payout });
+      await swapMock.setPayout(payout);
+
+      const deployRequest = createDeployRequest({
+        relayHub: relayHub.address,
+        from: owner.address,
+        nonce: '0',
+        tokenGas: '5000',
+        tokenAmount: amountToBePaid.toString(),
+        tokenContract: ZERO_ADDRESS,
+        to: swapMock.address,
+        data: '0x12345678',
+      });
+
+      const typedDeployData = new TypedDeployRequestData(
+        HARDHAT_CHAIN_ID,
+        smartWalletFactory.address,
+        deployRequest
+      );
+
+      const suffixData = getSuffixData(typedDeployData);
+
+      const privateKey = Buffer.from(owner.privateKey.substring(2, 66), 'hex');
+      const signature = getLocalEip712DeploySignature(
+        typedDeployData,
+        privateKey
+      );
+
+      const smartWalletAddress = await smartWalletFactory.getSmartWalletAddress(
+        owner.address,
+        ZERO_ADDRESS,
+        0
+      );
+      const initialOwnerBalance = await owner.getBalance();
+      const initialWorkerBalance = await worker.getBalance();
+
+      await smartWalletFactory
+        .connect(relayHub)
+        .relayedUserSmartWalletCreation(
+          deployRequest.request,
+          suffixData,
+          worker.address,
+          signature
+        );
+
+      expect(await provider.getBalance(smartWalletAddress)).to.be.equal(0);
+      expect(await owner.getBalance()).to.be.equal(
+        initialOwnerBalance.add(payout).sub(amountToBePaid)
+      );
+      expect(await worker.getBalance()).to.be.equal(
+        initialWorkerBalance.add(amountToBePaid)
+      );
+    });
+
     it('Should not pay on sponsored deployment', async function () {
       const deployRequest = createDeployRequest({
         relayHub: relayHub.address,
@@ -939,6 +999,147 @@ describe('SwapSmartWallet contract', function () {
       );
       expect(recipient.isInitialized, 'Recipient method was not called').to.be
         .called;
+    });
+
+    it('Should pay the native fee before the call, out of reach of a reentrant request', async function () {
+      const swapMock = await (
+        await hardhat.getContractFactory('SwapRecipientMock')
+      ).deploy();
+      const fee = hardhat.utils.parseEther('0.1');
+
+      // A second request the owner signed, which the call runs against the
+      // wallet with the recipient as relayHub: it sweeps the balance to the owner
+      const reentrantRequest = createRelayRequest(
+        {
+          relayHub: swapMock.address,
+          from: owner.address,
+          to: owner.address,
+          tokenAmount: '0',
+          tokenGas: '0',
+          tokenContract: ZERO_ADDRESS,
+          data: '0x',
+          nonce: '1',
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+      const reentrantTypedData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        reentrantRequest
+      );
+      await swapMock.setReentrantCall(
+        mockSmartWallet.interface.encodeFunctionData('execute', [
+          getSuffixData(reentrantTypedData),
+          reentrantRequest.request,
+          worker.address,
+          getLocalEip712Signature(reentrantTypedData, privateKey),
+        ])
+      );
+
+      const relayRequest = createRelayRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: swapMock.address,
+          gas: '1000000',
+          tokenAmount: fee.toString(),
+          tokenGas: '4000',
+          tokenContract: ZERO_ADDRESS,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+      const suffixData = getSuffixData(typedRequestData);
+
+      const initialSwBalance = await provider.getBalance(
+        mockSmartWallet.address
+      );
+      const initialOwnerBalance = await owner.getBalance();
+      const initialWorkerBalance = await worker.getBalance();
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      expect(
+        await mockSmartWallet.nonce(),
+        'The reentrant request was not executed'
+      ).to.equal(2);
+      expect(await worker.getBalance()).to.be.equal(
+        initialWorkerBalance.add(fee)
+      );
+      expect(await owner.getBalance()).to.be.equal(
+        initialOwnerBalance.add(initialSwBalance).sub(fee)
+      );
+      expect(await provider.getBalance(mockSmartWallet.address)).to.be.equal(0);
+    });
+
+    it('Should pay the native fee after the call when the call funds the wallet', async function () {
+      const swapMock = await (
+        await hardhat.getContractFactory('SwapRecipientMock')
+      ).deploy();
+      const fee = hardhat.utils.parseEther('0.1');
+      const payout = hardhat.utils.parseEther('0.5');
+      await hardhat.provider.send('hardhat_setBalance', [
+        mockSmartWallet.address,
+        '0x0',
+      ]);
+      await relayHub.sendTransaction({ to: swapMock.address, value: payout });
+      await swapMock.setPayout(payout);
+
+      const relayRequest = createRelayRequest(
+        {
+          relayHub: relayHub.address,
+          from: owner.address,
+          to: swapMock.address,
+          gas: '100000',
+          tokenAmount: fee.toString(),
+          tokenGas: '4000',
+          tokenContract: ZERO_ADDRESS,
+          data: recipientFunction,
+        },
+        {
+          callForwarder: mockSmartWallet.address,
+        }
+      );
+      const typedRequestData = new TypedRequestData(
+        HARDHAT_CHAIN_ID,
+        mockSmartWallet.address,
+        relayRequest
+      );
+      const signature = getLocalEip712Signature(typedRequestData, privateKey);
+      const suffixData = getSuffixData(typedRequestData);
+
+      const initialOwnerBalance = await owner.getBalance();
+      const initialWorkerBalance = await worker.getBalance();
+
+      await expect(
+        mockSmartWallet
+          .connect(relayHub)
+          .execute(suffixData, relayRequest.request, worker.address, signature),
+        'Execution failed'
+      ).not.to.be.rejected;
+
+      expect(await worker.getBalance()).to.be.equal(
+        initialWorkerBalance.add(fee)
+      );
+      expect(await owner.getBalance()).to.be.equal(
+        initialOwnerBalance.add(payout).sub(fee)
+      );
+      expect(await provider.getBalance(mockSmartWallet.address)).to.be.equal(0);
     });
 
     it('Should increment nonce', async function () {
