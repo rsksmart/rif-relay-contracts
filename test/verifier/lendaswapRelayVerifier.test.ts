@@ -173,7 +173,7 @@ describe('LendaswapRelayVerifier Contract', function () {
       await expect(result).to.be.revertedWith('SW different to template');
     });
 
-    it('should revert if method is not allowed', async function () {
+    it('should revert if a call that is not a redeem cannot pay the fee from the wallet balance', async function () {
       const relayRequest = createRelayRequest(
         fakeHtlc.address,
         '0x12345678',
@@ -181,7 +181,33 @@ describe('LendaswapRelayVerifier Contract', function () {
       );
 
       const result = relayVerifierMock.verifyRelayedCall(relayRequest, '0x00');
-      await expect(result).to.be.revertedWith('Method not allowed');
+      await expect(result).to.be.revertedWith('Native balance too low');
+    });
+
+    it('should not revert if not paying', async function () {
+      const result = relayVerifierMock.verifyRelayedCall(
+        createRelayRequest(fakeHtlc.address, '0x12345678', '0'),
+        '0x00'
+      );
+      await expect(result).to.not.be.reverted;
+    });
+
+    it('should charge a call that is not a redeem to the wallet balance', async function () {
+      const balance = ethers.utils.parseEther('1');
+      await setBalance(fakeSmartWallet.address, balance);
+
+      await expect(
+        relayVerifierMock.verifyRelayedCall(
+          createRelayRequest(fakeHtlc.address, '0x12345678', balance),
+          '0x00'
+        )
+      ).to.not.be.reverted;
+      await expect(
+        relayVerifierMock.verifyRelayedCall(
+          createRelayRequest(fakeHtlc.address, '0x12345678', balance.add(1)),
+          '0x00'
+        )
+      ).to.be.revertedWith('Native balance too low');
     });
 
     // eslint-disable-next-line mocha/no-setup-in-describe
@@ -258,7 +284,7 @@ describe('LendaswapRelayVerifier Contract', function () {
           await expect(result).to.not.be.reverted;
         });
 
-        it('should revert if the swap is not active, even if not paying', async function () {
+        it('should not revert if not paying, even if the swap is not active', async function () {
           const { to, data } = redeemRequest;
           const relayRequest = createRelayRequest(to, data, '0');
 
@@ -266,10 +292,10 @@ describe('LendaswapRelayVerifier Contract', function () {
             relayRequest,
             '0x00'
           );
-          await expect(result).to.be.revertedWith('Verifier: swap not active');
+          await expect(result).to.not.be.reverted;
         });
 
-        it('should revert if the swap is not active, even with a zero ERC20 fee', async function () {
+        it('should not revert with a zero ERC20 fee, even if the swap is not active', async function () {
           const { to, data } = redeemRequest;
           const relayRequest = createRelayRequest(
             to,
@@ -282,7 +308,7 @@ describe('LendaswapRelayVerifier Contract', function () {
             relayRequest,
             '0x00'
           );
-          await expect(result).to.be.revertedWith('Verifier: swap not active');
+          await expect(result).to.not.be.reverted;
         });
 
         it('should revert if the swap is not active', async function () {
@@ -406,18 +432,25 @@ describe('LendaswapRelayVerifier Contract', function () {
         });
       }
 
-      it('should not credit the wallet token balance when there are calls', async function () {
+      it('should credit the wallet token balance when there are calls', async function () {
+        const balance = ethers.utils.parseEther('1');
         const redeemRequest = await createCoordinatorRequest({ calls });
         activateSwap(redeemRequest);
-        fakeToken.balanceOf.returns(ethers.utils.parseEther('1'));
+        fakeToken.balanceOf.returns(balance);
         const { to, data } = redeemRequest;
-        const relayRequest = createRelayRequest(to, data, 1, fakeToken.address);
 
-        const result = relayVerifierMock.verifyRelayedCall(
-          relayRequest,
-          '0x00'
-        );
-        await expect(result).to.be.revertedWith('Token balance too low');
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance, fakeToken.address),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance.add(1), fakeToken.address),
+            '0x00'
+          )
+        ).to.be.revertedWith('Token balance too low');
       });
 
       it('should credit minAmountOut of the swept token when it pays the fee', async function () {
@@ -449,60 +482,72 @@ describe('LendaswapRelayVerifier Contract', function () {
         ).to.be.revertedWith('Token balance too low');
       });
 
-      it('should not credit the wallet balance when the sweep leaves the smart wallet', async function () {
+      it('should credit only the wallet balance when the sweep leaves the smart wallet', async function () {
+        const balance = ethers.utils.parseEther('1');
         const redeemRequest = await createCoordinatorRequest({
           authorization: { destination: owner.address },
         });
         activateSwap(redeemRequest);
         const { to, data } = redeemRequest;
-        await setBalance(fakeSmartWallet.address, ethers.utils.parseEther('1'));
-
-        const result = relayVerifierMock.verifyRelayedCall(
-          createRelayRequest(to, data, 1),
-          '0x00'
-        );
-        await expect(result).to.be.revertedWith('Native balance too low');
-      });
-
-      it('should not credit the wallet balance when the sweep is a token', async function () {
-        const redeemRequest = await createCoordinatorRequest({
-          authorization: { sweepToken: fakeToken.address },
-        });
-        activateSwap(redeemRequest);
-        const { to, data } = redeemRequest;
-        await setBalance(fakeSmartWallet.address, ethers.utils.parseEther('1'));
-
-        const result = relayVerifierMock.verifyRelayedCall(
-          createRelayRequest(to, data, 1),
-          '0x00'
-        );
-        await expect(result).to.be.revertedWith('Native balance too low');
-      });
-
-      it('should not credit the wallet balance when there are calls', async function () {
-        const minAmountOut = ethers.utils.parseEther('0.1');
-        const redeemRequest = await createRedeemRequest({
-          method: 'redeemAndExecute',
-          htlcAddress: fakeHtlc.address,
-          coordinatorAddress: fakeCoordinator.address,
-          smartWalletAddress: fakeSmartWallet.address,
-          chainId,
-          calls,
-          authorization: { minAmountOut },
-        });
-        activateSwap(redeemRequest);
-        const { to, data } = redeemRequest;
-        await setBalance(fakeSmartWallet.address, ethers.utils.parseEther('1'));
+        await setBalance(fakeSmartWallet.address, balance);
 
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(to, data, minAmountOut),
+            createRelayRequest(to, data, balance),
             '0x00'
           )
         ).to.not.be.reverted;
         await expect(
           relayVerifierMock.verifyRelayedCall(
-            createRelayRequest(to, data, minAmountOut.add(1)),
+            createRelayRequest(to, data, balance.add(1)),
+            '0x00'
+          )
+        ).to.be.revertedWith('Native balance too low');
+      });
+
+      it('should credit only the wallet balance when the sweep is a token', async function () {
+        const balance = ethers.utils.parseEther('1');
+        const redeemRequest = await createCoordinatorRequest({
+          authorization: { sweepToken: fakeToken.address },
+        });
+        activateSwap(redeemRequest);
+        const { to, data } = redeemRequest;
+        await setBalance(fakeSmartWallet.address, balance);
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance.add(1)),
+            '0x00'
+          )
+        ).to.be.revertedWith('Native balance too low');
+      });
+
+      it('should credit the wallet balance when there are calls', async function () {
+        const minAmountOut = ethers.utils.parseEther('0.1');
+        const balance = ethers.utils.parseEther('1');
+        const redeemRequest = await createCoordinatorRequest({
+          calls,
+          authorization: { minAmountOut },
+        });
+        activateSwap(redeemRequest);
+        const { to, data } = redeemRequest;
+        await setBalance(fakeSmartWallet.address, balance);
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance.add(minAmountOut)),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, balance.add(minAmountOut).add(1)),
             '0x00'
           )
         ).to.be.revertedWith('Native balance too low');
