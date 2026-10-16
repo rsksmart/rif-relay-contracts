@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../TokenHandler.sol";
+import "../SwapFeeHandler.sol";
 import "../DestinationContractHandler.sol";
 import "../factory/BoltzSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
@@ -18,7 +18,7 @@ import "../utils/BoltzUtils.sol";
  */
 contract BoltzDeployVerifier is
     IDeployVerifier,
-    TokenHandler,
+    SwapFeeHandler,
     DestinationContractHandler
 {
     address private immutable _factory;
@@ -49,34 +49,14 @@ contract BoltzDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        if (relayRequest.request.tokenAmount > 0) {
-            if (relayRequest.request.tokenContract != address(0)) {
-                require(
-                    tokens[relayRequest.request.tokenContract],
-                    "Token contract not allowed"
-                );
-
-                require(
-                    relayRequest.request.tokenAmount <=
-                        IERC20(relayRequest.request.tokenContract).balanceOf(
-                            contractAddr
-                        ),
-                    "Token balance too low"
-                );
-            } else {
-                uint256 amount = BoltzUtils.validateClaim(
-                    relayRequest.request.data,
-                    relayRequest.request.to,
-                    contractAddr
-                );
-
-                require(
-                    relayRequest.request.tokenAmount <=
-                        address(contractAddr).balance + amount,
-                    "Native balance too low"
-                );
-            }
-        }
+        _validateFee(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            contractAddr,
+            relayRequest.request.value,
+            relayRequest.request.tokenContract,
+            relayRequest.request.tokenAmount
+        );
 
         return (
             abi.encode(
@@ -85,5 +65,40 @@ contract BoltzDeployVerifier is
                 relayRequest.request.tokenContract
             )
         );
+    }
+
+    function _quoteNativeBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value
+    ) internal view override returns (uint256) {
+        uint256 proceeds = BoltzUtils.quoteClaimProceeds(
+            data,
+            to,
+            payer,
+            value
+        );
+
+        // The wallet forwards value before paying the fee
+        uint256 balance = payer.balance;
+        require(value <= balance, "Native balance too low");
+
+        return balance - value + proceeds;
+    }
+
+    function _quoteTokenBalance(
+        bytes calldata data,
+        address to,
+        address payer,
+        uint256 value,
+        address token
+    ) internal view override returns (uint256) {
+        // A claim the wallet cannot execute is refused whatever pays the fee;
+        // the RBTC it pays out is irrelevant to a token fee.
+        // slither-disable-next-line unused-return
+        BoltzUtils.quoteClaimProceeds(data, to, payer, value);
+
+        return IERC20(token).balanceOf(payer);
     }
 }
