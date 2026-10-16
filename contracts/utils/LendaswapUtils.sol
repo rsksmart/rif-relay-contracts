@@ -97,10 +97,9 @@ library LendaswapUtils {
         address contractAddr,
         uint256 value
     ) internal view returns (uint256) {
-        Quote memory quote;
-        if (isRedeem(data)) {
-            quote = _quote(data, to, contractAddr, value);
-        }
+        Quote memory quote = isRedeem(data)
+            ? _quote(data, to, contractAddr, value)
+            : Quote(0, address(0), 0);
 
         // The wallet forwards value before paying the fee
         uint256 balance = contractAddr.balance;
@@ -128,10 +127,9 @@ library LendaswapUtils {
         uint256 value,
         address token
     ) internal view returns (uint256) {
-        Quote memory quote;
-        if (isRedeem(data)) {
-            quote = _quote(data, to, contractAddr, value);
-        }
+        Quote memory quote = isRedeem(data)
+            ? _quote(data, to, contractAddr, value)
+            : Quote(0, address(0), 0);
 
         // The wallet forwards value before paying the fee
         require(value <= contractAddr.balance, "Native balance too low");
