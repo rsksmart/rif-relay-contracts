@@ -2,16 +2,14 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ICreateSmartWalletFactory.sol";
 import "../interfaces/IRelayerSmartWalletFactory.sol";
 import "./BaseSmartWalletFactory.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
 
-contract BoltzSmartWalletFactory is
+contract MinimalSwapSmartWalletFactory is
     BaseSmartWalletFactory,
-    ICreateSmartWalletFactory,
     IRelayerSmartWalletFactory
 {
     /* solhint-disable no-empty-blocks */
@@ -24,52 +22,12 @@ contract BoltzSmartWalletFactory is
         address forwarderTemplate
     ) public BaseSmartWalletFactory(forwarderTemplate) {}
 
-    function createUserSmartWallet(
-        address owner,
-        address recoverer,
-        uint256 index,
-        bytes calldata sig
-    ) external override {
-        bytes32 _hash = keccak256(
-            abi.encodePacked(address(this), owner, recoverer, index)
-        );
-        (sig);
-        bytes32 message = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-        );
-        require(
-            RSKAddrValidator.safeEquals(message.recover(sig), owner),
-            "Invalid signature"
-        );
-
-        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,bytes calldata data)
-        bytes memory initData = abi.encodeWithSelector(
-            hex"c07adbdc",
-            owner,
-            address(0), // This "gas-funded" call does not pay with tokens
-            address(0),
-            0,
-            0, //No token transfer,
-            address(0),
-            0,
-            ""
-        );
-
-        _deploy(
-            getCreationBytecode(),
-            keccak256(
-                abi.encodePacked(owner, recoverer, index) // salt
-            ),
-            initData
-        );
-    }
-
     function relayedUserSmartWalletCreation(
         IForwarder.DeployRequest memory req,
         bytes32 suffixData,
         address feesReceiver,
         bytes calldata sig
-    ) external virtual override {
+    ) external override {
         require(msg.sender == req.relayHub, "Invalid caller");
         _verifySig(req, suffixData, sig);
         // solhint-disable-next-line not-rely-on-time
@@ -79,21 +37,19 @@ contract BoltzSmartWalletFactory is
         );
         _nonces[req.from]++;
 
-        //c07adbdc  => initialize(address owner,address tokenContract,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,uint256 value,bytes calldata data)
+        // 3d326736  => initialize(address owner,address feesReceiver,uint256 tokenAmount,uint256 tokenGas,address to,bytes calldata data)
         _deploy(
             getCreationBytecode(),
             keccak256(
                 abi.encodePacked(req.from, req.recoverer, req.index) // salt
             ),
             abi.encodeWithSelector(
-                hex"c07adbdc",
+                hex"3d326736",
                 req.from,
-                req.tokenContract,
                 feesReceiver,
                 req.tokenAmount,
                 req.tokenGas,
                 req.to,
-                req.value,
                 req.data
             )
         );

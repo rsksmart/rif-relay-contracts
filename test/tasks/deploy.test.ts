@@ -52,7 +52,15 @@ describe('Deploy Script', function () {
           'MinimalBoltzDeployVerifier',
           'MinimalBoltzRelayVerifier',
           'MinimalBoltzSmartWallet',
-          'MinimalBoltzSmartWalletFactory'
+          'MinimalBoltzSmartWalletFactory',
+          'LendaswapDeployVerifier',
+          'LendaswapRelayVerifier',
+          'LendaswapSmartWallet',
+          'LendaswapSmartWalletFactory',
+          'MinimalLendaswapDeployVerifier',
+          'MinimalLendaswapRelayVerifier',
+          'MinimalLendaswapSmartWallet',
+          'MinimalLendaswapSmartWalletFactory'
         );
       });
 
@@ -245,6 +253,56 @@ describe('Deploy Script', function () {
           'NativeHolderSmartWalletDeployVerifier',
           'NativeHolderSmartWalletRelayVerifier',
           'UtilToken',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the lendaswap wallet', async function () {
+        const result = await deployContracts(
+          { lendaswapSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'LendaswapSmartWallet',
+          'LendaswapSmartWalletFactory',
+          'LendaswapRelayVerifier',
+          'LendaswapDeployVerifier',
+        ];
+        const unexpectedKeys = [
+          'BoltzSmartWallet',
+          'BoltzSmartWalletFactory',
+          'BoltzRelayVerifier',
+          'BoltzDeployVerifier',
+          'MinimalLendaswapSmartWallet',
+          'MinimalLendaswapSmartWalletFactory',
+          'MinimalLendaswapRelayVerifier',
+          'MinimalLendaswapDeployVerifier',
+        ];
+        expect(result).to.have.all.keys(...expectedKeys);
+        expect(result).not.to.have.any.keys(...unexpectedKeys);
+      });
+
+      it('should deploy the minimal lendaswap wallet', async function () {
+        const result = await deployContracts(
+          { minimalLendaswapSmartWallet: true },
+          ethers
+        );
+        const expectedKeys = [
+          'MinimalLendaswapSmartWallet',
+          'MinimalLendaswapSmartWalletFactory',
+          'MinimalLendaswapRelayVerifier',
+          'MinimalLendaswapDeployVerifier',
+        ];
+        const unexpectedKeys = [
+          'MinimalBoltzSmartWallet',
+          'MinimalBoltzSmartWalletFactory',
+          'MinimalBoltzRelayVerifier',
+          'MinimalBoltzDeployVerifier',
+          'LendaswapSmartWallet',
+          'LendaswapSmartWalletFactory',
+          'LendaswapRelayVerifier',
+          'LendaswapDeployVerifier',
         ];
         expect(result).to.have.all.keys(...expectedKeys);
         expect(result).not.to.have.any.keys(...unexpectedKeys);

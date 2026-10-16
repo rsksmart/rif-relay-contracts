@@ -11,6 +11,8 @@ import {
   deployVersionRegistry,
   deployBoltzSmartWallet,
   deployMinimalBoltzSmartWallet,
+  deployLendaswapSmartWallet,
+  deployMinimalLendaswapSmartWallet,
 } from './deployers';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
@@ -26,6 +28,8 @@ export type DeployArg = {
   versionRegistry?: boolean;
   boltzSmartWallet?: boolean;
   minimalBoltzSmartWallet?: boolean;
+  lendaswapSmartWallet?: boolean;
+  minimalLendaswapSmartWallet?: boolean;
 };
 
 // TODO: Use the async version of fs.writeFile
@@ -88,6 +92,8 @@ export const deployContracts = async (
     versionRegistry: deployVersionRegistry,
     boltzSmartWallet: deployBoltzSmartWallet,
     minimalBoltzSmartWallet: deployMinimalBoltzSmartWallet,
+    lendaswapSmartWallet: deployLendaswapSmartWallet,
+    minimalLendaswapSmartWallet: deployMinimalLendaswapSmartWallet,
   };
 
   /*

@@ -50,8 +50,10 @@ The contracts can be deployed in the following way:
   * `--default-smart-wallet`: to deploy the default `SmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--custom-smart-wallet`: to deploy the `CustomSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
   * `--native-holder-smart-wallet`: to deploy the `NativeHolderSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
-  * `--boltz-smart-wallet`: to deploy the `BoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
-  * `--minimal-boltz-smart-wallet`: to deploy the `MinimalBoltzSmartWallet` and the related contracts (tempate, factory, deploy verifier and relay verifier);
+  * `--boltz-smart-wallet`: to deploy a `SwapSmartWallet` template with its factory and the `BoltzDeployVerifier`/`BoltzRelayVerifier`, to claim [Boltz](https://github.com/BoltzExchange/boltz-core) `EtherSwap` swaps;
+  * `--minimal-boltz-smart-wallet`: to deploy a `MinimalSwapSmartWallet` template allowed to execute only the Boltz claim methods, and the related contracts (factory, deploy verifier and relay verifier);
+  * `--lendaswap-smart-wallet`: to deploy a `SwapSmartWallet` template with its factory and the `LendaswapDeployVerifier`/`LendaswapRelayVerifier`, to claim [Lendaswap](https://github.com/satoraHQ/lendaswap-contracts) `HTLCNative` swaps;
+  * `--minimal-lendaswap-smart-wallet`: to deploy a `MinimalSwapSmartWallet` template allowed to execute only the Lendaswap redeem methods, and the related contracts (factory, deploy verifier and relay verifier);
   * `--util-token`: to deploy an ERC20 Token `UtilToken` (for Testnet/Regtest only);
   * `--version-registry`: : to deploy the `VersionRegistry` contract.
 

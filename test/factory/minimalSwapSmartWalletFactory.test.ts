@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import {
   ERC20,
-  MinimalBoltzSmartWallet,
-  MinimalBoltzSmartWalletFactory,
-  MinimalBoltzSmartWalletFactory__factory,
+  MinimalSwapSmartWallet,
+  MinimalSwapSmartWalletFactory,
+  MinimalSwapSmartWalletFactory__factory,
 } from 'typechain-types';
 import { ethers } from 'hardhat';
 import { constants, utils, Wallet } from 'ethers';
@@ -13,33 +13,36 @@ import { deployContract } from '../../utils/deployment/deployment.utils';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { ZERO_ADDRESS } from '../../test/utils';
 
-type MinimalBoltzSmartWalletFactoryOptions = Parameters<
-  MinimalBoltzSmartWalletFactory__factory['deploy']
+type MinimalSwapSmartWalletFactoryOptions = Parameters<
+  MinimalSwapSmartWalletFactory__factory['deploy']
 >;
 
-describe('MinimalBoltzSmartWalletFactory', function () {
+// EtherSwap claim methods the minimal Boltz wallet can execute
+const BOLTZ_CLAIM_METHODS = ['0xc3c37fbc', '0xcd413efa'];
+
+describe('MinimalSwapSmartWalletFactory', function () {
   let chainId: number;
 
   before(async function () {
     ({ chainId } = await ethers.provider.getNetwork());
   });
   describe('methods', function () {
-    let boltzSmartWalletFactory: MinimalBoltzSmartWalletFactory;
+    let boltzSmartWalletFactory: MinimalSwapSmartWalletFactory;
     let owner: Wallet;
 
     beforeEach(async function () {
       const { contract: template } = await deployContract<
-        MinimalBoltzSmartWallet,
-        []
+        MinimalSwapSmartWallet,
+        [string[]]
       >({
-        contractName: 'MinimalBoltzSmartWallet',
-        constructorArgs: [],
+        contractName: 'MinimalSwapSmartWallet',
+        constructorArgs: [BOLTZ_CLAIM_METHODS],
       });
       ({ contract: boltzSmartWalletFactory } = await deployContract<
-        MinimalBoltzSmartWalletFactory,
-        MinimalBoltzSmartWalletFactoryOptions
+        MinimalSwapSmartWalletFactory,
+        MinimalSwapSmartWalletFactoryOptions
       >({
-        contractName: 'MinimalBoltzSmartWalletFactory',
+        contractName: 'MinimalSwapSmartWalletFactory',
         constructorArgs: [template.address],
       }));
       owner = ethers.Wallet.createRandom();
@@ -121,7 +124,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 
@@ -175,7 +178,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 
@@ -483,7 +486,7 @@ describe('MinimalBoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'MinimalBoltzSmartWallet',
+          'MinimalSwapSmartWallet',
           smartWalletAddress
         );
 

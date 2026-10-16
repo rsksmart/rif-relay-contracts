@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import {
-  BoltzSmartWallet,
-  BoltzSmartWalletFactory,
-  BoltzSmartWalletFactory__factory,
+  SwapSmartWallet,
+  SwapSmartWalletFactory,
+  SwapSmartWalletFactory__factory,
   UtilToken,
 } from 'typechain-types';
 import { ethers } from 'hardhat';
@@ -13,11 +13,11 @@ import { createDeployRequest, randomNumber, signDeployRequest } from './utils';
 import { deployContract } from '../../utils/deployment/deployment.utils';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 
-type BoltzSmartWalletFactoryOptions = Parameters<
-  BoltzSmartWalletFactory__factory['deploy']
+type SwapSmartWalletFactoryOptions = Parameters<
+  SwapSmartWalletFactory__factory['deploy']
 >;
 
-describe('BoltzSmartWalletFactory', function () {
+describe('SwapSmartWalletFactory', function () {
   let chainId: number;
 
   before(async function () {
@@ -25,16 +25,16 @@ describe('BoltzSmartWalletFactory', function () {
   });
 
   describe('constructor', function () {
-    let boltzSmartWalletFactory: BoltzSmartWalletFactory;
+    let boltzSmartWalletFactory: SwapSmartWalletFactory;
     let template: Wallet;
 
     beforeEach(async function () {
       template = ethers.Wallet.createRandom();
       ({ contract: boltzSmartWalletFactory } = await deployContract<
-        BoltzSmartWalletFactory,
-        BoltzSmartWalletFactoryOptions
+        SwapSmartWalletFactory,
+        SwapSmartWalletFactoryOptions
       >({
-        contractName: 'BoltzSmartWalletFactory',
+        contractName: 'SwapSmartWalletFactory',
         constructorArgs: [template.address],
       }));
     });
@@ -47,21 +47,19 @@ describe('BoltzSmartWalletFactory', function () {
   });
 
   describe('methods', function () {
-    let boltzSmartWalletFactory: BoltzSmartWalletFactory;
+    let boltzSmartWalletFactory: SwapSmartWalletFactory;
     let owner: Wallet;
 
     beforeEach(async function () {
-      const { contract: template } = await deployContract<BoltzSmartWallet, []>(
-        {
-          contractName: 'BoltzSmartWallet',
-          constructorArgs: [],
-        }
-      );
+      const { contract: template } = await deployContract<SwapSmartWallet, []>({
+        contractName: 'SwapSmartWallet',
+        constructorArgs: [],
+      });
       ({ contract: boltzSmartWalletFactory } = await deployContract<
-        BoltzSmartWalletFactory,
-        BoltzSmartWalletFactoryOptions
+        SwapSmartWalletFactory,
+        SwapSmartWalletFactoryOptions
       >({
-        contractName: 'BoltzSmartWalletFactory',
+        contractName: 'SwapSmartWalletFactory',
         constructorArgs: [template.address],
       }));
       owner = ethers.Wallet.createRandom();
@@ -107,7 +105,7 @@ describe('BoltzSmartWalletFactory', function () {
         );
 
         const smartWallet = await ethers.getContractAt(
-          'BoltzSmartWallet',
+          'SwapSmartWallet',
           smartWalletAddress
         );
 
@@ -236,7 +234,7 @@ describe('BoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'BoltzSmartWallet',
+          'SwapSmartWallet',
           smartWalletAddress
         );
 
@@ -283,7 +281,7 @@ describe('BoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'BoltzSmartWallet',
+          'SwapSmartWallet',
           smartWalletAddress
         );
 
@@ -340,7 +338,7 @@ describe('BoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'BoltzSmartWallet',
+          'SwapSmartWallet',
           smartWalletAddress
         );
 
@@ -616,8 +614,8 @@ describe('BoltzSmartWalletFactory', function () {
       });
 
       it('should fail if contract execution fail', async function () {
-        const recipient: FakeContract<BoltzSmartWallet> = await smock.fake(
-          'BoltzSmartWallet'
+        const recipient: FakeContract<SwapSmartWallet> = await smock.fake(
+          'SwapSmartWallet'
         );
         const recipientFunction = recipient.interface.encodeFunctionData(
           'isInitialized',
@@ -661,10 +659,10 @@ describe('BoltzSmartWalletFactory', function () {
 
       it('should pass the revert message from destination contract if fails', async function () {
         const { contract: recipient } = await deployContract<
-          BoltzSmartWallet,
+          SwapSmartWallet,
           []
         >({
-          contractName: 'BoltzSmartWallet',
+          contractName: 'SwapSmartWallet',
           constructorArgs: [],
         });
         const recipientFunction = recipient.interface.encodeFunctionData(
@@ -707,8 +705,8 @@ describe('BoltzSmartWalletFactory', function () {
       });
 
       it('should initialize the smart wallet in the expected address and execute the destination contract', async function () {
-        const recipient: FakeContract<BoltzSmartWallet> = await smock.fake(
-          'BoltzSmartWallet'
+        const recipient: FakeContract<SwapSmartWallet> = await smock.fake(
+          'SwapSmartWallet'
         );
         const recipientFunction = recipient.interface.encodeFunctionData(
           'isInitialized',
@@ -748,7 +746,7 @@ describe('BoltzSmartWalletFactory', function () {
           );
 
         const smartWallet = await ethers.getContractAt(
-          'BoltzSmartWallet',
+          'SwapSmartWallet',
           smartWalletAddress
         );
 

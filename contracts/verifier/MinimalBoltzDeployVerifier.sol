@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../DestinationContractHandler.sol";
-import "../factory/MinimalBoltzSmartWalletFactory.sol";
+import "../factory/MinimalSwapSmartWalletFactory.sol";
 import "../interfaces/IDeployVerifier.sol";
 import "../interfaces/EnvelopingTypes.sol";
 import "../utils/ContractValidator.sol";

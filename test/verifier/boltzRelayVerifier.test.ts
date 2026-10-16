@@ -12,8 +12,8 @@ import {
   ERC20,
   BoltzRelayVerifier,
   BoltzRelayVerifier__factory,
-  BoltzSmartWallet,
-  BoltzSmartWalletFactory,
+  SwapSmartWallet,
+  SwapSmartWalletFactory,
   NativeSwap,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
@@ -25,15 +25,15 @@ chai.use(chaiAsPromised);
 describe('BoltzRelayVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeContract: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<BoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<SwapSmartWalletFactory>;
   let relayVerifierFactoryMock: MockContractFactory<BoltzRelayVerifier__factory>;
   let relayVerifierMock: MockContract<BoltzRelayVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeContract = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<BoltzSmartWalletFactory>(
-      'BoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<SwapSmartWalletFactory>(
+      'SwapSmartWalletFactory'
     );
     relayVerifierFactoryMock = await smock.mock<BoltzRelayVerifier__factory>(
       'BoltzRelayVerifier'
@@ -360,7 +360,7 @@ describe('BoltzRelayVerifier Contract', function () {
     let owner: SignerWithAddress;
     let recipient: SignerWithAddress;
     let relayWorker: SignerWithAddress;
-    let fakeSmartWallet: FakeContract<BoltzSmartWallet>;
+    let fakeSmartWallet: FakeContract<SwapSmartWallet>;
     let fakeRelayHub: FakeContract<RelayHub>;
 
     beforeEach(async function () {
@@ -369,7 +369,7 @@ describe('BoltzRelayVerifier Contract', function () {
         SignerWithAddress,
         SignerWithAddress
       ];
-      fakeSmartWallet = await smock.fake<BoltzSmartWallet>('BoltzSmartWallet');
+      fakeSmartWallet = await smock.fake<SwapSmartWallet>('SwapSmartWallet');
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
       await relayVerifierMock.setVariables({
         acceptedTokens: [fakeToken.address],

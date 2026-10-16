@@ -13,11 +13,14 @@ import {
   MinimalBoltzDeployVerifier,
   MinimalBoltzDeployVerifier__factory,
   ERC20,
-  MinimalBoltzSmartWalletFactory,
-  MinimalBoltzSmartWallet__factory,
+  MinimalSwapSmartWalletFactory,
+  MinimalSwapSmartWallet__factory,
   NativeSwap,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
+
+// EtherSwap claim methods the minimal Boltz wallet can execute
+const BOLTZ_CLAIM_METHODS = ['0xc3c37fbc', '0xcd413efa'];
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
@@ -25,15 +28,15 @@ chai.use(chaiAsPromised);
 describe('MinimalBoltzDeployVerifier Contract', function () {
   let fakeToken: FakeContract<ERC20>;
   let fakeContract: FakeContract<ERC20>;
-  let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
+  let fakeWalletFactory: FakeContract<MinimalSwapSmartWalletFactory>;
   let deployVerifierFactoryMock: MockContractFactory<MinimalBoltzDeployVerifier__factory>;
   let deployVerifierMock: MockContract<MinimalBoltzDeployVerifier>;
 
   beforeEach(async function () {
     fakeToken = await smock.fake<ERC20>('ERC20');
     fakeContract = await smock.fake<ERC20>('ERC20');
-    fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
-      'MinimalBoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<MinimalSwapSmartWalletFactory>(
+      'MinimalSwapSmartWalletFactory'
     );
     deployVerifierFactoryMock =
       await smock.mock<MinimalBoltzDeployVerifier__factory>(
@@ -269,7 +272,7 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
 
     it('should revert if factory address in request is different than factory address in contract', async function () {
       const differentFactoryFake = await smock.fake(
-        'MinimalBoltzSmartWalletFactory'
+        'MinimalSwapSmartWalletFactory'
       );
 
       const deployRequest: EnvelopingTypes.DeployRequestStruct = {
@@ -304,10 +307,12 @@ describe('MinimalBoltzDeployVerifier Contract', function () {
 
     it('should revert if Smart Wallet is already created', async function () {
       const fakeSmartWalletFactory =
-        await smock.mock<MinimalBoltzSmartWallet__factory>(
-          'MinimalBoltzSmartWallet'
+        await smock.mock<MinimalSwapSmartWallet__factory>(
+          'MinimalSwapSmartWallet'
         );
-      const mockSmartWallet = await fakeSmartWalletFactory.deploy();
+      const mockSmartWallet = await fakeSmartWalletFactory.deploy(
+        BOLTZ_CLAIM_METHODS
+      );
 
       fakeWalletFactory.getSmartWalletAddress.returns(mockSmartWallet.address);
 

@@ -10,28 +10,28 @@ import chaiAsPromised from 'chai-as-promised';
 import { constants } from 'ethers';
 import { ethers } from 'hardhat';
 import {
-  MinimalBoltzRelayVerifier,
-  MinimalBoltzRelayVerifier__factory,
-  MinimalBoltzSmartWallet,
-  MinimalBoltzSmartWalletFactory,
+  MinimalSwapRelayVerifier,
+  MinimalSwapRelayVerifier__factory,
+  MinimalSwapSmartWallet,
+  MinimalSwapSmartWalletFactory,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 
 chai.use(smock.matchers);
 chai.use(chaiAsPromised);
 
-describe('MinimalBoltzRelayVerifier Contract', function () {
-  let fakeWalletFactory: FakeContract<MinimalBoltzSmartWalletFactory>;
-  let relayVerifierFactoryMock: MockContractFactory<MinimalBoltzRelayVerifier__factory>;
-  let relayVerifierMock: MockContract<MinimalBoltzRelayVerifier>;
+describe('MinimalSwapRelayVerifier Contract', function () {
+  let fakeWalletFactory: FakeContract<MinimalSwapSmartWalletFactory>;
+  let relayVerifierFactoryMock: MockContractFactory<MinimalSwapRelayVerifier__factory>;
+  let relayVerifierMock: MockContract<MinimalSwapRelayVerifier>;
 
   beforeEach(async function () {
-    fakeWalletFactory = await smock.fake<MinimalBoltzSmartWalletFactory>(
-      'MinimalBoltzSmartWalletFactory'
+    fakeWalletFactory = await smock.fake<MinimalSwapSmartWalletFactory>(
+      'MinimalSwapSmartWalletFactory'
     );
     relayVerifierFactoryMock =
-      await smock.mock<MinimalBoltzRelayVerifier__factory>(
-        'MinimalBoltzRelayVerifier'
+      await smock.mock<MinimalSwapRelayVerifier__factory>(
+        'MinimalSwapRelayVerifier'
       );
     relayVerifierMock = await relayVerifierFactoryMock.deploy(
       fakeWalletFactory.address
@@ -60,7 +60,7 @@ describe('MinimalBoltzRelayVerifier Contract', function () {
     let recipient: SignerWithAddress;
     let relayWorker: SignerWithAddress;
     let fakeRelayHub: FakeContract<RelayHub>;
-    let fakeSmartWallet: FakeContract<MinimalBoltzSmartWallet>;
+    let fakeSmartWallet: FakeContract<MinimalSwapSmartWallet>;
 
     beforeEach(async function () {
       [owner, recipient, relayWorker] = (await ethers.getSigners()) as [
@@ -69,8 +69,8 @@ describe('MinimalBoltzRelayVerifier Contract', function () {
         SignerWithAddress
       ];
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
-      fakeSmartWallet = await smock.fake<MinimalBoltzSmartWallet>(
-        'MinimalBoltzSmartWallet'
+      fakeSmartWallet = await smock.fake<MinimalSwapSmartWallet>(
+        'MinimalSwapSmartWallet'
       );
     });
 
