@@ -16,7 +16,8 @@ import "../utils/LendaswapUtils.sol";
 /* solhint-disable avoid-low-level-calls */
 
 /**
- * A verifier for relay transactions.
+ * A verifier for relay transactions of the Lendaswap swap smart wallet.
+ * It accepts only the HTLCNative redeem methods on an allowed destination.
  */
 contract LendaswapRelayVerifier is
     IRelayVerifier,
@@ -58,6 +59,13 @@ contract LendaswapRelayVerifier is
         );
 
         destinationContractValidation(relayRequest.request.to);
+
+        // Only the HTLCNative redeems: they pay the smart wallet and run no
+        // code chosen by the request before the wallet pays the fee
+        require(
+            LendaswapUtils.isRedeem(relayRequest.request.data),
+            "Method not allowed"
+        );
 
         _validateFee(
             relayRequest.request.data,

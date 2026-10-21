@@ -11,7 +11,8 @@ import "../utils/ContractValidator.sol";
 import "../utils/LendaswapUtils.sol";
 
 /**
- * A Verifier to be used on deploys.
+ * A Verifier to be used on deploys of the Lendaswap swap smart wallet.
+ * It accepts only the HTLCNative redeem methods on an allowed destination.
  */
 contract LendaswapDeployVerifier is
     IDeployVerifier,
@@ -46,6 +47,13 @@ contract LendaswapDeployVerifier is
         );
 
         destinationContractValidation(relayRequest.request.to);
+
+        // Only the HTLCNative redeems: they pay the smart wallet and run no
+        // code chosen by the request before the wallet pays the fee
+        require(
+            LendaswapUtils.isRedeem(relayRequest.request.data),
+            "Method not allowed"
+        );
 
         _validateFee(
             relayRequest.request.data,

@@ -293,11 +293,10 @@ export const deployLendaswapSmartWallet = async (
   };
 };
 
-// Lendaswap HTLCNative and HTLCNativeCoordinator methods a minimal wallet can execute
+// Lendaswap HTLCNative methods a minimal wallet can execute
 export const LENDASWAP_REDEEM_METHODS = [
   'redeem(bytes32,uint256,address,uint256)',
   'redeemBySig(bytes32,uint256,address,uint256,address,address,uint256,bytes32,uint8,bytes32,bytes32)',
-  'redeemAndExecute(bytes32,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,address,uint8,bytes32,bytes32)',
 ].map((signature) => utils.id(signature).slice(0, 10));
 
 export const deployMinimalLendaswapSmartWallet = async (

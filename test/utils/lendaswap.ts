@@ -7,20 +7,19 @@ import {
   utils,
 } from 'ethers';
 
+// redeemAndExecute(bytes32,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,address,uint8,bytes32,bytes32)
+// on the HTLCNativeCoordinator: runs calls chosen by the request, never accepted
+export const REDEEM_AND_EXECUTE_SELECTOR = '0x81838615';
+
 export const HTLC_NATIVE_ABI = [
   'function redeem(bytes32 preimage, uint256 amount, address sender, uint256 timelock)',
   'function redeemBySig(bytes32 preimage, uint256 amount, address sender, uint256 timelock, address destination, address sweepToken, uint256 minAmountOut, bytes32 callsHash, uint8 v, bytes32 r, bytes32 s) returns (address)',
+  'function refund(bytes32 preimageHash, uint256 amount, address claimAddress, uint256 timelock, address destination)',
   'function isActive(bytes32 preimageHash, uint256 amount, address token, address sender, address claimAddress, uint256 timelock) view returns (bool)',
   'function DOMAIN_SEPARATOR() view returns (bytes32)',
 ];
 
-export const HTLC_NATIVE_COORDINATOR_ABI = [
-  'function redeemAndExecute(bytes32 preimage, uint256 amount, address htlcSender, uint256 timelock, (address target, uint256 value, bytes callData)[] calls, address sweepToken, uint256 minAmountOut, address destination, uint8 v, bytes32 r, bytes32 s)',
-  'function HTLC_NATIVE() view returns (address)',
-];
-
 const htlcInterface = new utils.Interface(HTLC_NATIVE_ABI);
-const coordinatorInterface = new utils.Interface(HTLC_NATIVE_COORDINATOR_ABI);
 
 const REDEEM_TYPES = {
   Redeem: [
@@ -43,12 +42,6 @@ export type SwapTerms = {
   timelock: BigNumber;
 };
 
-export type Call = {
-  target: string;
-  value: BigNumberish;
-  callData: string;
-};
-
 export type RedeemAuthorization = {
   caller: string;
   destination: string;
@@ -69,13 +62,13 @@ export const createSwapTerms = (
 
 export const getPreimageHash = (preimage: string) => utils.sha256(preimage);
 
-export const computeCallsHash = (calls: Call[]) =>
-  utils.keccak256(
-    utils.defaultAbiCoder.encode(
-      ['tuple(address target, uint256 value, bytes callData)[]'],
-      [calls]
-    )
-  );
+// The hash of an empty calls array, as signed when nothing runs after the redeem
+export const EMPTY_CALLS_HASH = utils.keccak256(
+  utils.defaultAbiCoder.encode(
+    ['tuple(address target, uint256 value, bytes callData)[]'],
+    [[]]
+  )
+);
 
 const getDomain = (htlcAddress: string, chainId: number) => ({
   name: 'HTLCNative',
@@ -133,24 +126,20 @@ export const encodeRedeemBySig = (
     s,
   ]);
 
-export const encodeRedeemAndExecute = (
+/**
+ * A refund of an expired swap paid to `destination`: an HTLCNative method a
+ * swap smart wallet must not relay, since the destination runs code when paid.
+ */
+export const encodeRefundTo = (
   { preimage, amount, sender, timelock }: SwapTerms,
-  calls: Call[],
-  { destination, sweepToken, minAmountOut }: RedeemAuthorization,
-  { v, r, s }: Signature
+  destination: string
 ) =>
-  coordinatorInterface.encodeFunctionData('redeemAndExecute', [
-    preimage,
+  htlcInterface.encodeFunctionData('refund', [
+    getPreimageHash(preimage),
     amount,
     sender,
     timelock,
-    calls,
-    sweepToken,
-    minAmountOut,
     destination,
-    v,
-    r,
-    s,
   ]);
 
 export const createRedeemAuthorization = (
@@ -160,27 +149,21 @@ export const createRedeemAuthorization = (
   destination: constants.AddressZero,
   sweepToken: constants.AddressZero,
   minAmountOut: 0,
-  callsHash: computeCallsHash([]),
+  callsHash: EMPTY_CALLS_HASH,
   ...overrides,
 });
 
-export type RedeemMethod = 'redeem' | 'redeemBySig' | 'redeemAndExecute';
+export type RedeemMethod = 'redeem' | 'redeemBySig';
 
-export const REDEEM_METHODS: RedeemMethod[] = [
-  'redeem',
-  'redeemBySig',
-  'redeemAndExecute',
-];
+export const REDEEM_METHODS: RedeemMethod[] = ['redeem', 'redeemBySig'];
 
 type RedeemRequestArgs = {
   method: RedeemMethod;
   htlcAddress: string;
-  coordinatorAddress: string;
   smartWalletAddress: string;
   chainId: number;
   claimant?: Wallet;
   terms?: SwapTerms;
-  calls?: Call[];
   authorization?: Partial<RedeemAuthorization>;
 };
 
@@ -198,12 +181,10 @@ export type RedeemRequest = {
 export const createRedeemRequest = async ({
   method,
   htlcAddress,
-  coordinatorAddress,
   smartWalletAddress,
   chainId,
   claimant = Wallet.createRandom(),
   terms = createSwapTerms(),
-  calls = [],
   authorization = {},
 }: RedeemRequestArgs): Promise<RedeemRequest> => {
   switch (method) {
@@ -231,33 +212,6 @@ export const createRedeemRequest = async ({
       return {
         to: htlcAddress,
         data: encodeRedeemBySig(terms, redeemAuthorization, signature),
-        terms,
-        claimAddress: claimant.address,
-      };
-    }
-    case 'redeemAndExecute': {
-      const redeemAuthorization = createRedeemAuthorization({
-        caller: coordinatorAddress,
-        destination: smartWalletAddress,
-        callsHash: computeCallsHash(calls),
-        ...authorization,
-      });
-      const signature = await signRedeem(
-        claimant,
-        htlcAddress,
-        chainId,
-        terms,
-        redeemAuthorization
-      );
-
-      return {
-        to: coordinatorAddress,
-        data: encodeRedeemAndExecute(
-          terms,
-          calls,
-          redeemAuthorization,
-          signature
-        ),
         terms,
         claimAddress: claimant.address,
       };

@@ -16,7 +16,7 @@ import {
 } from '../utils/EIP712Utils';
 import {
   HTLC_NATIVE_ABI,
-  HTLC_NATIVE_COORDINATOR_ABI,
+  REDEEM_AND_EXECUTE_SELECTOR,
   REDEEM_METHODS,
   createRedeemRequest,
 } from '../utils/lendaswap';
@@ -49,6 +49,16 @@ describe('MinimalSwapSmartWallet contract', function () {
 
       expect(await template.getAllowedMethods()).to.deep.equal(
         LENDASWAP_REDEEM_METHODS
+      );
+    });
+
+    it('Should not list redeemAndExecute among the Lendaswap redeem methods', function () {
+      expect(LENDASWAP_REDEEM_METHODS).to.deep.equal([
+        '0xd592e483',
+        '0x24499b44',
+      ]);
+      expect(LENDASWAP_REDEEM_METHODS).to.not.include(
+        REDEEM_AND_EXECUTE_SELECTOR
       );
     });
 
@@ -97,6 +107,8 @@ describe('MinimalSwapSmartWallet contract', function () {
         expect(await template.isAllowedMethod(method)).to.be.true;
       }
       expect(await template.isAllowedMethod(BOLTZ_CLAIM_METHODS[0])).to.be
+        .false;
+      expect(await template.isAllowedMethod(REDEEM_AND_EXECUTE_SELECTOR)).to.be
         .false;
       expect(await template.isAllowedMethod('0x00000000')).to.be.false;
     });
@@ -186,13 +198,11 @@ describe('MinimalSwapSmartWallet contract', function () {
 
     describe('with the lendaswap redeem methods', function () {
       let fakeHtlc: FakeContract;
-      let fakeCoordinator: FakeContract;
 
       beforeEach(async function () {
         await createSmartWalletFactory(LENDASWAP_REDEEM_METHODS);
 
         fakeHtlc = await smock.fake(HTLC_NATIVE_ABI);
-        fakeCoordinator = await smock.fake(HTLC_NATIVE_COORDINATOR_ABI);
       });
 
       // eslint-disable-next-line mocha/no-setup-in-describe
@@ -201,7 +211,6 @@ describe('MinimalSwapSmartWallet contract', function () {
           const { to, data } = await createRedeemRequest({
             method,
             htlcAddress: fakeHtlc.address,
-            coordinatorAddress: fakeCoordinator.address,
             smartWalletAddress,
             chainId: HARDHAT_CHAIN_ID,
           });
@@ -220,9 +229,7 @@ describe('MinimalSwapSmartWallet contract', function () {
           const balanceAfter = await provider.getBalance(worker.address);
 
           expect(balanceAfter).to.be.equal(balanceBefore.add(amountToBePaid));
-          const recipient =
-            to === fakeHtlc.address ? fakeHtlc : fakeCoordinator;
-          expect(recipient[method], 'Recipient method was not called').to.be
+          expect(fakeHtlc[method], 'Recipient method was not called').to.be
             .called;
         });
       });
@@ -231,7 +238,6 @@ describe('MinimalSwapSmartWallet contract', function () {
         const { to, data } = await createRedeemRequest({
           method: 'redeem',
           htlcAddress: fakeHtlc.address,
-          coordinatorAddress: fakeCoordinator.address,
           smartWalletAddress,
           chainId: HARDHAT_CHAIN_ID,
         });
@@ -261,7 +267,6 @@ describe('MinimalSwapSmartWallet contract', function () {
         const { to, data } = await createRedeemRequest({
           method: 'redeem',
           htlcAddress: fakeHtlc.address,
-          coordinatorAddress: fakeCoordinator.address,
           smartWalletAddress,
           chainId: HARDHAT_CHAIN_ID,
         });
