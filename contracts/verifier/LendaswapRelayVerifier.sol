@@ -17,7 +17,9 @@ import "../utils/LendaswapUtils.sol";
 
 /**
  * A verifier for relay transactions of the Lendaswap swap smart wallet.
- * It accepts only the HTLCNative redeem methods on an allowed destination.
+ * It accepts only an HTLCNative redeem that pays the smart wallet, or no
+ * call, on an allowed destination: HTLCNative must be the only one allowed
+ * besides address(0).
  */
 contract LendaswapRelayVerifier is
     IRelayVerifier,
@@ -60,11 +62,13 @@ contract LendaswapRelayVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        // Only the HTLCNative redeems: they pay the smart wallet and run no
-        // code chosen by the request before the wallet pays the fee
-        require(
-            LendaswapUtils.isRedeem(relayRequest.request.data),
-            "Method not allowed"
+        // No call, or an HTLCNative redeem that pays the smart wallet: no code
+        // chosen by the request runs before the wallet pays the fee
+        LendaswapUtils.validateCall(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            payer,
+            relayRequest.request.value
         );
 
         _validateFee(
@@ -89,31 +93,22 @@ contract LendaswapRelayVerifier is
         bytes calldata data,
         address to,
         address payer,
-        uint256 value
+        uint256 /* value, 0 as validateCall requires */
     ) internal view override returns (uint256) {
         return
-            LendaswapUtils.quoteNativeBalanceAfterRedeem(
-                data,
-                to,
-                payer,
-                value
-            );
+            payer.balance + LendaswapUtils.quoteRedeemProceeds(data, to, payer);
     }
 
     function _quoteTokenBalance(
         bytes calldata data,
         address to,
         address payer,
-        uint256 value,
+        uint256 /* value, 0 as validateCall requires */,
         address token
     ) internal view override returns (uint256) {
-        return
-            LendaswapUtils.quoteTokenBalanceAfterRedeem(
-                data,
-                to,
-                payer,
-                value,
-                token
-            );
+        // A redeem pays RBTC only, but the swap must still be active
+        LendaswapUtils.quoteRedeemProceeds(data, to, payer);
+
+        return IERC20(token).balanceOf(payer);
     }
 }

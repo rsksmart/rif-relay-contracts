@@ -3,18 +3,18 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/IHTLCNative.sol";
 import "./MinLibBytes.sol";
 
 /**
- * Validation of the HTLCNative redeems a swap smart wallet may execute.
- * Only `redeem` and `redeemBySig` are accepted: both pay the caller, the
- * smart wallet, and run no code chosen by the request before the wallet
- * pays the fee. A redeem through the HTLCNativeCoordinator runs the calls
- * the owner signed before the proceeds reach the wallet, so it is not
- * accepted and the coordinator must not be an allowed destination.
+ * Validation of the calls a Lendaswap swap smart wallet may execute: no call
+ * at all (to is address(0)), or an HTLCNative `redeem` or `redeemBySig`. Both
+ * pay the caller, the smart wallet, and run no code chosen by the request
+ * before the wallet pays the fee. The verifiers must allow HTLCNative as the
+ * only destination, besides address(0): a redeem through the
+ * HTLCNativeCoordinator runs the calls the owner signed before the proceeds
+ * reach the wallet.
  */
 library LendaswapUtils {
     //d592e483  =>  redeem(bytes32,uint256,address,uint256)
@@ -26,6 +26,10 @@ library LendaswapUtils {
     // keccak256("Redeem(bytes32 preimage,uint256 amount,address sender,uint256 timelock,address caller,address destination,address sweepToken,uint256 minAmountOut,bytes32 callsHash)")
     bytes32 internal constant _TYPEHASH_REDEEM =
         0x74ff405c3eb2504549cab9fef588f80b9fd717e2a30387e6ff7743feeb1f80e4;
+
+    // keccak256(abi.encode(new Call[](0))): the calls hash of a redeem with no calls
+    bytes32 internal constant _EMPTY_CALLS_HASH =
+        0x569e75fc77c1a856f6daaf9e69d8a9566ca34aa47f9133711ce065a571af0cfd;
 
     /**
      * @dev Whether the data calls one of the accepted HTLCNative redeem methods.
@@ -43,99 +47,72 @@ library LendaswapUtils {
     }
 
     /**
-     * @dev For the minimal wallet: decode the redeem data, validate that an
-     * active swap is stored in the HTLCNative contract and quote the RBTC
-     * the smart wallet will receive. Reverts if the data is not a redeem.
-     * @param data The redeem data.
-     * @param to The address of the HTLCNative contract.
-     * @param contractAddr The smart wallet executing the redeem.
-     * @param value The RBTC the smart wallet forwards with the call. The
-     * HTLCNative redeems reject any value.
+     * @dev Validate the call a swap smart wallet executes: no call at all, or
+     * an HTLCNative redeem, with no value forwarded. HTLCNative pays a
+     * redeemBySig to its caller and ignores the destination, sweep token and
+     * calls hash the claimant signed, which only a coordinator acts on; they
+     * must still sign none, so that the guarantee doesn't rest on HTLCNative
+     * ignoring them. Reverts otherwise.
+     * @param data The call data.
+     * @param to The destination contract, or address(0) for no call.
+     * @param contractAddr The smart wallet executing the call.
+     * @param value The RBTC the smart wallet forwards with the call.
+     */
+    function validateCall(
+        bytes calldata data,
+        address to,
+        address contractAddr,
+        uint256 value
+    ) internal pure {
+        require(value == 0, "Value not allowed");
+
+        if (to == address(0)) {
+            return;
+        }
+
+        require(isRedeem(data), "Method not allowed");
+
+        if (MinLibBytes.readBytes4(data, 0) == _REDEEM_BY_SIG_SIGNATURE) {
+            IHTLCNative.RedeemBySigInfo memory redeem = abi.decode(
+                data[4:],
+                (IHTLCNative.RedeemBySigInfo)
+            );
+
+            require(
+                (redeem.destination == address(0) ||
+                    redeem.destination == contractAddr) &&
+                    redeem.sweepToken == address(0) &&
+                    (redeem.callsHash == bytes32(0) ||
+                        redeem.callsHash == _EMPTY_CALLS_HASH),
+                "Redeem authorizes other calls"
+            );
+        }
+    }
+
+    /**
+     * @dev The RBTC a call that passed validateCall pays the smart wallet:
+     * the amount of the active swap it redeems, or 0 if there is no call.
+     * Reverts if the swap is not active, so a fee is never charged against
+     * proceeds the wallet won't receive.
+     * @param data The call data.
+     * @param to The HTLCNative contract, or address(0) for no call.
+     * @param contractAddr The smart wallet executing the call.
      * @return The amount of RBTC the smart wallet will receive.
      */
     function quoteRedeemProceeds(
         bytes calldata data,
         address to,
-        address contractAddr,
-        uint256 value
+        address contractAddr
     ) internal view returns (uint256) {
-        return _quote(data, to, contractAddr, value);
-    }
-
-    /**
-     * @dev For the full wallet: the RBTC it holds after the call, before
-     * paying the fee. Its balance less the value it forwards, plus what the
-     * redeem of an active swap into it pays out. Reverts if the data is not
-     * a redeem, or is a redeem the wallet cannot execute (inactive swap,
-     * value on a nonpayable redeem).
-     * @param data The call data.
-     * @param to The destination contract.
-     * @param contractAddr The smart wallet executing the call.
-     * @param value The RBTC the smart wallet forwards with the call.
-     * @return The amount of RBTC available to pay the fee.
-     */
-    function quoteNativeBalanceAfterRedeem(
-        bytes calldata data,
-        address to,
-        address contractAddr,
-        uint256 value
-    ) internal view returns (uint256) {
-        uint256 proceeds = _quote(data, to, contractAddr, value);
-
-        // The wallet forwards value before paying the fee
-        uint256 balance = contractAddr.balance;
-        require(value <= balance, "Native balance too low");
-
-        return balance - value + proceeds;
-    }
-
-    /**
-     * @dev For the full wallet: the amount of `token` it holds after the
-     * call, before paying the fee. A redeem pays out RBTC only, so this is
-     * the wallet's token balance. The redeem is validated as above, so a
-     * token fee never relaxes what the request may do.
-     * @param data The call data.
-     * @param to The destination contract.
-     * @param contractAddr The smart wallet executing the call.
-     * @param value The RBTC the smart wallet forwards with the call.
-     * @param token The ERC20 token paying the fee.
-     * @return The amount of `token` available to pay the fee.
-     */
-    function quoteTokenBalanceAfterRedeem(
-        bytes calldata data,
-        address to,
-        address contractAddr,
-        uint256 value,
-        address token
-    ) internal view returns (uint256) {
-        _quote(data, to, contractAddr, value);
-
-        // The wallet forwards value before paying the fee
-        require(value <= contractAddr.balance, "Native balance too low");
-
-        return IERC20(token).balanceOf(contractAddr);
-    }
-
-    /**
-     * @dev Quote the RBTC a redeem pays to the smart wallet. Reverts if the
-     * data is not one of the accepted redeem methods.
-     */
-    function _quote(
-        bytes calldata data,
-        address htlc,
-        address contractAddr,
-        uint256 value
-    ) private view returns (uint256) {
-        require(isRedeem(data), "Method not allowed");
-        require(value == 0, "Value not allowed");
-
-        bytes4 signature = MinLibBytes.readBytes4(data, 0);
-
-        if (signature == _REDEEM_SIGNATURE) {
-            return _quoteRedeem(data, htlc, contractAddr);
+        if (to == address(0)) {
+            return 0;
         }
 
-        return _quoteRedeemBySig(data, htlc, contractAddr);
+        if (MinLibBytes.readBytes4(data, 0) == _REDEEM_SIGNATURE) {
+            return _quoteRedeem(data, to, contractAddr);
+        }
+
+        return _quoteRedeemBySig(data, to, contractAddr);
     }
 
     /**

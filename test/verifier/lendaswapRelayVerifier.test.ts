@@ -21,6 +21,7 @@ import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 import {
   REDEEM_AND_EXECUTE_SELECTOR,
   REDEEM_METHODS,
+  RedeemAuthorization,
   RedeemRequest,
   createRedeemRequest,
   createSwapTerms,
@@ -240,6 +241,163 @@ describe('LendaswapRelayVerifier Contract', function () {
           '0x00'
         );
         await expect(result).to.be.revertedWith('Method not allowed');
+      });
+    });
+
+    describe('calling no contract', function () {
+      beforeEach(async function () {
+        await relayVerifierMock.setVariables({
+          acceptedContracts: [fakeHtlc.address, constants.AddressZero],
+          contracts: {
+            [fakeHtlc.address]: true,
+            [constants.AddressZero]: true,
+          },
+        });
+      });
+
+      it('should charge the fee to the wallet balance', async function () {
+        const balance = ethers.utils.parseEther('1');
+        await setBalance(fakeSmartWallet.address, balance);
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(constants.AddressZero, '0x', balance),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(constants.AddressZero, '0x', balance.add(1)),
+            '0x00'
+          )
+        ).to.be.revertedWith('Native balance too low');
+      });
+
+      it('should charge a token fee to the wallet token balance', async function () {
+        fakeToken.balanceOf.returns(1000);
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(
+              constants.AddressZero,
+              '0x',
+              1000,
+              fakeToken.address
+            ),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(
+              constants.AddressZero,
+              '0x',
+              1001,
+              fakeToken.address
+            ),
+            '0x00'
+          )
+        ).to.be.revertedWith('Token balance too low');
+      });
+
+      it('should revert if the request forwards value', async function () {
+        await setBalance(fakeSmartWallet.address, ethers.utils.parseEther('1'));
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(
+              constants.AddressZero,
+              '0x',
+              '0',
+              constants.AddressZero,
+              1
+            ),
+            '0x00'
+          )
+        ).to.be.revertedWith('Value not allowed');
+      });
+
+      it('should revert unless address(0) is an allowed destination', async function () {
+        await relayVerifierMock.setVariables({
+          contracts: { [constants.AddressZero]: false },
+        });
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(constants.AddressZero, '0x', '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Destination contract not allowed');
+      });
+    });
+
+    describe('calling redeemBySig, with what else the claimant signs', function () {
+      async function createSignedRequest(
+        authorization: Partial<RedeemAuthorization>
+      ) {
+        const redeemRequest = await createRedeemRequest({
+          method: 'redeemBySig',
+          htlcAddress: fakeHtlc.address,
+          smartWalletAddress: fakeSmartWallet.address,
+          chainId,
+          authorization,
+        });
+        activateSwap(redeemRequest);
+
+        return redeemRequest;
+      }
+
+      it('should accept no destination and a zero calls hash, as clients sign them', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          destination: constants.AddressZero,
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if it signs another destination, even if not paying', async function () {
+        const { to, data } = await createSignedRequest({
+          destination: Wallet.createRandom().address,
+        });
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs a token sweep', async function () {
+        const { to, data } = await createSignedRequest({
+          sweepToken: Wallet.createRandom().address,
+        });
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs calls', async function () {
+        const { to, data } = await createSignedRequest({
+          callsHash: ethers.utils.keccak256('0x1234'),
+        });
+
+        await expect(
+          relayVerifierMock.verifyRelayedCall(
+            createRelayRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
       });
     });
 

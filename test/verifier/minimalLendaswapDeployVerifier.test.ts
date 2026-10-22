@@ -20,6 +20,7 @@ import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 import {
   REDEEM_AND_EXECUTE_SELECTOR,
   REDEEM_METHODS,
+  RedeemAuthorization,
   RedeemRequest,
   createRedeemRequest,
   createSwapTerms,
@@ -212,6 +213,76 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
         '0x00'
       );
       await expect(result).to.be.revertedWith('Method not allowed');
+    });
+
+    describe('calling redeemBySig, with what else the claimant signs', function () {
+      async function createSignedRequest(
+        authorization: Partial<RedeemAuthorization>
+      ) {
+        const redeemRequest = await createRedeemRequest({
+          method: 'redeemBySig',
+          htlcAddress: fakeHtlc.address,
+          smartWalletAddress: smartWalletAddress,
+          chainId,
+          authorization,
+        });
+        activateSwap(redeemRequest);
+
+        return redeemRequest;
+      }
+
+      it('should accept no destination and a zero calls hash, as clients sign them', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          destination: constants.AddressZero,
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if it signs another destination, even if not paying', async function () {
+        const { to, data } = await createSignedRequest({
+          destination: Wallet.createRandom().address,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs a token sweep', async function () {
+        const { to, data } = await createSignedRequest({
+          sweepToken: Wallet.createRandom().address,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs calls', async function () {
+        const { to, data } = await createSignedRequest({
+          callsHash: ethers.utils.keccak256('0x1234'),
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
     });
 
     // eslint-disable-next-line mocha/no-setup-in-describe
