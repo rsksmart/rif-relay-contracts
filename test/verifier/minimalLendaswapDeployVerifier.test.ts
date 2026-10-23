@@ -283,6 +283,45 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
           )
         ).to.be.revertedWith('Redeem authorizes other calls');
       });
+
+      it('should accept the wallet as destination and a zero calls hash, as satora signed its testnet claims', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should accept a signed minimum amount out', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          minAmountOut: 1,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if its arguments are cut short', async function () {
+        const { to, data } = await createSignedRequest({});
+        // the selector and 5 of its 11 arguments
+        const cutShort = ethers.utils.hexDataSlice(data, 0, 4 + 5 * 32);
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, cutShort, '0'),
+            '0x00'
+          )
+        ).to.be.reverted;
+      });
     });
 
     // eslint-disable-next-line mocha/no-setup-in-describe

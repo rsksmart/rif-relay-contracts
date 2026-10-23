@@ -334,6 +334,16 @@ describe('LendaswapDeployVerifier Contract', function () {
           )
         ).to.be.revertedWith('Destination contract not allowed');
       });
+
+      it('should not read data that comes with no call', async function () {
+        // the wallet makes no call, so the data is never used
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(constants.AddressZero, '0x12345678', '0'),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
     });
 
     describe('calling redeemBySig, with what else the claimant signs', function () {
@@ -403,6 +413,45 @@ describe('LendaswapDeployVerifier Contract', function () {
             '0x00'
           )
         ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should accept the wallet as destination and a zero calls hash, as satora signed its testnet claims', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should accept a signed minimum amount out', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          minAmountOut: 1,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if its arguments are cut short', async function () {
+        const { to, data } = await createSignedRequest({});
+        // the selector and 5 of its 11 arguments
+        const cutShort = ethers.utils.hexDataSlice(data, 0, 4 + 5 * 32);
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, cutShort, '0'),
+            '0x00'
+          )
+        ).to.be.reverted;
       });
     });
 
@@ -526,6 +575,17 @@ describe('LendaswapDeployVerifier Contract', function () {
         it('should revert if the swap is not active', async function () {
           const { to, data, terms } = redeemRequest;
           const deployRequest = createDeployRequest(to, data, terms.amount);
+
+          const result = deployVerifierMock.verifyRelayedCall(
+            deployRequest,
+            '0x00'
+          );
+          await expect(result).to.be.revertedWith('Verifier: swap not active');
+        });
+
+        it('should revert with a fee of 1 wei if the swap is not active', async function () {
+          const { to, data } = redeemRequest;
+          const deployRequest = createDeployRequest(to, data, 1);
 
           const result = deployVerifierMock.verifyRelayedCall(
             deployRequest,
