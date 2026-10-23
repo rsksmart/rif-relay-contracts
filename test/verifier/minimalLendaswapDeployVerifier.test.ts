@@ -12,16 +12,19 @@ import { ethers } from 'hardhat';
 import {
   ERC20,
   IHTLCNative,
-  IHTLCNativeCoordinator,
   MinimalSwapSmartWalletFactory,
   MinimalLendaswapDeployVerifier,
   MinimalLendaswapDeployVerifier__factory,
 } from 'typechain-types';
 import { EnvelopingTypes, RelayHub } from 'typechain-types/contracts/RelayHub';
 import {
+  REDEEM_AND_EXECUTE_SELECTOR,
   REDEEM_METHODS,
+  RedeemAuthorization,
   RedeemRequest,
   createRedeemRequest,
+  createSwapTerms,
+  encodeRefundTo,
   getDomainSeparator,
   getPreimageHash,
 } from '../utils/lendaswap';
@@ -69,7 +72,6 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
     let relayWorker: SignerWithAddress;
     let fakeRelayHub: FakeContract<RelayHub>;
     let fakeHtlc: FakeContract<IHTLCNative>;
-    let fakeCoordinator: FakeContract<IHTLCNativeCoordinator>;
     let smartWalletAddress: string;
     let chainId: number;
 
@@ -125,24 +127,19 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
       ({ chainId } = await ethers.provider.getNetwork());
       fakeRelayHub = await smock.fake<RelayHub>('RelayHub');
       fakeHtlc = await smock.fake<IHTLCNative>('IHTLCNative');
-      fakeCoordinator = await smock.fake<IHTLCNativeCoordinator>(
-        'IHTLCNativeCoordinator'
-      );
 
       fakeHtlc.isActive.returns(false);
       fakeHtlc.DOMAIN_SEPARATOR.returns(
         getDomainSeparator(fakeHtlc.address, chainId)
       );
-      fakeCoordinator.HTLC_NATIVE.returns(fakeHtlc.address);
 
       smartWalletAddress = Wallet.createRandom().address;
       fakeWalletFactory.getSmartWalletAddress.returns(smartWalletAddress);
 
       await deployVerifierMock.setVariables({
-        acceptedContracts: [fakeHtlc.address, fakeCoordinator.address],
+        acceptedContracts: [fakeHtlc.address],
         contracts: {
           [fakeHtlc.address]: true,
-          [fakeCoordinator.address]: true,
         },
       });
     });
@@ -175,6 +172,158 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
       await expect(result).to.be.revertedWith('Method not allowed');
     });
 
+    it('should revert on a refund paid to another address', async function () {
+      // The destination runs code when HTLCNative pays it
+      const data = encodeRefundTo(
+        createSwapTerms({ sender: smartWalletAddress }),
+        Wallet.createRandom().address
+      );
+      const deployRequest = createDeployRequest(fakeHtlc.address, data, '0');
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Method not allowed');
+    });
+
+    it('should revert on redeemAndExecute if paying', async function () {
+      const deployRequest = createDeployRequest(
+        fakeHtlc.address,
+        REDEEM_AND_EXECUTE_SELECTOR,
+        '1'
+      );
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Method not allowed');
+    });
+
+    it('should revert on redeemAndExecute if not paying', async function () {
+      const deployRequest = createDeployRequest(
+        fakeHtlc.address,
+        REDEEM_AND_EXECUTE_SELECTOR,
+        '0'
+      );
+
+      const result = deployVerifierMock.verifyRelayedCall(
+        deployRequest,
+        '0x00'
+      );
+      await expect(result).to.be.revertedWith('Method not allowed');
+    });
+
+    describe('calling redeemBySig, with what else the claimant signs', function () {
+      async function createSignedRequest(
+        authorization: Partial<RedeemAuthorization>
+      ) {
+        const redeemRequest = await createRedeemRequest({
+          method: 'redeemBySig',
+          htlcAddress: fakeHtlc.address,
+          smartWalletAddress: smartWalletAddress,
+          chainId,
+          authorization,
+        });
+        activateSwap(redeemRequest);
+
+        return redeemRequest;
+      }
+
+      it('should accept no destination and a zero calls hash, as clients sign them', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          destination: constants.AddressZero,
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if it signs another destination, even if not paying', async function () {
+        const { to, data } = await createSignedRequest({
+          destination: Wallet.createRandom().address,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs a token sweep', async function () {
+        const { to, data } = await createSignedRequest({
+          sweepToken: Wallet.createRandom().address,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should revert if it signs calls', async function () {
+        const { to, data } = await createSignedRequest({
+          callsHash: ethers.utils.keccak256('0x1234'),
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, '0'),
+            '0x00'
+          )
+        ).to.be.revertedWith('Redeem authorizes other calls');
+      });
+
+      it('should accept the wallet as destination and a zero calls hash, as satora signed its testnet claims', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          callsHash: constants.HashZero,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should accept a signed minimum amount out', async function () {
+        const { to, data, terms } = await createSignedRequest({
+          minAmountOut: 1,
+        });
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, data, terms.amount),
+            '0x00'
+          )
+        ).to.not.be.reverted;
+      });
+
+      it('should revert if its arguments are cut short', async function () {
+        const { to, data } = await createSignedRequest({});
+        // the selector and 5 of its 11 arguments
+        const cutShort = ethers.utils.hexDataSlice(data, 0, 4 + 5 * 32);
+
+        await expect(
+          deployVerifierMock.verifyRelayedCall(
+            createDeployRequest(to, cutShort, '0'),
+            '0x00'
+          )
+        ).to.be.reverted;
+      });
+    });
+
     // eslint-disable-next-line mocha/no-setup-in-describe
     REDEEM_METHODS.forEach((method) => {
       describe(`calling ${method}`, function () {
@@ -184,7 +333,6 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
           redeemRequest = await createRedeemRequest({
             method,
             htlcAddress: fakeHtlc.address,
-            coordinatorAddress: fakeCoordinator.address,
             smartWalletAddress,
             chainId,
           });
@@ -242,48 +390,6 @@ describe('MinimalLendaswapDeployVerifier Contract', function () {
           );
           await expect(result).to.be.revertedWith('RBTC necessary for payment');
         });
-
-        if (method === 'redeemAndExecute') {
-          const createTokenSweepRequest = async () => {
-            const sweepRequest = await createRedeemRequest({
-              method,
-              htlcAddress: fakeHtlc.address,
-              coordinatorAddress: fakeCoordinator.address,
-              smartWalletAddress,
-              chainId,
-              authorization: { sweepToken: Wallet.createRandom().address },
-            });
-            activateSwap(sweepRequest);
-
-            return sweepRequest;
-          };
-
-          it('should revert if a token is swept to the smart wallet, even if not paying', async function () {
-            const { to, data } = await createTokenSweepRequest();
-            const deployRequest = createDeployRequest(to, data, '0');
-
-            const result = deployVerifierMock.verifyRelayedCall(
-              deployRequest,
-              '0x00'
-            );
-            await expect(result).to.be.revertedWith('Token sweep not allowed');
-          });
-
-          it('should revert if a token is swept to the smart wallet, even if the wallet can pay', async function () {
-            const { to, data } = await createTokenSweepRequest();
-            await ethers.provider.send('hardhat_setBalance', [
-              smartWalletAddress,
-              ethers.utils.hexValue(ethers.utils.parseEther('1')),
-            ]);
-            const deployRequest = createDeployRequest(to, data, '1');
-
-            const result = deployVerifierMock.verifyRelayedCall(
-              deployRequest,
-              '0x00'
-            );
-            await expect(result).to.be.revertedWith('Token sweep not allowed');
-          });
-        }
 
         it('should revert if native balance is too low', async function () {
           activateSwap(redeemRequest);

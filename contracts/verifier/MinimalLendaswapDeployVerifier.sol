@@ -52,14 +52,19 @@ contract MinimalLendaswapDeployVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
-        // The minimal wallet never forwards value with the claim call
-        require(relayRequest.request.value == 0, "Value not allowed");
-
-        uint256 amount = LendaswapUtils.quoteRedeemProceeds(
+        // An HTLCNative redeem that pays the smart wallet, with no value: the
+        // minimal wallet never forwards any
+        LendaswapUtils.validateCall(
             relayRequest.request.data,
             relayRequest.request.to,
             contractAddr,
             relayRequest.request.value
+        );
+
+        uint256 amount = LendaswapUtils.quoteRedeemProceeds(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            contractAddr
         );
 
         require(

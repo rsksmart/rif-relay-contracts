@@ -16,7 +16,10 @@ import "../utils/LendaswapUtils.sol";
 /* solhint-disable avoid-low-level-calls */
 
 /**
- * A verifier for relay transactions.
+ * A verifier for relay transactions of the Lendaswap swap smart wallet.
+ * It accepts only an HTLCNative redeem that pays the smart wallet, or no
+ * call, on an allowed destination: HTLCNative must be the only one allowed
+ * besides address(0).
  */
 contract LendaswapRelayVerifier is
     IRelayVerifier,
@@ -59,6 +62,15 @@ contract LendaswapRelayVerifier is
 
         destinationContractValidation(relayRequest.request.to);
 
+        // No call, or an HTLCNative redeem that pays the smart wallet: no code
+        // chosen by the request runs before the wallet pays the fee
+        LendaswapUtils.validateCall(
+            relayRequest.request.data,
+            relayRequest.request.to,
+            payer,
+            relayRequest.request.value
+        );
+
         _validateFee(
             relayRequest.request.data,
             relayRequest.request.to,
@@ -81,31 +93,22 @@ contract LendaswapRelayVerifier is
         bytes calldata data,
         address to,
         address payer,
-        uint256 value
+        uint256 /* value, 0 as validateCall requires */
     ) internal view override returns (uint256) {
         return
-            LendaswapUtils.quoteNativeBalanceAfterRedeem(
-                data,
-                to,
-                payer,
-                value
-            );
+            payer.balance + LendaswapUtils.quoteRedeemProceeds(data, to, payer);
     }
 
     function _quoteTokenBalance(
         bytes calldata data,
         address to,
         address payer,
-        uint256 value,
+        uint256 /* value, 0 as validateCall requires */,
         address token
     ) internal view override returns (uint256) {
-        return
-            LendaswapUtils.quoteTokenBalanceAfterRedeem(
-                data,
-                to,
-                payer,
-                value,
-                token
-            );
+        // A redeem pays RBTC only, but the swap must still be active
+        LendaswapUtils.quoteRedeemProceeds(data, to, payer);
+
+        return IERC20(token).balanceOf(payer);
     }
 }
